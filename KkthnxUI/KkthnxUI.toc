@@ -1,0 +1,6 @@
+## Interface: 20504
+## Title: |cff669DFFKkthnxUI|r |cff65C1EBWrath|r
+## Notes: Empty toc for Curseforge
+## Author: Josh "Kkthnx" Russell
+## Version: 10.2.8
+## X-Support: Wrath Classic

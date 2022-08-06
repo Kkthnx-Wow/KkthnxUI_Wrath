@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding category='BINDING_HEADER_KKUI' name='Raid Marker' runOnUp='true'>
+		RaidMark_HotkeyPressed(keystate)
+	</Binding>
+</Bindings>
