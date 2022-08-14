@@ -57,8 +57,8 @@ tinsert(C.defaultThemes, function()
 		end
 	end
 
-	ReputationFrame:HookScript("OnShow", UpdateFactionSkins)
-	ReputationFrame:HookScript("OnEvent", UpdateFactionSkins)
+	-- ReputationFrame:HookScript("OnShow", UpdateFactionSkins)
+	-- ReputationFrame:HookScript("OnEvent", UpdateFactionSkins)
 
 	SkillDetailStatusBar:SetStatusBarTexture(K.GetTexture(C["UITextures"].SkinTextures))
 	hooksecurefunc(SkillDetailStatusBar, "SetStatusBarColor", replaceBlueColor)

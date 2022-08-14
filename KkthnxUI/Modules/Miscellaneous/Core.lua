@@ -99,7 +99,7 @@ function Module:CreateErrorsFrame()
 	UIErrorsFrame:ClearAllPoints()
 	UIErrorsFrame:SetPoint("TOP", 0, -300)
 
-	K.Mover(UIErrorsFrame, "UIErrorsFrame", "UIErrorsFrame", {"TOP", 0, -300})
+	K.Mover(UIErrorsFrame, "UIErrorsFrame", "UIErrorsFrame", { "TOP", 0, -300 })
 end
 
 -- TradeFrame hook
@@ -113,12 +113,14 @@ function Module:CreateTradeTargetInfo()
 		TradeFrameRecipientNameText:SetTextColor(r, g, b)
 
 		local guid = UnitGUID("NPC")
-		if not guid then return end
-		local text = "|cffff0000"..L["Stranger"]
+		if not guid then
+			return
+		end
+		local text = "|cffff0000" .. L["Stranger"]
 		if BNGetGameAccountInfoByGUID(guid) or C_FriendList_IsFriend(guid) then
-			text = "|cffffff00"..FRIEND
+			text = "|cffffff00" .. FRIEND
 		elseif IsGuildMember(guid) then
-			text = "|cff00ff00"..GUILD
+			text = "|cff00ff00" .. GUILD
 		end
 		infoText:SetText(text)
 	end
@@ -161,7 +163,7 @@ do
 			if maxStack and maxStack > 1 then
 				if not cache[itemLink] then
 					local r, g, b = GetItemQualityColor(quality or 1)
-					StaticPopup_Show("BUY_STACK", " ", " ", {["texture"] = texture, ["name"] = name, ["color"] = {r, g, b, 1}, ["link"] = itemLink, ["index"] = id, ["count"] = maxStack})
+					StaticPopup_Show("BUY_STACK", " ", " ", { ["texture"] = texture, ["name"] = name, ["color"] = { r, g, b, 1 }, ["link"] = itemLink, ["index"] = id, ["count"] = maxStack })
 				else
 					BuyMerchantItem(id, GetMerchantItemMaxStack(id))
 				end
@@ -183,7 +185,7 @@ end
 do
 	local function fixRaidGroupButton()
 		for i = 1, 40 do
-			local bu = _G["RaidGroupButton"..i]
+			local bu = _G["RaidGroupButton" .. i]
 			if bu and bu.unit and not bu.clickFixed then
 				bu:SetAttribute("type", "target")
 				bu:SetAttribute("unit", bu.unit)
@@ -232,7 +234,7 @@ end
 
 function Module:CreateEnhanceNormalDressup()
 	local parent = _G.DressUpFrameResetButton
-	local button = Module:MailBox_CreatButton(parent, 80, 22, "Undress", {"RIGHT", parent, "LEFT", -1, 0})
+	local button = Module:MailBox_CreatButton(parent, 80, 22, "Undress", { "RIGHT", parent, "LEFT", -1, 0 })
 	button:RegisterForClicks("AnyUp")
 	button:SetScript("OnClick", function(_, btn)
 		local actor = DressUpFrame.DressUpModel
@@ -280,7 +282,7 @@ end
 
 function Module:CreateEnhanceAuctionDressup()
 	local parent = _G.SideDressUpModelResetButton
-	local button = Module:MailBox_CreatButton(parent, 80, 22, "Undress", {"TOP", parent, "BOTTOM", 0, -4})
+	local button = Module:MailBox_CreatButton(parent, 80, 22, "Undress", { "TOP", parent, "BOTTOM", 0, -4 })
 	button:RegisterForClicks("AnyUp")
 	button:SetScript("OnClick", function(_, btn)
 		local actor = SideDressUpModel
@@ -324,9 +326,9 @@ if not IsAddOnLoaded("QuestFrameFixer") then
 
 	QuestFrameGreetingPanel:HookScript("OnShow", function()
 		for i, titleLine in ipairs(titleLines) do
-			if (titleLine:IsVisible()) then
+			if titleLine:IsVisible() then
 				local bulletPointTexture = questIconTextures[i]
-				if (titleLine.isActive == 1) then
+				if titleLine.isActive == 1 then
 					bulletPointTexture:SetTexture(ACTIVE_QUEST_ICON_FILEID)
 				else
 					bulletPointTexture:SetTexture(AVAILABLE_QUEST_ICON_FILEID)
@@ -340,7 +342,7 @@ end
 if not IsAddOnLoaded("QuestIconDesaturation") then
 	local escapes = {
 		["|c%x%x%x%x%x%x%x%x"] = "", -- color start
-		["|r"] = "" -- color end
+		["|r"] = "", -- color end
 	}
 
 	local function unescape(str)
@@ -358,7 +360,7 @@ if not IsAddOnLoaded("QuestIconDesaturation") then
 		local questLogTitleText, isComplete, questId, _
 		for i = 1, numEntries, 1 do
 			_, _, _, _, _, isComplete, _, questId = GetQuestLogTitle(i)
-			if (isComplete == 1 or IsQuestComplete(questId)) then
+			if isComplete == 1 or IsQuestComplete(questId) then
 				questLogTitleText = C_QuestLog_GetQuestInfo(questId)
 				completedActiveQuests[questLogTitleText] = true
 			end
@@ -373,9 +375,9 @@ if not IsAddOnLoaded("QuestIconDesaturation") then
 			local line = lineMap[i]
 			local icon = iconMap[i]
 			icon:SetDesaturated(nil)
-			if (line:IsVisible() and activePred(line)) then
+			if line:IsVisible() and activePred(line) then
 				local questName = unescape(line:GetText())
-				if (not completedQuests[questName]) then
+				if not completedQuests[questName] then
 					icon:SetDesaturated(1)
 				end
 			end
@@ -411,7 +413,7 @@ end
 
 function Module:CreateGUIGameMenuButton()
 	local KKUI_GUIButton = CreateFrame("Button", "KKUI_GameMenuButton", GameMenuFrame, "GameMenuButtonTemplate, BackdropTemplate")
-	KKUI_GUIButton:SetText(K.InfoColor.."KkthnxUI|r")
+	KKUI_GUIButton:SetText(K.InfoColor .. "KkthnxUI|r")
 	KKUI_GUIButton:SetPoint("TOP", GameMenuButtonAddons, "BOTTOM", 0, -21)
 	KKUI_GUIButton:SkinButton()
 
@@ -437,10 +439,12 @@ function Module:CreateGUIGameMenuButton()
 		_G.GameMenuButtonQuit:ClearAllPoints()
 		_G.GameMenuButtonQuit:SetPoint("TOP", _G.GameMenuButtonLogout, "BOTTOM", 0, -6)
 
-		if (C_StorePublic.IsEnabled()) then
-			plusHeight = plusHeight + 6
-		elseif (GameMenuButtonRatings:IsShown()) then
-			plusHeight = plusHeight + 6
+		if C_StorePublic.IsEnabled() then
+			plusHeight = plusHeight + 10
+		elseif GameMenuButtonRatings:IsShown() then
+			plusHeight = plusHeight + 10
+		else
+			plusHeight = plusHeight + 10
 		end
 
 		self:SetHeight(self:GetHeight() + KKUI_GUIButton:GetHeight() + plusHeight)
@@ -448,7 +452,7 @@ function Module:CreateGUIGameMenuButton()
 
 	KKUI_GUIButton:SetScript("OnClick", function()
 		if InCombatLockdown() then
-			UIErrorsFrame:AddMessage(K.InfoColor..ERR_NOT_IN_COMBAT)
+			UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_IN_COMBAT)
 			return
 		end
 
@@ -460,10 +464,10 @@ end
 
 if IsAddOnLoaded("Anti-Deluxe") then
 	local function FuckYou_AntiDeluxe() -- Dont let others hook and change this
-		local buffs, i = { }, 1
+		local buffs, i = {}, 1
 		local buff = UnitBuff("target", i)
 		local check = ""
-		local setEmotes = {"CHEER", "HUG", "CLAP", "CONGRATS", "GLAD"} -- make it interesting
+		local setEmotes = { "CHEER", "HUG", "CLAP", "CONGRATS", "GLAD" } -- make it interesting
 
 		while buff do
 			buffs[#buffs + 1] = buff
@@ -497,8 +501,8 @@ if IsAddOnLoaded("Anti-Deluxe") then
 	BuffCheck = FuckYou_AntiDeluxe -- Hook this shitty addon to fix the shitty choices this dev has made
 end
 
-local increased	= gsub(gsub(FACTION_STANDING_INCREASED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
-local decreased	= gsub(gsub(FACTION_STANDING_DECREASED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
+local increased = gsub(gsub(FACTION_STANDING_INCREASED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
+local decreased = gsub(gsub(FACTION_STANDING_DECREASED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
 local changed = gsub(gsub(FACTION_STANDING_CHANGED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
 local function SetupAutoTrackRep(_, messagetype)
 	local startPos, _, faction = string.find(messagetype, increased)
@@ -548,7 +552,7 @@ local function CheckPetHappiness(_, unit)
 		local str = petHappinessStr[happiness]
 		if str then
 			local petName = UnitName(unit)
-			RaidNotice_AddMessage(RaidWarningFrame, string_format(FeedPetIcon..str, K.InfoColorTint, K.MyClassColor..petName.."|r"), ChatTypeInfo["RAID_WARNING"])
+			RaidNotice_AddMessage(RaidWarningFrame, string_format(FeedPetIcon .. str, K.InfoColorTint, K.MyClassColor .. petName .. "|r"), ChatTypeInfo["RAID_WARNING"])
 			if happiness == 1 then
 				PlaySound(12197)
 			elseif happiness == 2 then

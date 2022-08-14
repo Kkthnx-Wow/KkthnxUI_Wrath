@@ -142,7 +142,7 @@ function Module:CreateMicroMenu()
 	end
 
 	microBar = microBar or CreateFrame("Frame", "KKUI_MicroBar", UIParent)
-	microBar:SetSize(210, 20 * 1.8)
+	microBar:SetSize(262, 20 * 1.8)
 	microBar:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0)
 	microBar:EnableMouse(false)
 
@@ -160,9 +160,12 @@ function Module:CreateMicroMenu()
 	UpdateMicroPositionDimensions()
 
 	-- Default elements
-	_G.MainMenuBar.slideOut:GetAnimations():SetOffset(0,0)
+	_G.MainMenuBar.slideOut:GetAnimations():SetOffset(0, 0)
 	MainMenuBarPerformanceBar:SetAlpha(0)
-	MainMenuBarPerformanceBar:SetScale(.00001)
+	MainMenuBarPerformanceBar:SetScale(0.00001)
 
-	K.Mover(microBar, "MicroBar", "MicroBar", {"BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0})
+	PVPMicroButtonTexture:ClearAllPoints()
+	PVPMicroButtonTexture:SetPoint("TOP", PVPMicroButton, "TOP", 6, -3)
+
+	K.Mover(microBar, "MicroBar", "MicroBar", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0 })
 end

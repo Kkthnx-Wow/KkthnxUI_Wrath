@@ -74,8 +74,7 @@ local stats = {
 	"Burning Crusade, was the first expansion for World of Warcraft",
 	"Don't just play warrior. Be a warrior!",
 	"Don't just watch a player struggle, help them!",
-	"Druids in cat form are not tameable by hunters"
-		.. "|TInterface\\Addons\\KkthnxUI\\Media\\Chat\\Emojis\\StuckOutTongueClosedEyes:0:0:4|t",
+	"Druids in cat form are not tameable by hunters" .. "|TInterface\\Addons\\KkthnxUI\\Media\\Chat\\Emojis\\StuckOutTongueClosedEyes:0:0:4|t",
 	"Druids receive Flight Form at level 68",
 	"Flying mounts are only usable in Outland at level 70",
 	"Group quests is a means to make new friends",
@@ -137,13 +136,7 @@ local function createDate(self)
 	local presentDay = date.monthDay
 	local presentYear = date.year
 
-	self.top.date:SetFormattedText(
-		"%s, %s %d, %d",
-		daysAbr[presentWeekday],
-		monthAbr[presentMonth],
-		presentDay,
-		presentYear
-	)
+	self.top.date:SetFormattedText("%s, %s %d, %d", daysAbr[presentWeekday], monthAbr[presentMonth], presentDay, presentYear)
 end
 
 local function UpdateLogOff(self)
@@ -339,26 +332,8 @@ local function Chat_OnMouseWheel(self, delta)
 	end
 end
 
-local function Chat_OnEvent(
-	self,
-	event,
-	arg1,
-	arg2,
-	arg3,
-	arg4,
-	arg5,
-	arg6,
-	arg7,
-	arg8,
-	arg9,
-	arg10,
-	arg11,
-	arg12,
-	arg13,
-	arg14
-)
-	local coloredName =
-		GetColoredName(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14)
+local function Chat_OnEvent(self, event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14)
+	local coloredName = GetColoredName(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14)
 	local type = string_sub(event, 10)
 	local info = ChatTypeInfo[type]
 
@@ -382,25 +357,9 @@ local function Chat_OnEvent(
 
 	local playerLink
 	if type ~= "BN_WHISPER" and type ~= "BN_CONVERSATION" then
-		playerLink = "|Hplayer:"
-			.. arg2
-			.. ":"
-			.. arg11
-			.. ":"
-			.. chatGroup
-			.. (chatTarget and ":" .. chatTarget or "")
-			.. "|h"
+		playerLink = "|Hplayer:" .. arg2 .. ":" .. arg11 .. ":" .. chatGroup .. (chatTarget and ":" .. chatTarget or "") .. "|h"
 	else
-		playerLink = "|HBNplayer:"
-			.. arg2
-			.. ":"
-			.. arg13
-			.. ":"
-			.. arg11
-			.. ":"
-			.. chatGroup
-			.. (chatTarget and ":" .. chatTarget or "")
-			.. "|h"
+		playerLink = "|HBNplayer:" .. arg2 .. ":" .. arg13 .. ":" .. arg11 .. ":" .. chatGroup .. (chatTarget and ":" .. chatTarget or "") .. "|h"
 	end
 
 	local message = arg1
@@ -411,8 +370,7 @@ local function Chat_OnEvent(
 	-- Escape any % characters, as it may otherwise cause an "invalid option in format" error in the next step
 	message = string_gsub(message, "%%", "%%%%")
 
-	_, body =
-		pcall(string_format, _G["CHAT_" .. type .. "_GET"] .. message, playerLink .. "[" .. coloredName .. "]" .. "|h")
+	_, body = pcall(string_format, _G["CHAT_" .. type .. "_GET"] .. message, playerLink .. "[" .. coloredName .. "]" .. "|h")
 
 	local accessID = ChatHistory_GetAccessID(chatGroup, chatTarget)
 	local typeID = ChatHistory_GetAccessID(type, chatTarget, arg12 == "" and arg13 or arg12)
@@ -464,13 +422,7 @@ function Module:CreateAFKCam()
 
 	AFKMode.top = CreateFrame("Frame", nil, AFKMode)
 	AFKMode.top:SetFrameLevel(0)
-	AFKMode.top:CreateBorder(
-		nil,
-		nil,
-		C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32 or nil,
-		nil,
-		C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and -10 or nil
-	)
+	AFKMode.top:CreateBorder(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32 or nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and -10 or nil)
 	AFKMode.top:SetPoint("TOP", AFKMode, "TOP", 0, 6)
 	AFKMode.top:SetSize(UIParent:GetWidth() + 12, 54)
 
@@ -478,13 +430,7 @@ function Module:CreateAFKCam()
 
 	AFKMode.bottom = CreateFrame("Frame", nil, AFKMode)
 	AFKMode.bottom:SetFrameLevel(0)
-	AFKMode.bottom:CreateBorder(
-		nil,
-		nil,
-		C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32 or nil,
-		nil,
-		C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and -10 or nil
-	)
+	AFKMode.bottom:CreateBorder(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32 or nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and -10 or nil)
 	AFKMode.bottom:SetPoint("BOTTOM", AFKMode, "BOTTOM", 0, -6)
 	AFKMode.bottom:SetSize(UIParent:GetWidth() + 12, 120)
 
@@ -502,11 +448,11 @@ function Module:CreateAFKCam()
 
 	-- WoW logo
 	AFKMode.top.wowlogo = CreateFrame("Frame", nil, AFKMode) -- need this to upper the logo layer
-	AFKMode.top.wowlogo:SetPoint("TOP", AFKMode.top, "TOP", 0, 150)
+	AFKMode.top.wowlogo:SetPoint("TOP", AFKMode.top, "TOP", 0, 18)
 	AFKMode.top.wowlogo:SetFrameStrata("MEDIUM")
-	AFKMode.top.wowlogo:SetSize(512, 512)
+	AFKMode.top.wowlogo:SetSize(512, 256)
 	AFKMode.top.wowlogo.tex = AFKMode.top.wowlogo:CreateTexture(nil, "OVERLAY")
-	AFKMode.top.wowlogo.tex:SetTexture([[Interface\GLUES\COMMON\Glues-WoW-ClassicWrathLogo]])
+	AFKMode.top.wowlogo.tex:SetTexture([[Interface\GLUES\COMMON\gamelogo-wrathofthelichkingclassic]])
 	AFKMode.top.wowlogo.tex:SetAllPoints()
 
 	-- Date text
@@ -556,19 +502,7 @@ function Module:CreateAFKCam()
 
 	AFKMode.bottom.playerInfo = AFKMode.bottom:CreateFontString(nil, "OVERLAY")
 	AFKMode.bottom.playerInfo:FontTemplate(nil, 20)
-	AFKMode.bottom.playerInfo:SetText(
-		K.SystemColor
-			.. LEVEL
-			.. " "
-			.. K.Level
-			.. "|r "
-			.. K.GreyColor
-			.. K.Race
-			.. "|r "
-			.. K.MyClassColor
-			.. UnitClass("player")
-			.. "|r"
-	)
+	AFKMode.bottom.playerInfo:SetText(K.SystemColor .. LEVEL .. " " .. K.Level .. "|r " .. K.GreyColor .. K.Race .. "|r " .. K.MyClassColor .. UnitClass("player") .. "|r")
 	AFKMode.bottom.playerInfo:SetPoint("TOPLEFT", AFKMode.bottom.name, "BOTTOMLEFT", 0, -6)
 
 	AFKMode.bottom.guild = AFKMode.bottom:CreateFontString(nil, "OVERLAY")

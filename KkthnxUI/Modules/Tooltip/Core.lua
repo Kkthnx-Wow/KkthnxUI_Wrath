@@ -534,6 +534,7 @@ Module:RegisterTooltips("KkthnxUI", function()
 		ItemRefTooltip,
 		LanguageMenu,
 		NamePlateTooltip,
+		PartyMemberBuffTooltip,
 		ShoppingTooltip1,
 		ShoppingTooltip2,
 		VoiceMacroMenu,
@@ -620,6 +621,10 @@ end)
 Module:RegisterTooltips("Blizzard_DebugTools", function()
 	Module.ReskinTooltip(FrameStackTooltip)
 	FrameStackTooltip:SetScale(UIParent:GetScale())
+end)
+
+Module:RegisterTooltips("Blizzard_LookingForGroupUI", function()
+	Module.ReskinTooltip(LFGBrowseSearchEntryTooltip)
 end)
 
 Module:RegisterTooltips("Blizzard_EventTrace", function()

@@ -6,7 +6,6 @@
 ## Version: 10.2.8
 ## X-Support: Wrath Classic
 ## SavedVariables: KkthnxUIDB
-## OptionalDeps: ViragDevTool, _DebugLog, !Stragglers
 ## X-Curse-Project-ID: 95528
 ## X-WoWI-ID: 24615
 ## X-Wago-ID: lQNlqP6e
