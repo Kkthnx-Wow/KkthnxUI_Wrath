@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Skins")
 local TT = K:GetModule("Tooltip")
 
@@ -30,7 +30,7 @@ local function ReskinDBMIcon(icon, frame)
 		bg.icon = bg:CreateTexture(nil, "ARTWORK")
 		bg.icon:SetAllPoints()
 		bg.icon:SetTexture(icon:GetTexture())
-		bg.icon:SetTexCoord(unpack(K.TexCoords))
+		bg.icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 		icon.styled = true
 	end
@@ -46,7 +46,7 @@ local function ReskinDBMBar(bar, frame)
 
 	if not bar.styled then
 		bar:StripTextures()
-		bar:SetStatusBarTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
+		bar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
 		bar:CreateBorder()
 
 		bar.newSpark = bar:CreateTexture(nil, "OVERLAY")
@@ -63,7 +63,7 @@ local function ReskinDBMBar(bar, frame)
 end
 
 local function HideDBMSpark(self)
-	local spark = _G[self.frame:GetName().."BarSpark"]
+	local spark = _G[self.frame:GetName() .. "BarSpark"]
 	spark:SetAlpha(0)
 	spark:SetTexture(nil)
 end
@@ -71,19 +71,19 @@ end
 local function ApplyDBMStyle(self)
 	local frame = self.frame
 	local frame_name = frame:GetName()
-	local tbar = _G[frame_name.."Bar"]
-	local texture = _G[frame_name.."BarTexture"]
-	local icon1 = _G[frame_name.."BarIcon1"]
-	local icon2 = _G[frame_name.."BarIcon2"]
-	local name = _G[frame_name.."BarName"]
-	local timer = _G[frame_name.."BarTimer"]
+	local tbar = _G[frame_name .. "Bar"]
+	local texture = _G[frame_name .. "BarTexture"]
+	local icon1 = _G[frame_name .. "BarIcon1"]
+	local icon2 = _G[frame_name .. "BarIcon2"]
+	local name = _G[frame_name .. "BarName"]
+	local timer = _G[frame_name .. "BarTimer"]
 
 	if self.enlarged then
-		frame:SetWidth(self.owner.options.HugeWidth)
-		tbar:SetWidth(self.owner.options.HugeWidth)
+		frame:SetWidth(self.owner.Options.HugeWidth)
+		tbar:SetWidth(self.owner.Options.HugeWidth)
 	else
-		frame:SetWidth(self.owner.options.Width)
-		tbar:SetWidth(self.owner.options.Width)
+		frame:SetWidth(self.owner.Options.Width)
+		tbar:SetWidth(self.owner.Options.Width)
 	end
 
 	frame:SetScale(1)
@@ -94,7 +94,7 @@ local function ApplyDBMStyle(self)
 	ReskinDBMBar(tbar, frame)
 
 	if texture then
-		texture:SetTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
+		texture:SetTexture(K.GetTexture(C["General"].Texture))
 	end
 
 	name:ClearAllPoints()
@@ -120,11 +120,12 @@ function Module:ReskinDeadlyBossMods()
 			if string_match(textString, ":(%d+):(%d+)") then
 				local size1, size2 = string_match(textString, ":(%d+):(%d+)")
 				size1, size2 = size1 + 3, size2 + 3
-				textString = string_gsub(textString,":(%d+):(%d+)",":"..size1..":"..size2..":0:0:64:64:5:59:5:59")
+				textString =
+					string_gsub(textString, ":(%d+):(%d+)", ":" .. size1 .. ":" .. size2 .. ":0:0:64:64:5:59:5:59")
 			elseif string_match(textString, ":(%d+)|t") then
 				local size = string_match(textString, ":(%d+)|t")
 				size = size + 3
-				textString = string_gsub(textString,":(%d+)|t",":"..size..":"..size..":0:0:64:64:5:59:5:59|t")
+				textString = string_gsub(textString, ":(%d+)|t", ":" .. size .. ":" .. size .. ":0:0:64:64:5:59:5:59|t")
 			end
 		end
 
@@ -183,8 +184,8 @@ function Module:ReskinDeadlyBossMods()
 	if not DBT_AllPersistentOptions["Default"] then
 		DBT_AllPersistentOptions["Default"] = {}
 	end
-	DBT_AllPersistentOptions["Default"]["DBM"].BarYOffset = 20
-	DBT_AllPersistentOptions["Default"]["DBM"].HugeBarYOffset = 20
+	DBT_AllPersistentOptions["Default"]["DBM"].BarYOffset = 10
+	DBT_AllPersistentOptions["Default"]["DBM"].HugeBarYOffset = 10
 	DBT_AllPersistentOptions["Default"]["DBM"].ExpandUpwards = true
 	DBT_AllPersistentOptions["Default"]["DBM"].ExpandUpwardsLarge = true
 end
