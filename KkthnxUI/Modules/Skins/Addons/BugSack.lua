@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Skins")
 
 local _G = _G
@@ -33,8 +33,8 @@ function Module:ReskinBugSack()
 		BugSackPrevButton:SkinButton()
 		BugSackScrollScrollBar:SkinScrollBar()
 
-		for _, child in pairs({BugSackFrame:GetChildren()}) do
-			if (child:IsObjectType("Button") and child:GetScript("OnClick") == BugSack.CloseSack) then
+		for _, child in pairs({ BugSackFrame:GetChildren() }) do
+			if child:IsObjectType("Button") and child:GetScript("OnClick") == BugSack.CloseSack then
 				child:SkinCloseButton()
 			end
 		end

@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Loot")
 
 -- Sourced: ShestakUI (Wetxius, Shestak)
@@ -9,7 +9,7 @@ local STATICPOPUP_NUMDIALOGS = _G.STATICPOPUP_NUMDIALOGS
 
 local function SetupAutoConfirm()
 	for i = 1, STATICPOPUP_NUMDIALOGS do
-		local frame = _G["StaticPopup"..i]
+		local frame = _G["StaticPopup" .. i]
 		if (frame.which == "CONFIRM_LOOT_ROLL" or frame.which == "LOOT_BIND") and frame:IsVisible() then
 			StaticPopup_OnClick(frame, 1)
 		end

@@ -1,4 +1,4 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Infobar")
 
 local _G = _G
@@ -11,20 +11,22 @@ local GetInventoryItemLink = _G.GetInventoryItemLink
 local GetInventoryItemDurability = _G.GetInventoryItemDurability
 local GetInventoryItemTexture = _G.GetInventoryItemTexture
 
+local DurabilityDataText
 local repairCostString = string_gsub(REPAIR_COST, HEADER_COLON, ":")
+local lowDurabilityCap = 0.25
 
 local localSlots = {
-	[1] = {1, INVTYPE_HEAD, 1000},
-	[2] = {3, INVTYPE_SHOULDER, 1000},
-	[3] = {5, INVTYPE_CHEST, 1000},
-	[4] = {6, INVTYPE_WAIST, 1000},
-	[5] = {9, INVTYPE_WRIST, 1000},
-	[6] = {10, INVTYPE_HAND, 1000},
-	[7] = {7, INVTYPE_LEGS, 1000},
-	[8] = {8, INVTYPE_FEET, 1000},
-	[9] = {16, INVTYPE_WEAPONMAINHAND, 1000},
-	[10] = {17, INVTYPE_WEAPONOFFHAND, 1000},
-	[11] = {18, INVTYPE_RANGED, 1000}
+	[1] = { 1, INVTYPE_HEAD, 1000 },
+	[2] = { 3, INVTYPE_SHOULDER, 1000 },
+	[3] = { 5, INVTYPE_CHEST, 1000 },
+	[4] = { 6, INVTYPE_WAIST, 1000 },
+	[5] = { 9, INVTYPE_WRIST, 1000 },
+	[6] = { 10, INVTYPE_HAND, 1000 },
+	[7] = { 7, INVTYPE_LEGS, 1000 },
+	[8] = { 8, INVTYPE_FEET, 1000 },
+	[9] = { 16, INVTYPE_WEAPONMAINHAND, 1000 },
+	[10] = { 17, INVTYPE_WEAPONOFFHAND, 1000 },
+	[11] = { 18, INVTYPE_RANGED, 1000 },
 }
 
 local function sortSlots(a, b)
@@ -33,7 +35,7 @@ local function sortSlots(a, b)
 	end
 end
 
-local function getItemDurability()
+local function UpdateAllSlots()
 	local numSlots = 0
 	for i = 1, #localSlots do
 		localSlots[i][3] = 1000
@@ -44,6 +46,9 @@ local function getItemDurability()
 				localSlots[i][3] = current / max
 				numSlots = numSlots + 1
 			end
+
+			local iconTexture = GetInventoryItemTexture("player", index) or 134400
+			localSlots[i][4] = "|T" .. iconTexture .. ":13:15:0:0:50:50:4:46:4:46|t " or ""
 		end
 	end
 	table_sort(localSlots, sortSlots)
@@ -51,39 +56,57 @@ local function getItemDurability()
 	return numSlots
 end
 
-local function gradientColor(perc)
-	perc = perc > 1 and 1 or perc < 0 and 0 or perc -- Stay between 0-1
-
-	local seg, relperc = math.modf(perc * 2)
-	local r1, g1, b1, r2, g2, b2 = select(seg * 3 + 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0) -- R -> Y -> G
-	local r, g, b = r1 + (r2 - r1) * relperc, g1 + (g2 - g1) * relperc, b1 + (b2 - b1) * relperc
-
-	return string_format("|cff%02x%02x%02x", r * 255, g * 255, b * 255), r, g, b
+local function isLowDurability()
+	for i = 1, 10 do
+		if localSlots[i][3] < lowDurabilityCap then
+			return true
+		end
+	end
 end
 
-local function OnEvent()
-	local numSlots = getItemDurability()
-	if numSlots > 0 then
-		Module.DurabilityDataTextFrame.Text:SetText(string_format(string_gsub("[color]%d|r%% "..DURABILITY, "%[color%]", (gradientColor(math_floor(localSlots[1][3] * 100) / 100))), math_floor(localSlots[1][3] * 100)))
+local function getDurabilityColor(cur, max)
+	local r, g, b = K.oUF:RGBColorGradient(cur, max, 1, 0, 0, 1, 1, 0, 0, 1, 0)
+	return r, g, b
+end
+
+local eventList = {
+	"UPDATE_INVENTORY_DURABILITY",
+	"PLAYER_ENTERING_WORLD",
+}
+
+local function OnEvent(_, event)
+	if event == "PLAYER_ENTERING_WORLD" then
+		DurabilityDataText:UnregisterEvent(event)
+	end
+
+	local numSlots = UpdateAllSlots()
+
+	if event == "PLAYER_REGEN_ENABLED" then
+		DurabilityDataText:UnregisterEvent(event)
+		DurabilityDataText:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
 	else
-		Module.DurabilityDataTextFrame.Text:SetText(DURABILITY..": "..K.MyClassColor..NONE)
+		if numSlots > 0 then
+			local r, g, b = getDurabilityColor(math_floor(localSlots[1][3] * 100), 100)
+			DurabilityDataText.Text:SetFormattedText("%s%%|r" .. " " .. DURABILITY, K.RGBToHex(r, g, b) .. math_floor(localSlots[1][3] * 100))
+		else
+			DurabilityDataText.Text:SetText(DURABILITY .. ": " .. K.MyClassColor .. NONE)
+		end
 	end
 end
 
 local function OnEnter()
-	GameTooltip:SetOwner(Module.DurabilityDataTextFrame, "ANCHOR_NONE")
-	GameTooltip:SetPoint("BOTTOMLEFT", Module.DurabilityDataTextFrame, "TOPRIGHT", 0, 0)
-	GameTooltip:AddDoubleLine(DURABILITY, " ", 163/255, 211/255, 255/255, 163/255, 211/255, 255/255)
+	GameTooltip:SetOwner(DurabilityDataText, "ANCHOR_NONE")
+	GameTooltip:SetPoint("BOTTOMLEFT", DurabilityDataText, "TOPRIGHT", 0, 0)
+	GameTooltip:AddDoubleLine(DURABILITY, " ", 0.4, 0.6, 1, 0.4, 0.6, 1)
 	GameTooltip:AddLine(" ")
 
 	local totalCost = 0
 	for i = 1, #localSlots do
 		if localSlots[i][3] ~= 1000 then
 			local slot = localSlots[i][1]
-			local green = localSlots[i][3] * 2
-			local red = 1 - green
-			local slotIcon = "|T"..GetInventoryItemTexture("player", slot)..":13:15:0:0:50:50:4:46:4:46|t " or ""
-			GameTooltip:AddDoubleLine(slotIcon..localSlots[i][2], math_floor(localSlots[i][3] * 100).."%", 1, 1, 1, red + 1, green, 0)
+			local cur = math_floor(localSlots[i][3] * 100)
+			local slotIcon = localSlots[i][4]
+			GameTooltip:AddDoubleLine(slotIcon .. localSlots[i][2], cur .. "%", 1, 1, 1, getDurabilityColor(cur, 100))
 
 			K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
 			totalCost = totalCost + select(3, K.ScanTooltip:SetInventoryItem("player", slot))
@@ -92,7 +115,7 @@ local function OnEnter()
 
 	if totalCost > 0 then
 		GameTooltip:AddLine(" ")
-		GameTooltip:AddDoubleLine(repairCostString, K.FormatMoney(totalCost), 163/255, 211/255, 255/255, 1, 1, 1)
+		GameTooltip:AddDoubleLine(repairCostString, K.FormatMoney(totalCost), 0.4, 0.6, 1, 1, 1, 1)
 	end
 
 	GameTooltip:Show()
@@ -103,7 +126,7 @@ local function OnLeave()
 end
 
 local function NewSetLevelFunction()
-	CharacterLevelText:SetFormattedText(K.Name.." "..PLAYER_LEVEL, UnitLevel("player"), UnitRace("player"), K.MyClassColor..UnitClass("player").."|r")
+	CharacterLevelText:SetFormattedText(K.Name .. " " .. PLAYER_LEVEL, UnitLevel("player"), UnitRace("player"), K.MyClassColor .. UnitClass("player") .. "|r")
 end
 
 function Module:CreateDurabilityDataText()
@@ -117,18 +140,22 @@ function Module:CreateDurabilityDataText()
 
 	_G.hooksecurefunc("PaperDollFrame_SetLevel", NewSetLevelFunction) -- Replace this function as we set our own style so we can set our durr stat
 
-	Module.DurabilityDataTextFrame = Module.DurabilityDataTextFrame or CreateFrame("Frame", nil, CharacterModelFrame)
+	DurabilityDataText = DurabilityDataText or CreateFrame("Frame", nil, UIParent)
+	DurabilityDataText:SetFrameLevel(PaperDollFrame:GetFrameLevel() + 2)
+	DurabilityDataText:SetParent(PaperDollFrame)
 
-	Module.DurabilityDataTextFrame.Text = Module.DurabilityDataTextFrame.Text or Module.DurabilityDataTextFrame:CreateFontString(nil, "ARTWORK")
-    Module.DurabilityDataTextFrame.Text:SetPoint('CENTER', CharacterNameFrame, 0, -1)
-	Module.DurabilityDataTextFrame.Text:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
+	DurabilityDataText.Text = DurabilityDataText.Text or DurabilityDataText:CreateFontString(nil, "ARTWORK")
+	DurabilityDataText.Text:SetPoint("CENTER", CharacterNameFrame, 0, 2)
+	DurabilityDataText.Text:SetFontObject(K.UIFont)
+	DurabilityDataText.Text:SetFont(select(1, DurabilityDataText.Text:GetFont()), 11, select(3, DurabilityDataText.Text:GetFont()))
 
-    Module.DurabilityDataTextFrame:SetAllPoints(Module.DurabilityDataTextFrame.Text)
+	DurabilityDataText:SetAllPoints(DurabilityDataText.Text)
 
-	Module.DurabilityDataTextFrame:RegisterEvent("UPDATE_INVENTORY_DURABILITY", OnEvent)
-	Module.DurabilityDataTextFrame:RegisterEvent("PLAYER_ENTERING_WORLD", OnEvent)
+	for _, event in pairs(eventList) do
+		DurabilityDataText:RegisterEvent(event)
+	end
 
-	Module.DurabilityDataTextFrame:SetScript("OnEnter", OnEnter)
-	Module.DurabilityDataTextFrame:SetScript("OnLeave", OnLeave)
-	Module.DurabilityDataTextFrame:SetScript("OnEvent", OnEvent)
+	DurabilityDataText:SetScript("OnEvent", OnEvent)
+	DurabilityDataText:SetScript("OnEnter", OnEnter)
+	DurabilityDataText:SetScript("OnLeave", OnLeave)
 end

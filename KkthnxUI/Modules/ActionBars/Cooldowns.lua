@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:NewModule("Cooldowns")
 
 local _G = _G
@@ -14,11 +14,33 @@ local hooksecurefunc = _G.hooksecurefunc
 local SetCVar = _G.SetCVar
 
 local FONT_SIZE = 19
-local MIN_DURATION = 2.5 -- the minimum duration to show cooldown text for
+local MIN_DURATION = 2 -- the minimum duration to show cooldown text for
 local MIN_SCALE = 0.5 -- the minimum scale we want to show cooldown counts at, anything below this will be hidden
 local ICON_SIZE = 36
 
 local hideNumbers, active, hooked = {}, {}, {}
+
+local day, hour, minute = 86400, 3600, 60
+function Module.FormattedTimer(s, modRate)
+	if s >= day then
+		return format("%d" .. K.MyClassColor .. "d", s / day + 0.5), s % day
+	elseif s > hour then
+		return format("%d" .. K.MyClassColor .. "h", s / hour + 0.5), s % hour
+	elseif s >= minute then
+		if s < C["ActionBar"].MMSSTH then
+			return format("%d:%.2d", s / minute, s % minute), s - floor(s)
+		else
+			return format("%d" .. K.MyClassColor .. "m", s / minute + 0.5), s % minute
+		end
+	else
+		local colorStr = (s < 3 and "|cffff0000") or (s < 10 and "|cffffff00") or "|cffcccc33"
+		if s < C["ActionBar"].TenthTH then
+			return format(colorStr .. "%.1f|r", s), (s - format("%.1f", s)) / modRate
+		else
+			return format(colorStr .. "%d|r", s + 0.5), (s - floor(s)) / modRate
+		end
+	end
+end
 
 function Module:StopTimer()
 	self.enabled = nil
@@ -31,7 +53,6 @@ function Module:ForceUpdate()
 end
 
 function Module:OnSizeChanged(width, height)
-	local cooldownFont = K.GetFont(C["UIFonts"].ActionBarsFonts)
 	local fontScale = K.Round((width + height) / 2) / ICON_SIZE
 	if fontScale == self.fontScale then
 		return
@@ -41,7 +62,7 @@ function Module:OnSizeChanged(width, height)
 	if fontScale < MIN_SCALE then
 		self:Hide()
 	else
-		self.text:SetFontObject(cooldownFont)
+		self.text:SetFontObject(K.UIFontOutline)
 		self.text:SetFont(select(1, self.text:GetFont()), fontScale * FONT_SIZE, select(3, self.text:GetFont()))
 		self.text:SetShadowColor(0, 0, 0, 0)
 
@@ -55,9 +76,9 @@ function Module:TimerOnUpdate(elapsed)
 	if self.nextUpdate > 0 then
 		self.nextUpdate = self.nextUpdate - elapsed
 	else
-		local remain = self.duration - (GetTime() - self.start)
+		local remain = (self.duration - (GetTime() - self.start)) / self.modRate
 		if remain > 0 then
-			local getTime, nextUpdate = K.FormatTime(remain)
+			local getTime, nextUpdate = Module.FormattedTimer(remain, self.modRate)
 			self.text:SetText(getTime)
 			self.nextUpdate = nextUpdate
 		else
@@ -92,7 +113,7 @@ function Module:OnCreate()
 	return timer
 end
 
-function Module:StartTimer(start, duration)
+function Module:StartTimer(start, duration, modRate)
 	if self:IsForbidden() then
 		return
 	end
@@ -107,15 +128,20 @@ function Module:StartTimer(start, duration)
 		return
 	end
 
+	local parent = self:GetParent()
+	start = tonumber(start) or 0
+	duration = tonumber(duration) or 0
+	modRate = tonumber(modRate) or 1
+
 	if start > 0 and duration > MIN_DURATION then
 		local timer = self.timer or Module.OnCreate(self)
 		timer.start = start
 		timer.duration = duration
+		timer.modRate = modRate
 		timer.enabled = true
 		timer.nextUpdate = 0
 
 		-- Wait For Blizz To Fix Itself
-		local parent = self:GetParent()
 		local charge = parent and parent.chargeCooldown
 		local chargeTimer = charge and charge.timer
 		if chargeTimer and chargeTimer ~= timer then
@@ -130,7 +156,7 @@ function Module:StartTimer(start, duration)
 	end
 
 	-- Hide Cooldown Flash If Barfader Enabled
-	if self:GetParent().__faderParent then
+	if parent and parent.__faderParent then
 		if self:GetEffectiveAlpha() > 0 then
 			self:Show()
 		else
@@ -196,11 +222,9 @@ function Module:OnEnable()
 		return
 	end
 
-	local cooldownIndex = getmetatable(ActionButton1Cooldown).__index
+	local cooldownIndex = getmetatable(_G.ActionButton1Cooldown).__index
 	hooksecurefunc(cooldownIndex, "SetCooldown", Module.StartTimer)
-
 	hooksecurefunc("CooldownFrame_SetDisplayAsPercentage", Module.HideCooldownNumbers)
-
 	K:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN", Module.ActionbarUpateCooldown)
 
 	if _G["ActionBarButtonEventsFrame"].frames then
@@ -208,11 +232,11 @@ function Module:OnEnable()
 			Module.RegisterActionButton(frame)
 		end
 	end
-	hooksecurefunc("ActionBarButtonEventsFrame_RegisterFrame", Module.RegisterActionButton)
+	--hooksecurefunc(_G.ActionBarButtonEventsFrameMixin, "RegisterFrame", Module.RegisterActionButton)
 
 	-- Hide Default Cooldown
 	if not InCombatLockdown() then
 		SetCVar("countdownForCooldowns", 0)
 	end
-	K.HideInterfaceOption(InterfaceOptionsActionBarsPanelCountdownCooldowns)
+	K.HideInterfaceOption(_G.InterfaceOptionsActionBarsPanelCountdownCooldowns)
 end

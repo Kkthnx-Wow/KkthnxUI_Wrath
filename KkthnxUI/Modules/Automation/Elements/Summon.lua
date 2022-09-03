@@ -1,4 +1,4 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Automation")
 
 local _G = _G
@@ -14,7 +14,7 @@ local function SetupAutoAcceptSummon()
 	if not UnitAffectingCombat("player") then
 		local sName = C_SummonInfo_GetSummonConfirmSummoner()
 		local sLocation = C_SummonInfo_GetSummonConfirmAreaName()
-		K.Print(L["Summon From"] .." "..sName.." ("..sLocation..") "..L["Summon Warning"])
+		K.Print(L["Summon From"] .. " " .. sName .. " (" .. sLocation .. ") " .. L["Summon Warning"])
 		C_Timer_After(10, function()
 			local sNameNew = C_SummonInfo_GetSummonConfirmSummoner()
 			local sLocationNew = C_SummonInfo_GetSummonConfirmAreaName()
@@ -25,14 +25,12 @@ local function SetupAutoAcceptSummon()
 			end
 		end)
 	end
-	return
 end
 
 function Module:CreateAutoAcceptSummon()
-	if not C["Automation"].AutoSummon then
+	if C["Automation"].AutoSummon then
+		K:RegisterEvent("CONFIRM_SUMMON", SetupAutoAcceptSummon)
+	else
 		K:UnregisterEvent("CONFIRM_SUMMON", SetupAutoAcceptSummon)
-		return
 	end
-
-	K:RegisterEvent("CONFIRM_SUMMON", SetupAutoAcceptSummon)
 end

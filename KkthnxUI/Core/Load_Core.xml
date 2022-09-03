@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
    <!-- Load_Core -->
-   <Script file="Media.lua"/>
    <Script file="API.lua"/>
    <Script file="Functions.lua"/>
    <Script file="Border.lua"/>
@@ -17,4 +16,6 @@
    <Script file="GUI.lua"/>
    <Script file="Profiles.lua"/>
    <Script file="HelpInfo.lua"/>
+   <Script file="AddOns.lua"/>
+   <Script file="StatusReport.lua"/>
 </Ui>

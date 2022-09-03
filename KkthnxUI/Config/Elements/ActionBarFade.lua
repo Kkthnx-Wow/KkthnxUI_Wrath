@@ -1,64 +1,59 @@
-local _, C = unpack(select(2, ...))
+local _, C = unpack(KkthnxUI)
 
-local ACTIONBAR_FADER = {
-	fadeInAlpha = 1, -- Transparency when displayed
-	fadeInDuration = 0.3, -- Display time-consuming
-	fadeOutAlpha = 0, -- Transparency after fade
-	fadeOutDelay = 0.1, -- Delay fade
-	fadeOutDuration = 0.8, -- Fading time-consuming
+local BAR_FADER = {
+	fadeInAlpha = 1,
+	fadeInDuration = 0.2,
+	fadeOutAlpha = 0,
+	fadeOutDelay = 0,
+	fadeOutDuration = 0.2,
 }
 
-C.ActionBars = {
-	margin = 2, -- Key spacing
-	padding = 2, -- Edge spacing
+C.Bars = {
+	BarMargin = 6,
+	BarPadding = 0,
 
-	actionBar1 = { -- Main action bar (below)
+	Bar1 = {
 		size = 34,
-		fader = nil
+		fader = nil,
 	},
 
-	actionBar2 = { -- Main action bar (top)
+	Bar2 = {
 		size = 34,
-		fader = nil
+		fader = nil,
 	},
 
-	actionBar3 = { -- Both sides of the main action bar
-		size = 32,
-		fader = ACTIONBAR_FADER
-	},
-
-	actionBar4 = { -- Right action bar 1
-		size = 32,
-		fader = ACTIONBAR_FADER
-	},
-
-	actionBar5 = { -- Right action bar 2
-		size = 32,
-		fader = ACTIONBAR_FADER
-	},
-
-	actionBarCustom = { -- Custom action bar
+	Bar3 = {
 		size = 34,
-		fader = ACTIONBAR_FADER
+		fader = nil,
 	},
 
-	extraBar = { -- Extra action bar
+	Bar4 = {
+		size = 32,
+		fader = BAR_FADER,
+	},
+
+	Bar5 = {
+		size = 32,
+		fader = BAR_FADER,
+	},
+
+	BarExtra = {
 		size = 52,
-		fader = nil
+		fader = nil,
 	},
 
-	leaveVehicle = {
-		size = 32,
-		fader = nil
+	BarVehicle = {
+		size = 40,
+		fader = nil,
 	},
 
-	petBar = {
-		size = 26,
-		fader = ACTIONBAR_FADER
-	},
-
-	stanceBar = {
+	BarPet = {
 		size = 30,
-		fader = ACTIONBAR_FADER
+		fader = nil,
+	},
+
+	BarStance = {
+		size = 30,
+		fader = nil,
 	},
 }

@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("ActionBar")
 
 local _G = _G
@@ -32,7 +32,7 @@ local function CreateFaderAnimation(frame)
 	frame.fader:HookScript("OnUpdate", FaderOnUpdate)
 end
 
-local function StartFadeIn(frame)
+function Module:StartFadeIn(frame)
 	if frame.fader.direction == "in" then
 		return
 	end
@@ -42,15 +42,14 @@ local function StartFadeIn(frame)
 	frame.fader.anim:SetToAlpha(frame.faderConfig.fadeInAlpha or 1)
 	frame.fader.anim:SetDuration(frame.faderConfig.fadeInDuration or 0.3)
 	frame.fader.anim:SetSmoothing(frame.faderConfig.fadeInSmooth or "OUT")
-
-	-- Start right away
+	-- start right away
 	frame.fader.anim:SetStartDelay(frame.faderConfig.fadeInDelay or 0)
 	frame.fader.finAlpha = frame.faderConfig.fadeInAlpha
 	frame.fader.direction = "in"
 	frame.fader:Play()
 end
 
-local function StartFadeOut(frame)
+function Module:StartFadeOut(frame)
 	if frame.fader.direction == "out" then
 		return
 	end
@@ -60,8 +59,7 @@ local function StartFadeOut(frame)
 	frame.fader.anim:SetToAlpha(frame.faderConfig.fadeOutAlpha or 0)
 	frame.fader.anim:SetDuration(frame.faderConfig.fadeOutDuration or 0.3)
 	frame.fader.anim:SetSmoothing(frame.faderConfig.fadeOutSmooth or "OUT")
-
-	-- Wait for some time before starting the fadeout
+	-- wait for some time before starting the fadeout
 	frame.fader.anim:SetStartDelay(frame.faderConfig.fadeOutDelay or 0)
 	frame.fader.finAlpha = frame.faderConfig.fadeOutAlpha
 	frame.fader.direction = "out"
@@ -77,10 +75,14 @@ local function IsMouseOverFrame(frame)
 end
 
 local function FrameHandler(frame)
+	if frame.isDisable then
+		return
+	end
+
 	if IsMouseOverFrame(frame) then
-		StartFadeIn(frame)
+		Module:StartFadeIn(frame)
 	else
-		StartFadeOut(frame)
+		Module:StartFadeOut(frame)
 	end
 end
 

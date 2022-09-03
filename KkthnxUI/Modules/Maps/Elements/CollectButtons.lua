@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Minimap")
 
 -- Sourced: NDui (Siweia)
@@ -22,19 +22,18 @@ function Module:CreateRecycleBin()
 	end
 
 	local blackList = {
-		["GameTimeFrame"] = true,
-		["MiniMapLFGFrame"] = true,
 		["BattlefieldMinimap"] = true,
-		["MinimapBackdrop"] = true,
-		["TimeManagerClockButton"] = true,
 		["FeedbackUIButton"] = true,
-		["HelpOpenTicketButton"] = true,
-		["MiniMapBattlefieldFrame"] = true,
-		["QueueStatusMinimapButton"] = true,
+		["GameTimeFrame"] = true,
 		["GarrisonLandingPageMinimapButton"] = true,
+		["MiniMapBattlefieldFrame"] = true,
+		["MiniMapLFGFrame"] = true,
+		["MinimapBackdrop"] = true,
 		["MinimapZoneTextButton"] = true,
+		["QueueStatusMinimapButton"] = true,
 		["RecycleBinFrame"] = true,
 		["RecycleBinToggleButton"] = true,
+		["TimeManagerClockButton"] = true,
 	}
 
 	local bu = CreateFrame("Button", "RecycleBinToggleButton", Minimap)
@@ -86,8 +85,6 @@ function Module:CreateRecycleBin()
 	local ignoredButtons = {
 		["GatherMatePin"] = true,
 		["HandyNotes.-Pin"] = true,
-		["Guidelime"] = true,
-		["QuestieFrame"] = true,
 	}
 
 	local function isButtonIgnored(name)
@@ -119,11 +116,14 @@ function Module:CreateRecycleBin()
 				local texture = region:GetTexture() or ""
 				if removedTextures[texture] or string_find(texture, "Interface\\CharacterFrame") or string_find(texture, "Interface\\Minimap") then
 					region:SetTexture(nil)
+					region:Hide() -- hide CircleMask
 				end
-				region:ClearAllPoints()
-				region:SetAllPoints()
+				if not region.__ignored then
+					region:ClearAllPoints()
+					region:SetAllPoints()
+				end
 				if not isGoodLookingIcon[name] then
-					region:SetTexCoord(unpack(K.TexCoords))
+					region:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 				end
 			end
 			child:SetSize(22, 22)
@@ -156,7 +156,7 @@ function Module:CreateRecycleBin()
 					child.highlight = child:CreateTexture(nil, "HIGHLIGHT")
 					child.highlight:SetPoint("TOPLEFT", child, "TOPLEFT", 2, -2)
 					child.highlight:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", -2, 2)
-					child.highlight:SetColorTexture(1, 1, 1, .25)
+					child.highlight:SetColorTexture(1, 1, 1, 0.25)
 				end
 
 				-- Naughty Addons
@@ -211,23 +211,21 @@ function Module:CreateRecycleBin()
 			end
 		end
 
-		local lastbutton
-		for index, button in pairs(shownButtons) do
-			button:ClearAllPoints()
-			if not lastbutton then
-				button:SetPoint("BOTTOMRIGHT", bin, -6, 6)
-			elseif mod(index, iconsPerRow) == 1 then
-				button:SetPoint("TOP", shownButtons[index - iconsPerRow], "BOTTOM", 0, -6)
-			else
-				button:SetPoint("RIGHT", lastbutton, "LEFT", -6, 0)
-			end
-			lastbutton = button
-		end
-
 		local numShown = #shownButtons
 		local row = numShown == 0 and 1 or K.Round((numShown + rowMult) / iconsPerRow)
 		local newHeight = row * 37 + 3
 		bin:SetHeight(newHeight)
+
+		for index, button in pairs(shownButtons) do
+			button:ClearAllPoints()
+			if index == 1 then
+				button:SetPoint("BOTTOMRIGHT", bin, -6, 6)
+			elseif row > 1 and mod(index, row) == 1 or row == 1 then
+				button:SetPoint("RIGHT", shownButtons[index - row], "LEFT", -6, 0)
+			else
+				button:SetPoint("BOTTOM", shownButtons[index - 1], "TOP", 0, 6)
+			end
+		end
 	end
 
 	bu:SetScript("OnClick", function()

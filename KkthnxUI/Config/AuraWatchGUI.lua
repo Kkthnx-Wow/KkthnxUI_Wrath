@@ -1,16 +1,34 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 
 local _G = _G
 local math_floor = _G.math.floor
 local table_insert = _G.table.insert
 
+local ADD = _G.ADD
+local CLOSE = _G.CLOSE
 local CreateFrame = _G.CreateFrame
+local ERR_NOT_IN_COMBAT = _G.ERR_NOT_IN_COMBAT
+local GameTooltip = _G.GameTooltip
 local GetInventoryItemTexture = _G.GetInventoryItemTexture
 local GetItemInfo = _G.GetItemInfo
 local GetSpellInfo = _G.GetSpellInfo
+local INVTYPE_CLOAK = _G.INVTYPE_CLOAK
+local INVTYPE_FINGER = _G.INVTYPE_FINGER
+local INVTYPE_TRINKET = _G.INVTYPE_TRINKET
+local INVTYPE_WAIST = _G.INVTYPE_WAIST
+local KEY_NUMLOCK_MAC = _G.KEY_NUMLOCK_MAC
+local NO = _G.NO
+local OKAY = _G.OKAY
 local PlaySound = _G.PlaySound
+local RESET = _G.RESET
+local ReloadUI = _G.ReloadUI
 local SOUNDKIT = _G.SOUNDKIT
+local SlashCmdList = _G.SlashCmdList
+local StaticPopupDialogs = _G.StaticPopupDialogs
+local StaticPopup_Show = _G.StaticPopup_Show
 local UIErrorsFrame = _G.UIErrorsFrame
+local UISpecialFrames = _G.UISpecialFrames
+local YES = _G.YES
 
 local r, g, b = K.r, K.g, K.b
 local f
@@ -63,7 +81,7 @@ local function labelOnEnter(self)
 	GameTooltip:ClearLines()
 	GameTooltip:SetOwner(self:GetParent(), "ANCHOR_RIGHT", 0, 3)
 	GameTooltip:AddLine(self.text)
-	GameTooltip:AddLine(self.tip, .6,.8,1, 1)
+	GameTooltip:AddLine(self.tip, 0.5, 0.7, 1, 1)
 	GameTooltip:Show()
 end
 
@@ -90,11 +108,11 @@ local function AW_CreateEditbox(parent, text, x, y, tip, width, height)
 	eb:SetPoint("TOPLEFT", x, y)
 	eb:SetAutoFocus(false)
 	eb:SetTextInsets(5, 5, 0, 0)
-	eb:FontTemplate(nil, nil, "")
+	eb:SetFontObject(K.UIFont)
 	eb:SetMaxLetters(255)
 	createLabel(eb, text, tip)
 
-	eb.bg = CreateFrame("Frame", nil, eb)
+	eb.bg = CreateFrame("Frame", nil, eb, "BackdropTemplate")
 	eb.bg:SetAllPoints(eb)
 	eb.bg:SetFrameLevel(eb:GetFrameLevel())
 	eb.bg:CreateBorder()
@@ -116,7 +134,7 @@ local function AW_CreateCheckBox(parent, text, x, y, tip)
 	cb:SetNormalTexture("")
 	cb:SetPushedTexture("")
 
-	local bg = CreateFrame("Frame", nil, cb)
+	local bg = CreateFrame("Frame", nil, cb, "BackdropTemplate")
 	bg:SetAllPoints(cb)
 	bg:SetFrameLevel(parent:GetFrameLevel())
 	bg:CreateBorder()
@@ -126,7 +144,7 @@ local function AW_CreateCheckBox(parent, text, x, y, tip)
 	local hl = cb:GetHighlightTexture()
 	hl:SetPoint("TOPLEFT", bg, "TOPLEFT", 2, -2)
 	hl:SetPoint("BOTTOMRIGHT", bg, "BOTTOMRIGHT", -2, 2)
-	hl:SetVertexColor(0, 1, 0, .25)
+	hl:SetVertexColor(0, 1, 0, 0.25)
 
 	local ch = cb:GetCheckedTexture()
 	ch:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Textures\\UI-CheckBox-Check")
@@ -142,7 +160,7 @@ local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
 	local width = width or 90
 	local height = height or 24
 
-	local dd = CreateFrame("Frame", nil, parent)
+	local dd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	dd:SetSize(width, height)
 	dd:SetPoint("TOPLEFT", x, y)
 	createLabel(dd, text, tip)
@@ -156,7 +174,7 @@ local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
 	K.ReskinArrow(bu, "down")
 	bu:SetSize(16, 16)
 
-	local list = CreateFrame("Frame", nil, dd)
+	local list = CreateFrame("Frame", nil, dd, "BackdropTemplate")
 	list:SetPoint("TOP", dd, "BOTTOM", 0, -6)
 	list:CreateBorder()
 	list:Hide()
@@ -168,7 +186,7 @@ local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
 
 	local opt, index = {}, 0
 	for i, j in pairs(data) do
-		opt[i] = CreateFrame("Button", nil, list)
+		opt[i] = CreateFrame("Button", nil, list, "BackdropTemplate")
 		opt[i]:SetPoint("TOPLEFT", 4, -4 - (i - 1) * (height + 6))
 		opt[i]:SetSize(width - 8, height)
 		opt[i]:CreateBorder()
@@ -206,14 +224,14 @@ local function AW_ClearEdit(element)
 end
 
 local function createPage(name)
-	local p = CreateFrame("Frame", nil, f)
-	p:SetPoint("TOPLEFT", 160, -70)
-	p:SetSize(620, 380)
-	p:CreateBorder()
-	K.CreateFontString(p, 15, name, "", false, "TOPLEFT", 5, 20)
-	p:Hide()
+	local page = CreateFrame("Frame", nil, f, "BackdropTemplate")
+	page:SetPoint("TOPLEFT", 160, -70)
+	page:SetSize(620, 380)
+	page:CreateBorder()
+	K.CreateFontString(page, 15, name, "", false, "TOPLEFT", 5, 20)
+	page:Hide()
 
-	return p
+	return page
 end
 
 local function AW_CreateScroll(parent, width, height, text)
@@ -221,7 +239,7 @@ local function AW_CreateScroll(parent, width, height, text)
 	scroll:SetSize(width, height)
 	scroll:SetPoint("BOTTOMLEFT", 10, 10)
 
-	local bg = CreateFrame("Frame", nil, scroll)
+	local bg = CreateFrame("Frame", nil, scroll, "BackdropTemplate")
 	bg:SetAllPoints(scroll)
 	bg:SetFrameLevel(scroll:GetFrameLevel())
 	bg:CreateBorder()
@@ -243,14 +261,14 @@ local function AW_CreateBarWidgets(parent, texture)
 	icon:SetSize(22, 22)
 	icon:SetPoint("LEFT", 5, 0)
 
-	icon.bg = CreateFrame("Frame", nil, icon)
+	icon.bg = CreateFrame("Frame", nil, icon, "BackdropTemplate")
 	icon.bg:SetAllPoints(icon)
 	icon.bg:SetFrameLevel(icon:GetFrameLevel())
 	icon.bg:CreateBorder()
 
 	icon.Icon = icon:CreateTexture(nil, "ARTWORK")
 	icon.Icon:SetAllPoints()
-	icon.Icon:SetTexCoord(unpack(K.TexCoords))
+	icon.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 	icon.Icon:SetTexture(texture)
 
 	local close = CreateFrame("Button", nil, parent)
@@ -279,7 +297,7 @@ local function CreatePanel()
 	end
 
 	-- Structure
-	f = f or CreateFrame("Frame", "KKUI_AuraWatchGUI", UIParent)
+	f = CreateFrame("Frame", "KKUI_AuraWatchGUI", UIParent)
 	f:SetPoint("CENTER")
 	f:SetSize(800, 500)
 	f:CreateBorder()
@@ -304,7 +322,7 @@ local function CreatePanel()
 	f:HookScript("OnShow", auraWatchShow)
 	f:HookScript("OnHide", auraWatchHide)
 
-	f.Close = CreateFrame("Button", nil, f)
+	f.Close = CreateFrame("Button", nil, f, "BackdropTemplate")
 	f.Close:SetSize(80, 22)
 	f.Close:SetPoint("BOTTOMRIGHT", -20, 15)
 	f.Close:SkinButton()
@@ -313,7 +331,7 @@ local function CreatePanel()
 		f:Hide()
 	end)
 
-	f.Complete = CreateFrame("Button", nil, f)
+	f.Complete = CreateFrame("Button", nil, f, "BackdropTemplate")
 	f.Complete:SetSize(80, 22)
 	f.Complete:SetPoint("RIGHT", f.Close, "LEFT", -10, 0)
 	f.Complete:SkinButton()
@@ -323,7 +341,7 @@ local function CreatePanel()
 		StaticPopup_Show("KKUI_CHANGES_RELOAD")
 	end)
 
-	f.Reset = CreateFrame("Button", nil, f)
+	f.Reset = CreateFrame("Button", nil, f, "BackdropTemplate")
 	f.Reset:SetSize(80, 22)
 	f.Reset:SetPoint("BOTTOMLEFT", 25, 15)
 	f.Reset:SkinButton()
@@ -352,7 +370,7 @@ local function CreatePanel()
 				if num == 1 then
 					bar:SetPoint("TOPLEFT", 10, -10)
 				elseif num > 1 and num / 2 ~= math_floor(num / 2) then
-					bar:SetPoint("TOPLEFT", 10, -10 - 35*onLeft)
+					bar:SetPoint("TOPLEFT", 10, -10 - 35 * onLeft)
 					onLeft = onLeft + 1
 				elseif num == 2 then
 					bar:SetPoint("TOPLEFT", 295, -10)
@@ -367,10 +385,10 @@ local function CreatePanel()
 
 	local slotIndex = {
 		[6] = INVTYPE_WAIST,
-		[11] = INVTYPE_FINGER.."1",
-		[12] = INVTYPE_FINGER.."2",
-		[13] = INVTYPE_TRINKET.."1",
-		[14] = INVTYPE_TRINKET.."2",
+		[11] = INVTYPE_FINGER .. "1",
+		[12] = INVTYPE_FINGER .. "2",
+		[13] = INVTYPE_TRINKET .. "1",
+		[14] = INVTYPE_TRINKET .. "2",
 		[15] = INVTYPE_CLOAK,
 	}
 
@@ -393,10 +411,10 @@ local function CreatePanel()
 			name = slotIndex[spellID]
 		elseif typeID == "TotemID" then
 			texture = "Interface\\ICONS\\Spell_Shaman_TotemRecall"
-			name = L["TotemSlot"]..spellID
+			name = L["TotemSlot"] .. spellID
 		end
 
-		local bar = CreateFrame("Frame", nil, parent)
+		local bar = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 		bar:SetSize(270, 30)
 		bar:CreateBorder()
 		barTable[index][spellID] = bar
@@ -420,22 +438,22 @@ local function CreatePanel()
 		spellName:SetWidth(180)
 		spellName:SetJustifyH("LEFT")
 		K.CreateFontString(bar, 14, text, "", false, "RIGHT", -30, 0)
-		K.AddTooltip(bar, "ANCHOR_TOP", L["Type*"].." "..typeID, "system")
+		K.AddTooltip(bar, "ANCHOR_TOP", L["Type*"] .. " " .. typeID, "system")
 
-		typeID = typeID.." = "..spellID
-		unitID = unitID and ", UnitID = \""..unitID.."\"" or ""
-		caster = caster and ", Caster = \""..caster.."\"" or ""
-		stack = stack and ", Stack = "..stack or ""
+		typeID = typeID .. " = " .. spellID
+		unitID = unitID and ', UnitID = "' .. unitID .. '"' or ""
+		caster = caster and ', Caster = "' .. caster .. '"' or ""
+		stack = stack and ", Stack = " .. stack or ""
 		amount = amount and ", Value = true" or ""
 		timeless = timeless and ", Timeless = true" or ""
 		combat = combat and ", Combat = true" or ""
 		flash = flash and ", Flash = true" or ""
-		text = text and text ~= "" and ", Text = \""..text.."\"" or ""
-		local output = "{"..typeID..unitID..caster..stack..amount..timeless..combat..flash..text.."}"
+		text = text and text ~= "" and ', Text = "' .. text .. '"' or ""
+		local output = "{" .. typeID .. unitID .. caster .. stack .. amount .. timeless .. combat .. flash .. text .. "}"
 		bar:SetScript("OnMouseUp", function()
-			local editBox = ChatEdit_ChooseBoxForSend()
-			ChatEdit_ActivateChat(editBox)
-			editBox:SetText(output..",")
+			local editBox = _G.ChatEdit_ChooseBoxForSend()
+			_G.ChatEdit_ActivateChat(editBox)
+			editBox:SetText(output .. ",")
 			editBox:HighlightText()
 		end)
 
@@ -449,7 +467,7 @@ local function CreatePanel()
 			name = GetItemInfo(itemID)
 		end
 
-		local bar = CreateFrame("Frame", nil, parent)
+		local bar = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 		bar:SetSize(270, 30)
 		bar:CreateBorder()
 		barTable[index][intID] = bar
@@ -467,7 +485,7 @@ local function CreatePanel()
 		spellName:SetWidth(180)
 		spellName:SetJustifyH("LEFT")
 		K.CreateFontString(bar, 14, duration, "", false, "RIGHT", -30, 0)
-		K.AddTooltip(bar, "ANCHOR_TOP", L["Trigger"]..trigger.." - "..unit, "system")
+		K.AddTooltip(bar, "ANCHOR_TOP", L["Trigger"] .. trigger .. " - " .. unit, "system")
 
 		SortBars(index)
 	end
@@ -481,17 +499,17 @@ local function CreatePanel()
 		bu:SetNormalTexture("")
 		bu:SetPushedTexture("")
 
-		local bg = CreateFrame("Frame", nil, bu)
+		local bg = CreateFrame("Frame", nil, bu, "BackdropTemplate")
 		bg:SetAllPoints(bu)
 		bg:SetFrameLevel(parent:GetFrameLevel())
 		bg:CreateBorder()
 		bu.bg = bg
 
-		bu:SetHighlightTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
+		bu:SetHighlightTexture(K.GetTexture(C["General"].Texture))
 		local hl = bu:GetHighlightTexture()
 		hl:SetPoint("TOPLEFT", bg, "TOPLEFT", 2, -2)
 		hl:SetPoint("BOTTOMRIGHT", bg, "BOTTOMRIGHT", -2, 2)
-		hl:SetVertexColor(0, 1, 0, .25)
+		hl:SetVertexColor(0, 1, 0, 0.25)
 
 		local ch = bu:GetCheckedTexture()
 		ch:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Textures\\UI-CheckBox-Check")
@@ -503,7 +521,7 @@ local function CreatePanel()
 		bu:SetScript("OnClick", function()
 			KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.Switcher[index] = bu:GetChecked()
 		end)
-		K.CreateFontString(bu, 15, "|cffff0000"..L["AuraWatch Switcher"], "", false, "RIGHT", -30, 0)
+		K.CreateFontString(bu, 15, "|cffff0000" .. L["AuraWatch Switcher"], "", false, "RIGHT", -30, 0)
 	end
 
 	-- Main
@@ -521,15 +539,15 @@ local function CreatePanel()
 	}
 
 	local preSet = {
-		[1] = {1, false},
-		[2] = {1, true},
-		[3] = {2, true},
-		[4] = {2, false},
-		[5] = {3, false},
-		[6] = {1, false},
-		[7] = {1, false},
-		[8] = {1, false},
-		[9] = {1, false},
+		[1] = { 1, false },
+		[2] = { 1, true },
+		[3] = { 2, true },
+		[4] = { 2, false },
+		[5] = { 3, false },
+		[6] = { 1, false },
+		[7] = { 1, false },
+		[8] = { 1, false },
+		[9] = { 1, false },
 	}
 
 	local tabs = {}
@@ -537,7 +555,7 @@ local function CreatePanel()
 		for i = 1, #tabs do
 			if self == tabs[i] then
 				tabs[i].Page:Show()
-				tabs[i].KKUI_Background:SetVertexColor(r, g, b, .3)
+				tabs[i].KKUI_Background:SetVertexColor(r, g, b, 0.3)
 				tabs[i].selected = true
 			else
 				tabs[i].Page:Hide()
@@ -551,7 +569,7 @@ local function CreatePanel()
 		if self.selected then
 			return
 		end
-		self.KKUI_Background:SetVertexColor(r, g, b, .3)
+		self.KKUI_Background:SetVertexColor(r, g, b, 0.3)
 	end
 
 	local function tabOnLeave(self)
@@ -567,13 +585,13 @@ local function CreatePanel()
 		end
 		barTable[i] = {}
 
-		tabs[i] = CreateFrame("Button", "$parentTab"..i, f)
+		tabs[i] = CreateFrame("Button", "$parentTab" .. i, f, "BackdropTemplate")
 		tabs[i]:SetPoint("TOPLEFT", 20, -40 - i * 34)
 		tabs[i]:SetSize(130, 28)
 		tabs[i]:CreateBorder()
 		local label = K.CreateFontString(tabs[i], 15, group, "", "system", "LEFT", 10, 0)
 		if i == 10 then
-			label:SetTextColor(0, .8, .3)
+			label:SetTextColor(0, 0.8, 0.3)
 		end
 		tabs[i].Page = createPage(group)
 		tabs[i].List = AW_CreateScroll(tabs[i].Page, 575, 200, L["AuraWatch List"])
@@ -583,18 +601,18 @@ local function CreatePanel()
 			for _, v in pairs(KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i]) do
 				AddAura(tabs[i].List.child, i, v)
 			end
-			Option[1] = AW_CreateDropdown(tabs[i].Page, L["Type*"], 20, -30, {"AuraID", "SpellID", "SlotID", "TotemID"}, L["Type Intro"])
+			Option[1] = AW_CreateDropdown(tabs[i].Page, L["Type*"], 20, -30, { "AuraID", "SpellID", "SlotID", "TotemID" }, L["Type Intro"])
 			Option[2] = AW_CreateEditbox(tabs[i].Page, "ID*", 140, -30, L["ID Intro"])
-			Option[3] = AW_CreateDropdown(tabs[i].Page, L["Unit*"], 260, -30, {"player", "target", "focus", "pet"}, L["Unit Intro"])
-			Option[4] = AW_CreateDropdown(tabs[i].Page, L["Caster"], 380, -30, {"player", "target", "pet"}, L["Caster Intro"])
+			Option[3] = AW_CreateDropdown(tabs[i].Page, L["Unit*"], 260, -30, { "player", "target", "focus", "pet" }, L["Unit Intro"])
+			Option[4] = AW_CreateDropdown(tabs[i].Page, L["Caster"], 380, -30, { "player", "target", "pet" }, L["Caster Intro"])
 			Option[5] = AW_CreateEditbox(tabs[i].Page, L["Stack"], 500, -30, L["Stack Intro"])
 			Option[6] = AW_CreateCheckBox(tabs[i].Page, L["Value"], 40, -95, L["Value Intro"])
 			Option[7] = AW_CreateCheckBox(tabs[i].Page, L["Timeless"], 120, -95, L["Timeless Intro"])
 			Option[8] = AW_CreateCheckBox(tabs[i].Page, L["Combat"], 200, -95, L["Combat Intro"])
 			Option[9] = AW_CreateEditbox(tabs[i].Page, L["Text"], 340, -90, L["Text Intro"])
 			Option[10] = AW_CreateCheckBox(tabs[i].Page, L["Flash"], 280, -95, L["Flash Intro"])
-			Option[11] = AW_CreateDropdown(tabs[i].Page, L["Slot*"], 140, -30, {slotIndex[6], slotIndex[11], slotIndex[12], slotIndex[13], slotIndex[14], slotIndex[15]}, L["Slot Intro"])
-			Option[12] = AW_CreateDropdown(tabs[i].Page, L["Totem*"], 140, -30, {L["TotemSlot"].."1", L["TotemSlot"].."2", L["TotemSlot"].."3", L["TotemSlot"].."4"}, L["Totem Intro"])
+			Option[11] = AW_CreateDropdown(tabs[i].Page, L["Slot*"], 140, -30, { slotIndex[6], slotIndex[11], slotIndex[12], slotIndex[13], slotIndex[14], slotIndex[15] }, L["Slot Intro"])
+			Option[12] = AW_CreateDropdown(tabs[i].Page, L["Totem*"], 140, -30, { L["TotemSlot"] .. "1", L["TotemSlot"] .. "2", L["TotemSlot"] .. "3", L["TotemSlot"] .. "4" }, L["Totem Intro"])
 
 			for j = 2, 12 do
 				Option[j]:Hide()
@@ -616,11 +634,11 @@ local function CreatePanel()
 						if preSet[i][2] then
 							Option[4].options[1]:Click()
 						end
-					elseif optionText  == "SpellID" then
+					elseif optionText == "SpellID" then
 						Option[2]:Show()
-					elseif optionText  == "SlotID" then
+					elseif optionText == "SlotID" then
 						Option[11]:Show()
-					elseif optionText  == "TotemID" then
+					elseif optionText == "TotemID" then
 						Option[12]:Show()
 					end
 				end)
@@ -631,12 +649,12 @@ local function CreatePanel()
 			end
 			Option[13] = AW_CreateEditbox(tabs[i].Page, L["IntID*"], 20, -30, L["IntID Intro"])
 			Option[14] = AW_CreateEditbox(tabs[i].Page, L["Duration*"], 140, -30, L["Duration Intro"])
-			Option[15] = AW_CreateDropdown(tabs[i].Page, L["Trigger"].."*", 260, -30, {"OnAuraGain", "OnCastSuccess"}, L["Trigger Intro"], 130)
-			Option[16] = AW_CreateDropdown(tabs[i].Page, L["Unit*"], 420, -30, {"Player", "All"}, L["Trigger Unit Intro"])
+			Option[15] = AW_CreateDropdown(tabs[i].Page, L["Trigger"] .. "*", 260, -30, { "OnAuraGain", "OnCastSuccess" }, L["Trigger Intro"], 130)
+			Option[16] = AW_CreateDropdown(tabs[i].Page, L["Unit*"], 420, -30, { "Player", "All" }, L["Trigger Unit Intro"])
 			Option[17] = AW_CreateEditbox(tabs[i].Page, L["ItemID"], 20, -95, L["ItemID Intro"])
 		end
 
-		local clear = CreateFrame("Button", nil, tabs[i].Page)
+		local clear = CreateFrame("Button", nil, tabs[i].Page, "BackdropTemplate")
 		clear:SetSize(60, 25)
 		clear:SkinButton()
 		clear.text = K.CreateFontString(clear, 12, KEY_NUMLOCK_MAC, "", true)
@@ -653,8 +671,8 @@ local function CreatePanel()
 			end
 		end)
 
-		local slotTable = {6, 11, 12, 13, 14, 15}
-		local add = CreateFrame("Button", nil, tabs[i].Page)
+		local slotTable = { 6, 11, 12, 13, 14, 15 }
+		local add = CreateFrame("Button", nil, tabs[i].Page, "BackdropTemplate")
 		add:SetSize(60, 25)
 		add:SkinButton()
 		add.text = K.CreateFontString(add, 12, ADD, "", true)
@@ -677,26 +695,27 @@ local function CreatePanel()
 				end
 
 				if not typeID then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Choose a Type"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Choose a Type"])
 					return
 				end
 
 				if (typeID == "AuraID" and (not spellID or not unitID)) or (typeID == "SpellID" and not spellID) or (typeID == "SlotID" and not slotID) or (typeID == "TotemID" and not totemID) then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Incomplete Input"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incomplete Input"])
 					return
 				end
 
 				if (typeID == "AuraID" or typeID == "SpellID") and not GetSpellInfo(spellID) then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Incorrect SpellID"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incorrect SpellID"])
 					return
 				end
 
 				local realID = spellID or slotID or totemID
 				if KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i][realID] then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Existing ID"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Existing ID"])
 					return
 				end
 
+				-- stylua: ignore
 				KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i][realID] = {typeID, realID, unitID, Option[4].Text:GetText(), tonumber(Option[5]:GetText()) or false, Option[6]:GetChecked(), Option[7]:GetChecked(), Option[8]:GetChecked(), Option[9]:GetText(), Option[10]:GetChecked()}
 				AddAura(tabs[i].List.child, i, KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList[i][realID])
 				for i = 2, 12 do
@@ -705,21 +724,21 @@ local function CreatePanel()
 			elseif i == 10 then
 				local intID, duration, trigger, unit, itemID = tonumber(Option[13]:GetText()), tonumber(Option[14]:GetText()), Option[15].Text:GetText(), Option[16].Text:GetText(), tonumber(Option[17]:GetText())
 				if not intID or not duration or not trigger or not unit then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Incomplete Input"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incomplete Input"])
 					return
 				end
 
 				if intID and not GetSpellInfo(intID) then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Incorrect SpellID"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Incorrect SpellID"])
 					return
 				end
 
 				if KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID] then
-					UIErrorsFrame:AddMessage(K.InfoColor..L["Existing ID"])
+					UIErrorsFrame:AddMessage(K.InfoColor .. L["Existing ID"])
 					return
 				end
 
-				KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID] = {intID, duration, trigger, unit, itemID}
+				KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID] = { intID, duration, trigger, unit, itemID }
 				AddInternal(tabs[i].List.child, i, KkthnxUIDB.Variables[K.Realm][K.Name].InternalCD[intID])
 				for i = 13, 17 do
 					AW_ClearEdit(Option[i])
@@ -754,10 +773,11 @@ end
 
 SlashCmdList["KKUI_AWCONFIG"] = function()
 	if InCombatLockdown() then
-		UIErrorsFrame:AddMessage(K.InfoColor..ERR_NOT_IN_COMBAT)
+		UIErrorsFrame:AddMessage(K.InfoColor .. ERR_NOT_IN_COMBAT)
 		return
 	end
 
 	CreatePanel()
 end
-SLASH_KKUI_AWCONFIG1 = "/kaw"
+SLASH_KKUI_AWCONFIG1 = "/kkaurawatch"
+SLASH_KKUI_AWCONFIG1 = "/kkaw"

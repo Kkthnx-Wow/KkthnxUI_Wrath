@@ -1,34 +1,18 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Unitframes")
 
 local _G = _G
 
 local CreateFrame = _G.CreateFrame
-local GetThreatStatusColor = _G.GetThreatStatusColor
 local UnitIsUnit = _G.UnitIsUnit
-local UnitThreatSituation = _G.UnitThreatSituation
-
-local function UpdatePartyPetPower(self, _, unit)
-	if self.unit ~= unit then
-		return
-	end
-
-	if not self.Power:IsVisible() then
-		self.Health:ClearAllPoints()
-		self.Health:SetPoint("BOTTOMLEFT", self, 0, 6)
-		self.Health:SetPoint("TOPRIGHT", self)
-	end
-end
 
 function Module:CreatePartyPet()
-	local PartyPetframeFont = K.GetFont(C["UIFonts"].UnitframeFonts)
-	local PartyPetframeTexture = K.GetTexture(C["UITextures"].UnitframeTextures)
+	local PartyPetframeFont = K.UIFont
+	local PartyPetframeTexture = K.GetTexture(C["General"].Texture)
 
 	self.Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
 	self.Overlay:SetAllPoints()
 	self.Overlay:SetFrameLevel(6)
-
-	Module.CreateHeader(self)
 
 	self:CreateBorder()
 
@@ -68,12 +52,8 @@ function Module:CreatePartyPet()
 
 	self.Power.Background = self.Power:CreateTexture(nil, "BORDER")
 	self.Power.Background:SetAllPoints(self.Power)
-	self.Power.Background:SetColorTexture(.2, .2, .2)
+	self.Power.Background:SetColorTexture(0.2, 0.2, 0.2)
 	self.Power.Background.multiplier = 0.3
-
-	table.insert(self.__elements, UpdatePartyPetPower)
-	self:RegisterEvent("UNIT_DISPLAYPOWER", UpdatePartyPetPower)
-	UpdatePartyPetPower(self, _, unit)
 
 	self.Portrait = CreateFrame("PlayerModel", nil, self.Health)
 	self.Portrait:SetFrameLevel(self.Health:GetFrameLevel())
@@ -93,7 +73,7 @@ function Module:CreatePartyPet()
 
 	if C["Party"].TargetHighlight then
 		self.PartyPetHighlight = CreateFrame("Frame", nil, self.Overlay, "BackdropTemplate")
-		self.PartyPetHighlight:SetBackdrop({edgeFile = "Interface\\AddOns\\KkthnxUI\\Media\\Border\\Border_Glow_Overlay", edgeSize = 12})
+		self.PartyPetHighlight:SetBackdrop({ edgeFile = "Interface\\AddOns\\KkthnxUI\\Media\\Border\\Border_Glow_Overlay", edgeSize = 12 })
 		self.PartyPetHighlight:SetPoint("TOPLEFT", self, -6, 6)
 		self.PartyPetHighlight:SetPoint("BOTTOMRIGHT", self, 6, -6)
 		self.PartyPetHighlight:SetBackdropBorderColor(1, 1, 0)
@@ -111,26 +91,13 @@ function Module:CreatePartyPet()
 		self:RegisterEvent("GROUP_ROSTER_UPDATE", UpdatePartyPetTargetGlow, true)
 	end
 
-	self.DebuffHighlight = self.Health:CreateTexture(nil, "OVERLAY")
-	self.DebuffHighlight:SetAllPoints(self.Health)
-	self.DebuffHighlight:SetTexture(C["Media"].Textures.BlankTexture)
-	self.DebuffHighlight:SetVertexColor(0, 0, 0, 0)
-	self.DebuffHighlight:SetBlendMode("ADD")
-	self.DebuffHighlightAlpha = 0.45
-	self.DebuffHighlightFilter = true
-
-	self.Highlight = self.Health:CreateTexture(nil, "OVERLAY")
-	self.Highlight:SetAllPoints()
-	self.Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
-	self.Highlight:SetTexCoord(0, 1, .5, 1)
-	self.Highlight:SetVertexColor(.6, .6, .6)
-	self.Highlight:SetBlendMode("ADD")
-	self.Highlight:Hide()
-
 	self.ThreatIndicator = {
 		IsObjectType = K.Noop,
 		Override = Module.UpdateThreat,
 	}
 
 	self.Range = Module.CreateRangeIndicator(self)
+
+	Module:CreateHeader(self)
+	Module:CreateDebuffHighlight(self)
 end

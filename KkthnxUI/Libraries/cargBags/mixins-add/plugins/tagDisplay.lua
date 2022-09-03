@@ -91,21 +91,31 @@ end
 
 
 -- Tags
-local function GetNumFreeSlots(name)
-	if name == "Bag" then
-		return CalculateTotalNumberOfFreeBagSlots()
-	elseif name == "Bank" then
-		local numFreeSlots = GetContainerNumFreeSlots(-1)
-		for bagID = 5, 10 do
-			numFreeSlots = numFreeSlots + GetContainerNumFreeSlots(bagID)
+local function GetNumFreeSlots(self)
+	local bagType = self.Settings.BagType
+	if bagType == "Bag" then
+		local totalFree = 0
+		for i = 0, 4 do
+			if cargBags.BagGroups[i] == self.bagGroup then
+				totalFree = totalFree + GetContainerNumFreeSlots(i)
+			end
 		end
-		return numFreeSlots
+		return totalFree
+	elseif bagType == "Bank" then
+		local totalFree = self.bagGroup == 0 and GetContainerNumFreeSlots(-1) or 0
+		for i = 5, 11 do
+			if cargBags.BagGroups[i] == self.bagGroup then
+				totalFree = totalFree + GetContainerNumFreeSlots(i)
+			end
+		end
+		return totalFree
 	end
 end
 
-tagPool["space"] = function(self)
-	local str = GetNumFreeSlots(self.__name)
-	return str
+tagPool["space"] = function(tag)
+	local self = tag.__owner
+	self.totalFree = GetNumFreeSlots(self)
+	return self.totalFree
 end
 
 tagPool["item"] = function(self, item)
@@ -140,29 +150,14 @@ end
 tagEvents["currencies"] = tagEvents["currency"]
 
 tagPool["money"] = function(self)
-	local moneyamount = GetMoney() or 0
-	local coppername = "|cffeda55fc|r"
-	local silvername = "|cffc7c7cfs|r"
-	local goldname = "|cffffd700g|r"
+	local money = GetMoney() or 0
+	local str
 
-	local value = math.abs(moneyamount)
-	local gold = math.floor(value / 10000)
-	local silver = math.floor(mod(value / 100, 100))
-	local copper = math.floor(mod(value, 100))
+	local g,s,c = floor(money/1e4), floor(money/100) % 100, money % 100
 
-	local str = ""
-	if gold > 0 then
-		str = format("%d%s%s", gold, goldname, (silver > 0 or copper > 0) and " " or "")
-	end
-
-	if silver > 0 then
-		str = format("%s%d%s%s", str, silver, silvername, copper > 0 and " " or "")
-	end
-
-	if copper > 0 or value == 0 then
-		str = format("%s%d%s", str, copper, coppername)
-	end
-
+	if(g > 0) then str = (str and str.." " or "") .. g .. createIcon("Interface\\MoneyFrame\\UI-GoldIcon", self.iconValues) end
+	if(s > 0) then str = (str and str.." " or "") .. s .. createIcon("Interface\\MoneyFrame\\UI-SilverIcon", self.iconValues) end
+	if(c >= 0) then str = (str and str.." " or "") .. c .. createIcon("Interface\\MoneyFrame\\UI-CopperIcon", self.iconValues) end
 	return str
 end
 tagEvents["money"] = { "PLAYER_MONEY" }

@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Infobar")
 
 local _G = _G
@@ -16,19 +16,29 @@ local GetZonePVPInfo = _G.GetZonePVPInfo
 local GetZoneText = _G.GetZoneText
 local SANCTUARY_TERRITORY = _G.SANCTUARY_TERRITORY
 
-local zone, pvpType, subZone
+local LocationDataText
+local pvpType
+local subZone
+local zone
 
 local zoneInfo = {
-	arena = {FREE_FOR_ALL_TERRITORY, {0.84, 0.03, 0.03}},
-	combat = {COMBAT_ZONE, {0.84, 0.03, 0.03}},
-	contested = {CONTESTED_TERRITORY, {0.9, 0.85, 0.05}},
-	friendly = {FACTION_CONTROLLED_TERRITORY, {0.05, 0.85, 0.03}},
-	hostile = {FACTION_CONTROLLED_TERRITORY, {0.84, 0.03, 0.03}},
-	neutral = {string_format(FACTION_CONTROLLED_TERRITORY, FACTION_STANDING_LABEL4), {0.9, 0.85, 0.05}},
-	sanctuary = {SANCTUARY_TERRITORY, {0.035, 0.58, 0.84}},
+	arena = { FREE_FOR_ALL_TERRITORY, { 0.84, 0.03, 0.03 } },
+	combat = { COMBAT_ZONE, { 0.84, 0.03, 0.03 } },
+	contested = { CONTESTED_TERRITORY, { 0.9, 0.85, 0.05 } },
+	friendly = { FACTION_CONTROLLED_TERRITORY, { 0.05, 0.85, 0.03 } },
+	hostile = { FACTION_CONTROLLED_TERRITORY, { 0.84, 0.03, 0.03 } },
+	neutral = { string_format(FACTION_CONTROLLED_TERRITORY, FACTION_STANDING_LABEL4), { 0.9, 0.85, 0.05 } },
+	sanctuary = { SANCTUARY_TERRITORY, { 0.035, 0.58, 0.84 } },
 }
 
-function Module:LocationOnEvent()
+local eventList = {
+	"PLAYER_ENTERING_WORLD",
+	"ZONE_CHANGED",
+	"ZONE_CHANGED_INDOORS",
+	"ZONE_CHANGED_NEW_AREA",
+}
+
+local function OnEvent()
 	if C["Minimap"].LocationText.Value == "HIDE" or not C["Minimap"].Enable then
 		return
 	end
@@ -39,10 +49,10 @@ function Module:LocationOnEvent()
 	pvpType = pvpType or "neutral"
 
 	local r, g, b = unpack(zoneInfo[pvpType][2])
-	Module.MainZoneFont:SetText(zone)
-	Module.MainZoneFont:SetTextColor(r, g, b)
-	Module.SubZoneFont:SetText(subZone)
-	Module.SubZoneFont:SetTextColor(r, g, b)
+	LocationDataText.MainZoneText:SetText(zone)
+	LocationDataText.MainZoneText:SetTextColor(r, g, b)
+	LocationDataText.SubZoneText:SetText(subZone)
+	LocationDataText.SubZoneText:SetTextColor(r, g, b)
 end
 
 function Module:CreateLocationDataText()
@@ -59,7 +69,7 @@ function Module:CreateLocationDataText()
 			return
 		end
 
-		Module.LocationFrame:Show()
+		LocationDataText:Show()
 	end)
 
 	Minimap:HookScript("OnLeave", function()
@@ -67,36 +77,35 @@ function Module:CreateLocationDataText()
 			return
 		end
 
-		Module.LocationFrame:Hide()
+		LocationDataText:Hide()
 	end)
 
-	Module.LocationFrame = CreateFrame("Frame", "KKUI_LocationDataText", UIParent)
-	Module.LocationFrame:SetPoint("TOP", Minimap, "TOP", 0, -4)
-	Module.LocationFrame:SetSize(Minimap:GetWidth(), 13)
-	Module.LocationFrame:SetFrameLevel(Minimap:GetFrameLevel() + 2)
+	LocationDataText = LocationDataText or CreateFrame("Frame", "KKUI_LocationDataText", UIParent)
+	LocationDataText:SetPoint("TOP", Minimap, "TOP", 0, -4)
+	LocationDataText:SetSize(Minimap:GetWidth(), 13)
+	LocationDataText:SetFrameLevel(Minimap:GetFrameLevel() + 2)
 	if C["Minimap"].LocationText.Value ~= "SHOW" or not C["Minimap"].Enable then
-		Module.LocationFrame:Hide()
+		LocationDataText:Hide()
 	end
 
-	Module.MainZoneFont = Module.LocationFrame:CreateFontString("OVERLAY")
-	Module.MainZoneFont:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
-	Module.MainZoneFont:SetFont(select(1, Module.MainZoneFont:GetFont()), 13, select(3, Module.MainZoneFont:GetFont()))
-	Module.MainZoneFont:SetAllPoints(Module.LocationFrame)
-	Module.MainZoneFont:SetWordWrap(true)
-	Module.MainZoneFont:SetNonSpaceWrap(true)
-	Module.MainZoneFont:SetMaxLines(2)
+	LocationDataText.MainZoneText = LocationDataText:CreateFontString("OVERLAY")
+	LocationDataText.MainZoneText:SetFontObject(K.UIFont)
+	LocationDataText.MainZoneText:SetFont(select(1, LocationDataText.MainZoneText:GetFont()), 13, select(3, LocationDataText.MainZoneText:GetFont()))
+	LocationDataText.MainZoneText:SetAllPoints(LocationDataText)
+	LocationDataText.MainZoneText:SetWordWrap(true)
+	LocationDataText.MainZoneText:SetNonSpaceWrap(true)
+	LocationDataText.MainZoneText:SetMaxLines(2)
 
-	Module.SubZoneFont = Module.LocationFrame:CreateFontString("OVERLAY")
-	Module.SubZoneFont:SetFontObject(K.GetFont(C["UIFonts"].DataTextFonts))
-	Module.SubZoneFont:SetFont(select(1, Module.SubZoneFont:GetFont()), 11, select(3, Module.SubZoneFont:GetFont()))
-	Module.SubZoneFont:SetPoint("TOP", Module.MainZoneFont, "BOTTOM", 0, -1)
-	Module.SubZoneFont:SetNonSpaceWrap(true)
-	Module.SubZoneFont:SetMaxLines(2)
+	LocationDataText.SubZoneText = LocationDataText:CreateFontString("OVERLAY")
+	LocationDataText.SubZoneText:SetFontObject(K.UIFont)
+	LocationDataText.SubZoneText:SetFont(select(1, LocationDataText.SubZoneText:GetFont()), 11, select(3, LocationDataText.SubZoneText:GetFont()))
+	LocationDataText.SubZoneText:SetPoint("TOP", LocationDataText.MainZoneText, "BOTTOM", 0, -1)
+	LocationDataText.SubZoneText:SetNonSpaceWrap(true)
+	LocationDataText.SubZoneText:SetMaxLines(2)
 
-	K:RegisterEvent("ZONE_CHANGED", Module.LocationOnEvent)
-	K:RegisterEvent("ZONE_CHANGED_INDOORS", Module.LocationOnEvent)
-	K:RegisterEvent("ZONE_CHANGED_NEW_AREA", Module.LocationOnEvent)
-	K:RegisterEvent("PLAYER_ENTERING_WORLD", Module.LocationOnEvent)
+	for _, event in pairs(eventList) do
+		LocationDataText:RegisterEvent(event)
+	end
 
-	Module.LocationFrame:SetScript("OnEvent", Module.LocationOnUpdate)
+	LocationDataText:SetScript("OnEvent", OnEvent)
 end

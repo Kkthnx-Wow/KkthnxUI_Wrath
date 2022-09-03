@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Chat")
 local VoiceActivityEventFrame = CreateFrame("Frame")
 
@@ -14,7 +14,7 @@ local CreateFrame = _G.CreateFrame
 local UIParent = _G.UIParent
 local Voice_GetVoiceChannelNotificationColor = _G.Voice_GetVoiceChannelNotificationColor
 
-local voiceTalkingList = {}
+Module.voiceTalkingList = {}
 
 -- http://www.wowwiki.com/ColorGradient
 local function VoiceColorGradient(_, perc, ...)
@@ -25,7 +25,7 @@ local function VoiceColorGradient(_, perc, ...)
 	end
 
 	local num = select("#", ...) / 3
-	local segment, relperc = math_modf(perc*(num-1))
+	local segment, relperc = math_modf(perc * (num - 1))
 	local r1, g1, b1, r2, g2, b2 = select((segment * 3) + 1, ...)
 
 	return r1 + (r2 - r1) * relperc, g1 + (g2 - g1) * relperc, b1 + (b2 - b1) * relperc
@@ -68,7 +68,7 @@ local function ConfigureHead(memberID, channelID)
 	frame:Show()
 end
 
-local function DeconfigureHead(memberID) -- memberID, channelID
+local function DeconfigureHead(memberID, channelID) -- memberID, channelID
 	local frame = GetHeadByID(memberID)
 	if not frame then
 		return
@@ -84,10 +84,10 @@ VoiceActivityEventFrame:SetScript("OnEvent", function(_, event, ...)
 		local memberID, channelID, isTalking = ...
 
 		if isTalking then
-			voiceTalkingList[memberID] = channelID
+			Module.voiceTalkingList[memberID] = channelID
 			ConfigureHead(memberID, channelID)
 		else
-			voiceTalkingList[memberID] = nil
+			Module.voiceTalkingList[memberID] = nil
 			DeconfigureHead(memberID, channelID)
 		end
 	elseif event == "VOICE_CHAT_CHANNEL_MEMBER_ENERGY_CHANGED" then
@@ -116,12 +116,12 @@ function Module:CreateVoiceActivity()
 	Module.ChatHeadFrame = CreateFrame("Frame", "KKUI_ChatHeadFrame", UIParent)
 	Module.ChatHeadFrame:SetPoint("LEFT", UIParent, "LEFT", 18, -280)
 	Module.ChatHeadFrame:SetSize(200, 20)
-	K.Mover(Module.ChatHeadFrame, "Voice Overlay", "Voice Overlay", {"LEFT", UIParent, "LEFT", 18, -280}, 200, 20)
+	K.Mover(Module.ChatHeadFrame, "Voice Overlay", "Voice Overlay", { "LEFT", UIParent, "LEFT", 18, -280 }, 200, 20)
 
 	local CHAT_MAX_HEADS = 5
 	local CHAT_HEAD_HEIGHT = 20
 	for i = 1, CHAT_MAX_HEADS do
-		local chatHead = CreateFrame("Frame", "KKUI_ChatHeadFrame"..i, Module.ChatHeadFrame)
+		local chatHead = CreateFrame("Frame", "KKUI_ChatHeadFrame" .. i, Module.ChatHeadFrame)
 		chatHead:SetSize(200, CHAT_HEAD_HEIGHT)
 
 		chatHead.Portrait = CreateFrame("Frame", nil, chatHead)
@@ -135,7 +135,8 @@ function Module:CreateVoiceActivity()
 		chatHead.Portrait.texture:SetAllPoints(chatHead.Portrait)
 
 		chatHead.Name = chatHead:CreateFontString(nil, "OVERLAY")
-		chatHead.Name:FontTemplate(nil, 14)
+		chatHead.Name:SetFontObject(K.UIFont)
+		chatHead.Name:SetFont(select(1, chatHead.Name:GetFont()), 14, select(3, chatHead.Name:GetFont()))
 		chatHead.Name:SetPoint("LEFT", chatHead.Portrait, "RIGHT", 6, 0)
 
 		chatHead.StatusBar = CreateFrame("StatusBar", nil, chatHead)
@@ -144,13 +145,13 @@ function Module:CreateVoiceActivity()
 		chatHead.StatusBar:SetWidth(8)
 		chatHead.StatusBar:SetHeight(CHAT_HEAD_HEIGHT)
 		chatHead.StatusBar:CreateBorder()
-		chatHead.StatusBar:SetStatusBarTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
+		chatHead.StatusBar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
 		chatHead.StatusBar:SetMinMaxValues(0, 1)
 
 		chatHead.StatusBar.anim = _G.CreateAnimationGroup(chatHead.StatusBar)
 		chatHead.StatusBar.anim.progress = chatHead.StatusBar.anim:CreateAnimation("Progress")
 		chatHead.StatusBar.anim.progress:SetEasing("Out")
-		chatHead.StatusBar.anim.progress:SetDuration(.3)
+		chatHead.StatusBar.anim.progress:SetDuration(0.3)
 
 		chatHead:Hide()
 		Module.ChatHeadFrame[i] = chatHead

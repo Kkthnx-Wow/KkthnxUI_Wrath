@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Skins")
 
 local _G = _G
@@ -20,7 +20,7 @@ local function UpdateIconTexCoord(icon)
 	local width, height = icon:GetSize()
 	if width ~= 0 and height ~= 0 then
 		local left, right, top, bottom = unpack(K.TexCoords) -- normal icon
-		local ratio = width/height
+		local ratio = width / height
 		if ratio > 1 then -- fat icon
 			local offset = (1 - 1 / ratio) / 2
 			top = top + offset
@@ -41,7 +41,7 @@ local function Skin_WeakAuras(f, fType)
 		if not f.styled then
 			UpdateIconTexCoord(f.icon)
 			hooksecurefunc(f.icon, "SetTexCoord", UpdateIconTexCoord)
-			f.bg = f.bg or CreateFrame("Frame", nil, f)
+			f.bg = CreateFrame("Frame", nil, f, "BackdropTemplate")
 			f.bg:SetAllPoints(f)
 			f.bg:SetFrameLevel(f:GetFrameLevel())
 			f.bg:CreateBorder()
@@ -52,7 +52,7 @@ local function Skin_WeakAuras(f, fType)
 		end
 	elseif fType == "aurabar" then
 		if not f.styled then
-			f.bg = f.bg or CreateFrame("Frame", nil, f.bar)
+			f.bg = CreateFrame("Frame", nil, f.bar, "BackdropTemplate")
 			f.bg:SetAllPoints(f.bar)
 			f.bg:SetFrameLevel(f.bar:GetFrameLevel())
 			f.bg:CreateBorder()
@@ -105,4 +105,4 @@ local function ReskinWeakAuras()
 	end
 end
 
-Module:LoadWithAddOn("WeakAuras", "WeakAuras", ReskinWeakAuras)
+Module:RegisterSkin("WeakAuras", ReskinWeakAuras)

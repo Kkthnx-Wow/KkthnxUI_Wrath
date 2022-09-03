@@ -1,4 +1,4 @@
-local K = unpack(select(2, ...))
+local K = unpack(KkthnxUI)
 local Module = K:GetModule("Blizzard")
 
 local _G = _G
@@ -30,15 +30,15 @@ function Module:CreateUIWidgets()
 	local belowMiniMapcontainer = _G.UIWidgetBelowMinimapContainerFrame
 
 	local topCenterHolder = CreateFrame("Frame", "TopCenterContainerHolder", UIParent)
-	topCenterHolder:SetPoint("TOP", UIParent, "TOP", 0, -40)
-	topCenterHolder:SetSize(160, 30)
+	topCenterHolder:SetPoint("TOP", UIParent, "TOP", 0, -80)
+	topCenterHolder:SetSize(128, 30)
 
 	local belowMiniMapHolder = CreateFrame("Frame", "BelowMinimapContainerHolder", UIParent)
-	belowMiniMapHolder:SetPoint("TOP", UIParent, "TOP", 0, -80)
-	belowMiniMapHolder:SetSize(160, 30)
+	belowMiniMapHolder:SetPoint("TOP", UIParent, "TOP", 0, -100)
+	belowMiniMapHolder:SetSize(128, 30)
 
-	K.Mover(topCenterHolder, "TopCenterContainer", "TopCenterContainer", {"TOP", UIParent, "TOP", 0, -40}, 160, 30)
-	K.Mover(belowMiniMapHolder, "BelowMinimapContainer", "BelowMinimapContainer", {"TOP", UIParent, "TOP", 0, -80}, 160, 30)
+	K.Mover(topCenterHolder, "TopCenterContainer", "TopCenterContainer", { "TOP", UIParent, "TOP", 0, -80 }, 128, 30)
+	K.Mover(belowMiniMapHolder, "BelowMinimapContainer", "BelowMinimapContainer", { "TOP", UIParent, "TOP", 0, -100 }, 128, 30)
 
 	topCenterContainer:ClearAllPoints()
 	topCenterContainer:SetPoint("CENTER", topCenterHolder)

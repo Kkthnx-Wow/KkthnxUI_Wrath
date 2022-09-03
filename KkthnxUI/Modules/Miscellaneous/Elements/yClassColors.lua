@@ -1,6 +1,6 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 
-local oUF = oUF or K.oUF
+local oUF = K.oUF
 assert(oUF, "KkthnxUI was unable to locate oUF.")
 
 -- Sourced: yClassColors (yleaf)
@@ -18,7 +18,7 @@ local function classColor(class, showRGB)
 	if showRGB then
 		return color.r, color.g, color.b
 	else
-		return "|c"..color.colorStr
+		return "|c" .. color.colorStr
 	end
 end
 
@@ -27,9 +27,15 @@ local function diffColor(level)
 end
 
 local rankColor = {
-	1, 0, 0,
-	1, 1, 0,
-	0, 1, 0
+	1,
+	0,
+	0,
+	1,
+	1,
+	0,
+	0,
+	1,
+	0,
 }
 
 -- Guild
@@ -43,13 +49,13 @@ hooksecurefunc("GuildStatus_Update", function()
 			local fullName, _, _, level, class, zone, _, _, online = GetGuildRosterInfo(guildIndex)
 			if fullName and online then
 				local r, g, b = classColor(class, true)
-				_G["GuildFrameButton"..i.."Name"]:SetTextColor(r, g, b)
+				_G["GuildFrameButton" .. i .. "Name"]:SetTextColor(r, g, b)
 				if zone == playerArea then
-					_G["GuildFrameButton"..i.."Zone"]:SetTextColor(0, 1, 0)
+					_G["GuildFrameButton" .. i .. "Zone"]:SetTextColor(0, 1, 0)
 				end
 				local color = GetQuestDifficultyColor(level)
-				_G["GuildFrameButton"..i.."Level"]:SetTextColor(color.r, color.g, color.b)
-				_G["GuildFrameButton"..i.."Class"]:SetTextColor(r, g, b)
+				_G["GuildFrameButton" .. i .. "Level"]:SetTextColor(color.r, color.g, color.b)
+				_G["GuildFrameButton" .. i .. "Class"]:SetTextColor(r, g, b)
 			end
 		end
 	else
@@ -58,10 +64,10 @@ hooksecurefunc("GuildStatus_Update", function()
 			local fullName, _, rankIndex, _, class, _, _, _, online = GetGuildRosterInfo(guildIndex)
 			if fullName and online then
 				local r, g, b = classColor(class, true)
-				_G["GuildFrameGuildStatusButton"..i.."Name"]:SetTextColor(r, g, b)
+				_G["GuildFrameGuildStatusButton" .. i .. "Name"]:SetTextColor(r, g, b)
 				local lr, lg, lb = oUF:RGBColorGradient(rankIndex, 10, unpack(rankColor))
 				if lr then
-					_G["GuildFrameGuildStatusButton"..i.."Rank"]:SetTextColor(lr, lg, lb)
+					_G["GuildFrameGuildStatusButton" .. i .. "Rank"]:SetTextColor(lr, lg, lb)
 				end
 			end
 		end
@@ -84,7 +90,7 @@ local function friendsFrame()
 			if button.buttonType == FRIENDS_BUTTON_TYPE_WOW then
 				local info = C_FriendList.GetFriendInfoByIndex(button.id)
 				if info and info.connected then
-					nameText = classColor(info.className)..info.name.."|r, "..format(FRIENDS_LEVEL_TEMPLATE, diffColor(info.level)..info.level.."|r", info.className)
+					nameText = classColor(info.className) .. info.name .. "|r, " .. format(FRIENDS_LEVEL_TEMPLATE, diffColor(info.level) .. info.level .. "|r", info.className)
 					if info.area == playerArea then
 						infoText = format("|cff00ff00%s|r", info.area)
 					end
@@ -94,7 +100,7 @@ local function friendsFrame()
 				if isOnline and client == BNET_CLIENT_WOW then
 					local _, charName, _, _, _, faction, _, class, _, zoneName = BNGetGameAccountInfo(gameID)
 					if presenceName and charName and class and faction == UnitFactionGroup("player") then
-						nameText = presenceName.." "..FRIENDS_WOW_NAME_COLOR_CODE.."("..classColor(class)..charName..FRIENDS_WOW_NAME_COLOR_CODE..")"
+						nameText = presenceName .. " " .. FRIENDS_WOW_NAME_COLOR_CODE .. "(" .. classColor(class) .. charName .. FRIENDS_WOW_NAME_COLOR_CODE .. ")"
 						if zoneName == playerArea then
 							infoText = format("|cff00ff00%s|r", zoneName)
 						end
@@ -103,8 +109,12 @@ local function friendsFrame()
 			end
 		end
 
-		if nameText then button.name:SetText(nameText) end
-		if infoText then button.info:SetText(infoText) end
+		if nameText then
+			button.name:SetText(nameText)
+		end
+		if infoText then
+			button.info:SetText(infoText)
+		end
 	end
 end
 hooksecurefunc(FriendsFrameFriendsScrollFrame, "update", friendsFrame)
@@ -120,15 +130,21 @@ local function updateWhoList()
 
 	for i = 1, WHOS_TO_DISPLAY, 1 do
 		local index = whoOffset + i
-		local nameText = _G["WhoFrameButton"..i.."Name"]
-		local levelText = _G["WhoFrameButton"..i.."Level"]
-		local variableText = _G["WhoFrameButton"..i.."Variable"]
+		local nameText = _G["WhoFrameButton" .. i .. "Name"]
+		local levelText = _G["WhoFrameButton" .. i .. "Level"]
+		local variableText = _G["WhoFrameButton" .. i .. "Variable"]
 		local info = C_FriendList.GetWhoInfo(index)
 		if info then
 			local guild, level, race, zone, class = info.fullGuildName, info.level, info.raceStr, info.area, info.filename
-			if zone == playerZone then zone = "|cff00ff00"..zone end
-			if guild == playerGuild then guild = "|cff00ff00"..guild end
-			if race == playerRace then race = "|cff00ff00"..race end
+			if zone == playerZone then
+				zone = "|cff00ff00" .. zone
+			end
+			if guild == playerGuild then
+				guild = "|cff00ff00" .. guild
+			end
+			if race == playerRace then
+				race = "|cff00ff00" .. race
+			end
 
 			wipe(columnTable)
 			tinsert(columnTable, zone)
@@ -136,7 +152,7 @@ local function updateWhoList()
 			tinsert(columnTable, race)
 
 			nameText:SetTextColor(classColor(class, true))
-			levelText:SetText(diffColor(level)..level)
+			levelText:SetText(diffColor(level) .. level)
 			variableText:SetText(columnTable[UIDropDownMenu_GetSelectedID(WhoFrameDropDown)])
 		end
 	end
@@ -154,17 +170,21 @@ hooksecurefunc("WorldStateScoreFrame_Update", function()
 		local fullName, _, _, _, _, faction, _, _, class = GetBattlefieldScore(index)
 		if fullName then
 			local name, realm = strsplit(" - ", fullName)
-			name = classColor(class)..name.."|r"
-			if fullName == K.Name then name = "> "..name.." <" end
+			name = classColor(class) .. name .. "|r"
+			if fullName == DB.MyName then
+				name = "> " .. name .. " <"
+			end
 
 			if realm then
 				local color = "|cffff1919"
-				if faction == 1 then color = "|cff00adf0" end
-				realm = color..realm.."|r"
-				name = name.." - "..realm
+				if faction == 1 then
+					color = "|cff00adf0"
+				end
+				realm = color .. realm .. "|r"
+				name = name .. " - " .. realm
 			end
 
-			local button = _G["WorldStateScoreButton"..i]
+			local button = _G["WorldStateScoreButton" .. i]
 			if button then
 				button.name.text:SetText(name)
 			end

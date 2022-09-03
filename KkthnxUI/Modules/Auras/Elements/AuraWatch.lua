@@ -1,13 +1,49 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Auras")
 
+local _G = _G
+local pairs = _G.pairs
+local select = _G.select
+local string_find = _G.string.find
+local table_insert = _G.table.insert
+local table_remove = _G.table.remove
+local table_wipe = _G.table.wipe
+
+local CreateFrame = _G.CreateFrame
+local GameTooltip = _G.GameTooltip
+local GetInventoryItemCooldown = _G.GetInventoryItemCooldown
+local GetInventoryItemLink = _G.GetInventoryItemLink
+local GetItemCooldown = _G.GetItemCooldown
+local GetItemInfo = _G.GetItemInfo
+local GetPlayerInfoByGUID = _G.GetPlayerInfoByGUID
+local GetSpellCharges = _G.GetSpellCharges
+local GetSpellCooldown = _G.GetSpellCooldown
+local GetSpellInfo = _G.GetSpellInfo
+local GetTime = _G.GetTime
+local GetTotemInfo = _G.GetTotemInfo
+local InCombatLockdown = _G.InCombatLockdown
+local IsAltKeyDown = _G.IsAltKeyDown
+local IsControlKeyDown = _G.IsControlKeyDown
+local IsPlayerSpell = _G.IsPlayerSpell
+local PlaySound = _G.PlaySound
+local SlashCmdList = _G.SlashCmdList
+local UnitAura = _G.UnitAura
+local UnitGUID = _G.UnitGUID
+local UnitInParty = _G.UnitInParty
+local UnitInRaid = _G.UnitInRaid
+local UnitName = _G.UnitName
+
 local maxFrames = 12 -- Max Tracked Auras
-local updater = CreateFrame("Frame")
-local AuraList, FrameList, UnitIDTable, IntTable, IntCD, myTable, cooldownTable = {}, {}, {}, {}, {}, {}, {}
-local pairs, select, tinsert, tremove, wipe = _G.pairs, _G.select, _G.table.insert, _G.table.remove, _G.table.wipe
-local InCombatLockdown, UnitBuff, UnitDebuff, GetPlayerInfoByGUID, UnitInRaid, UnitInParty = _G.InCombatLockdown, _G.UnitBuff, _G.UnitDebuff, _G.GetPlayerInfoByGUID, _G.UnitInRaid, _G.UnitInParty
-local GetTime, GetSpellInfo, GetSpellCooldown, GetSpellCharges, GetTotemInfo = _G.GetTime, _G.GetSpellInfo, _G.GetSpellCooldown, _G.GetSpellCharges, _G.GetTotemInfo
-local GetItemCooldown, GetItemInfo, GetInventoryItemLink, GetInventoryItemCooldown = _G.GetItemCooldown, _G.GetItemInfo, _G.GetInventoryItemLink, _G.GetInventoryItemCooldown
+local hasCentralize
+local auraWatchUpdater = CreateFrame("Frame")
+
+local AuraList = {}
+local FrameList = {}
+local UnitIDTable = {}
+local IntTable = {}
+local IntCD = {}
+local myTable = {}
+local cooldownTable = {}
 
 -- DataConvert
 local function DataAnalyze(v)
@@ -39,7 +75,7 @@ end
 
 local function InsertData(index, target)
 	if KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.Switcher[index] then
-		wipe(target)
+		table_wipe(target)
 	end
 
 	for spellID, v in pairs(myTable[index]) do
@@ -96,7 +132,7 @@ local function ConvertTable()
 		elseif v.Name == "InternalCD" then
 			InsertData(10, v.List)
 			IntCD = v
-			tremove(C.AuraWatchList["ALL"], i)
+			table_remove(C.AuraWatchList["ALL"], i)
 		end
 	end
 end
@@ -106,33 +142,11 @@ local function BuildAuraList()
 	for class in pairs(C.AuraWatchList) do
 		if class == K.Class then
 			for _, value in pairs(C.AuraWatchList[class]) do
-				tinsert(AuraList, value)
+				table_insert(AuraList, value)
 			end
 		end
 	end
-	wipe(C.AuraWatchList)
-end
-
-local auraListByName = {}
-local function BuildNamesForSpellRank()
-	if not C["AuraWatch"].WatchSpellRank then
-		return
-	end
-
-	for KEY, VALUE in pairs(AuraList) do
-		for spellID, value in pairs(VALUE.List) do
-			local name = GetSpellInfo(spellID)
-			if value.AuraID and name then
-				if not auraListByName[KEY] then
-					auraListByName[KEY] = {}
-				end
-
-				if not auraListByName[KEY][name] then
-					auraListByName[KEY][name] = value
-				end
-			end
-		end
-	end
+	table_wipe(C.AuraWatchList)
 end
 
 local function BuildUnitIDTable()
@@ -146,14 +160,14 @@ local function BuildUnitIDTable()
 			end
 
 			if flag then
-				tinsert(UnitIDTable, value.UnitID)
+				table_insert(UnitIDTable, value.UnitID)
 			end
 		end
 	end
 end
 
 local function BuildCooldownTable()
-	wipe(cooldownTable)
+	table_wipe(cooldownTable)
 
 	for KEY, VALUE in pairs(AuraList) do
 		for spellID, value in pairs(VALUE.List) do
@@ -171,6 +185,7 @@ local function MakeMoveHandle(frame, text, value, anchor)
 	local mover = K.Mover(frame, text, value, anchor, nil, nil, true)
 	frame:ClearAllPoints()
 	frame:SetPoint("CENTER", mover)
+	frame.__width = mover:GetWidth()
 
 	return mover
 end
@@ -186,7 +201,7 @@ local function tooltipOnEnter(self)
 	elseif self.type == 3 then
 		GameTooltip:SetInventoryItem("player", self.spellID)
 	elseif self.type == 4 then
-		GameTooltip:SetUnitAura(self.unitID, self.id, self.filter)
+		GameTooltip:SetUnitAura(self.unit, self.index, self.filter)
 	elseif self.type == 5 then
 		GameTooltip:SetTotem(self.spellID)
 	end
@@ -228,7 +243,7 @@ local function BuildICON(iconSize)
 
 	frame.Icon = frame:CreateTexture(nil, "ARTWORK")
 	frame.Icon:SetAllPoints(frame.bg)
-	frame.Icon:SetTexCoord(unpack(K.TexCoords))
+	frame.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 	frame.Cooldown = CreateFrame("Cooldown", nil, frame, "CooldownFrameTemplate")
 	frame.Cooldown:SetAllPoints(frame.bg)
@@ -241,7 +256,7 @@ local function BuildICON(iconSize)
 	frame.Spellname = K.CreateFontString(parentFrame, 13, "", "OUTLINE", false, "TOP", 0, 5)
 	frame.Count = K.CreateFontString(parentFrame, iconSize * 0.40, "", "OUTLINE", false, "BOTTOMRIGHT", 6, -3)
 
-	frame.glowFrame = frame.glowFrame or CreateFrame("Frame", nil, frame)
+	frame.glowFrame = CreateFrame("Frame", nil, frame)
 	frame.glowFrame:SetPoint("TOPLEFT", frame, -4, 4)
 	frame.glowFrame:SetPoint("BOTTOMRIGHT", frame, 4, -4)
 	frame.glowFrame:SetSize(iconSize, iconSize)
@@ -263,14 +278,14 @@ local function BuildBAR(barWidth, iconSize)
 
 	frame.Icon = frame:CreateTexture(nil, "ARTWORK")
 	frame.Icon:SetAllPoints()
-	frame.Icon:SetTexCoord(unpack(K.TexCoords))
+	frame.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
 	frame.Statusbar = CreateFrame("StatusBar", nil, frame)
 	frame.Statusbar:SetSize(barWidth, iconSize / 1.6)
 	frame.Statusbar:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", 6, 0)
 	frame.Statusbar:SetMinMaxValues(0, 1)
 	frame.Statusbar:SetValue(0)
-	frame.Statusbar:SetStatusBarTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
+	frame.Statusbar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
 	frame.Statusbar:SetStatusBarColor(K.r, K.g, K.b)
 	frame.Statusbar:CreateBorder()
 
@@ -283,7 +298,7 @@ local function BuildBAR(barWidth, iconSize)
 	frame.Count = K.CreateFontString(frame, 12, "", "", false, "BOTTOMRIGHT", 3, -1)
 	frame.Time = K.CreateFontString(frame.Statusbar, 12, "", "", false, "RIGHT", 0, 8)
 	frame.Spellname = K.CreateFontString(frame.Statusbar, 12, "", "", false, "LEFT", 2, 8)
-	frame.Spellname:SetWidth(frame.Statusbar:GetWidth()* 0.6)
+	frame.Spellname:SetWidth(frame.Statusbar:GetWidth() * 0.6)
 	frame.Spellname:SetJustifyH("LEFT")
 
 	if not C["AuraWatch"].ClickThrough then
@@ -299,44 +314,54 @@ local function BuildAura()
 	for key, value in pairs(AuraList) do
 		local frameTable = {}
 		for i = 1, maxFrames do
-			if value.Mode:lower() == "icon" then
+			if value.Mode == "ICON" then
 				local frame = BuildICON(value.IconSize)
 				if i == 1 then
 					frame.MoveHandle = MakeMoveHandle(frame, L[value.Name], key, value.Pos)
 				end
-				tinsert(frameTable, frame)
-			elseif value.Mode:lower() == "bar" then
+				table_insert(frameTable, frame)
+			elseif value.Mode == "BAR" then
 				local frame = BuildBAR(value.BarWidth, value.IconSize)
 				if i == 1 then
 					frame.MoveHandle = MakeMoveHandle(frame, L[value.Name], key, value.Pos)
 				end
-				tinsert(frameTable, frame)
+				table_insert(frameTable, frame)
 			end
 		end
 		frameTable.Index = 1
-		tinsert(FrameList, frameTable)
+		table_insert(FrameList, frameTable)
 	end
 end
 
 local function SetupAnchor()
 	for key, VALUE in pairs(FrameList) do
 		local value = AuraList[key]
+		local direction, interval = value.Direction, value.Interval
+		-- check whether using CENTER direction
+		if value.Mode == "BAR" and direction == "CENTER" then
+			direction = "UP" -- sorry, no "CENTER" for bars mode
+		end
+		if not hasCentralize then
+			hasCentralize = direction == "CENTER"
+		end
 		local previous
 		for i = 1, #VALUE do
 			local frame = VALUE[i]
 			if i == 1 then
 				frame:SetPoint("CENTER", frame.MoveHandle)
-			elseif (value.Name == "Target Aura" or value.Name == "Enchant Aura") and i == 7 then
-				frame:SetPoint("BOTTOM", VALUE[1], "TOP", 0, value.Interval)
+				frame.__direction = direction
+				frame.__interval = interval
+			elseif (value.Name == "Target Aura" or value.Name == "Enchant Aura") and i == 7 and direction ~= "CENTER" then
+				frame:SetPoint("BOTTOM", VALUE[1], "TOP", 0, interval)
 			else
-				if value.Direction:lower() == "right" then
-					frame:SetPoint("LEFT", previous, "RIGHT", value.Interval, 0)
-				elseif value.Direction:lower() == "left" then
-					frame:SetPoint("RIGHT", previous, "LEFT", -value.Interval, 0)
-				elseif value.Direction:lower() == "up" then
-					frame:SetPoint("BOTTOM", previous, "TOP", 0, value.Interval)
-				elseif value.Direction:lower() == "down" then
-					frame:SetPoint("TOP", previous, "BOTTOM", 0, -value.Interval)
+				if direction == "RIGHT" or direction == "CENTER" then
+					frame:SetPoint("LEFT", previous, "RIGHT", interval, 0)
+				elseif direction == "LEFT" then
+					frame:SetPoint("RIGHT", previous, "LEFT", -interval, 0)
+				elseif direction == "UP" then
+					frame:SetPoint("BOTTOM", previous, "TOP", 0, interval)
+				elseif direction == "DOWN" then
+					frame:SetPoint("TOP", previous, "BOTTOM", 0, -interval)
 				end
 			end
 			previous = frame
@@ -347,10 +372,9 @@ end
 local function InitSetup()
 	ConvertTable()
 	BuildAuraList()
-	BuildNamesForSpellRank()
 	BuildUnitIDTable()
 	BuildCooldownTable()
-	K:RegisterEvent("SPELLS_CHANGED", BuildCooldownTable)
+	K:RegisterEvent("PLAYER_TALENT_UPDATE", BuildCooldownTable)
 	BuildAura()
 	SetupAnchor()
 end
@@ -438,20 +462,20 @@ function Module:AuraWatch_UpdateCD()
 					local name, _, icon = GetSpellInfo(value.SpellID)
 					local start, duration = GetSpellCooldown(value.SpellID)
 					local charges, maxCharges, chargeStart, chargeDuration = GetSpellCharges(value.SpellID)
-					if group.Mode:lower() == "icon" then
+					if group.Mode == "ICON" then
 						name = nil
 					end
 
 					if charges and maxCharges and maxCharges > 1 and charges < maxCharges then
 						Module:AuraWatch_SetupCD(KEY, name, icon, chargeStart, chargeDuration, true, 1, value.SpellID, charges)
-					elseif start and duration > 5 then
+					elseif start and duration > 3 then
 						Module:AuraWatch_SetupCD(KEY, name, icon, start, duration, true, 1, value.SpellID)
 					end
 				elseif value.ItemID then
 					local start, duration = GetItemCooldown(value.ItemID)
-					if start and duration > 5 then
+					if start and duration > 3 then
 						local name, _, _, _, _, _, _, _, _, icon = GetItemInfo(value.ItemID)
-						if group.Mode:lower() == "icon" then
+						if group.Mode == "ICON" then
 							name = nil
 						end
 						Module:AuraWatch_SetupCD(KEY, name, icon, start, duration, false, 2, value.ItemID)
@@ -462,7 +486,7 @@ function Module:AuraWatch_UpdateCD()
 						local name, _, _, _, _, _, _, _, _, icon = GetItemInfo(link)
 						local start, duration = GetInventoryItemCooldown("player", value.SlotID)
 						if duration > 1.5 then
-							if group.Mode:lower() == "icon" then
+							if group.Mode == "ICON" then
 								name = nil
 							end
 							Module:AuraWatch_SetupCD(KEY, name, icon, start, duration, false, 3, value.SlotID)
@@ -471,7 +495,9 @@ function Module:AuraWatch_UpdateCD()
 				elseif value.TotemID then
 					local haveTotem, name, start, duration, icon = GetTotemInfo(value.TotemID)
 					if haveTotem then
-						if group.Mode:lower() == "icon" then name = nil end
+						if group.Mode == "ICON" then
+							name = nil
+						end
 						Module:AuraWatch_SetupCD(KEY, name, icon, start, duration, false, 5, value.TotemID)
 					end
 				end
@@ -481,28 +507,31 @@ function Module:AuraWatch_UpdateCD()
 end
 
 -- UpdateAura
-function Module:AuraWatch_SetupAura(index, UnitID, name, icon, count, duration, expires, id, filter, flash, spellID)
-	if not index then
+local replacedTexture = {
+	[336892] = 135130, -- 无懈警戒换成瞄准射击图标
+}
+function Module:AuraWatch_SetupAura(KEY, unit, index, filter, name, icon, count, duration, expires, spellID, flash)
+	if not KEY then
 		return
 	end
 
-	local frames = FrameList[index]
+	local frames = FrameList[KEY]
 	local frame = frames[frames.Index]
 	if frame then
 		frame:Show()
 	end
 
 	if frame.Icon then
-		frame.Icon:SetTexture(icon)
+		frame.Icon:SetTexture(replacedTexture[spellID] or icon)
 	end
 
 	if frame.Count then
-		frame.Count:SetText(count > 1 and count or nil)
+		frame.Count:SetText(count > 1 and count)
 	end
 
 	if frame.Cooldown then
 		frame.Cooldown:SetReverse(true)
-		frame.Cooldown:SetCooldown(expires-duration, duration)
+		frame.Cooldown:SetCooldown(expires - duration, duration)
 	end
 
 	if frame.Spellname then
@@ -525,50 +554,42 @@ function Module:AuraWatch_SetupAura(index, UnitID, name, icon, count, duration, 
 	end
 
 	frame.type = 4
-	frame.unitID = UnitID
-	frame.id = id
+	frame.unit = unit
+	frame.index = index
 	frame.filter = filter
 	frame.spellID = spellID
 
 	frames.Index = (frames.Index + 1 > maxFrames) and maxFrames or frames.Index + 1
 end
 
-function Module:AuraWatch_UpdateAura(spellName, spellID, UnitID, index, bool)
+function Module:AuraWatch_UpdateAura(unit, index, filter, name, icon, count, duration, expires, caster, spellID, number, inCombat)
 	if KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells[spellID] then -- ignore spells
 		return
 	end
 
 	for KEY, VALUE in pairs(AuraList) do
 		local value = VALUE.List[spellID]
-		if not value then
-			value = auraListByName[KEY] and auraListByName[KEY][spellName]
-		end
-
-		if value and value.AuraID and value.UnitID == UnitID then
-			local filter = bool and "HELPFUL" or "HARMFUL"
-			local name, icon, count, _, duration, expires, caster, _, _, _, _, _, _, _, _, number = UnitAura(value.UnitID, index, filter)
-			if value.Combat and not InCombatLockdown() then
-				return false
+		if value and value.AuraID and value.UnitID == unit then
+			if value.Combat and not inCombat then
+				return
 			end
-
-			if value.Caster and value.Caster:lower() ~= caster then
-				return false
+			if value.Caster and value.Caster ~= caster then
+				return
 			end
-
 			if value.Stack and count and value.Stack > count then
-				return false
+				return
 			end
 
 			if value.Value and number then
-				if VALUE.Mode:lower() == "icon" then
+				if VALUE.Mode == "ICON" then
 					name = K.ShortValue(number)
-				elseif VALUE.Mode:lower() == "bar" then
-					name = name..":"..K.ShortValue(number)
+				elseif VALUE.Mode == "BAR" then
+					name = name .. ":" .. K.ShortValue(number)
 				end
 			else
-				if VALUE.Mode:lower() == "icon" then
+				if VALUE.Mode == "ICON" then
 					name = value.Text or nil
-				elseif VALUE.Mode:lower() == "bar" then
+				elseif VALUE.Mode == "BAR" then
 					name = name
 				end
 			end
@@ -576,32 +597,30 @@ function Module:AuraWatch_UpdateAura(spellName, spellID, UnitID, index, bool)
 			if value.Timeless then
 				duration, expires = 0, 0
 			end
-			return KEY, value.UnitID, name, icon, count, duration, expires, index, filter, value.Flash, spellID
+
+			Module:AuraWatch_SetupAura(KEY, unit, index, filter, name, icon, count, duration, expires, spellID, value.Flash)
+			return
 		end
 	end
-	return false
 end
 
-function Module:UpdateAuraWatch(UnitID)
+function Module:UpdateAuraWatchByFilter(unit, filter, inCombat)
 	local index = 1
-	while true do
-		local name, _, _, _, _, _, _, _, _, spellID = UnitBuff(UnitID, index)
-		if not name then
-			break
-		end
-		Module:AuraWatch_SetupAura(Module:AuraWatch_UpdateAura(name, spellID, UnitID, index, true))
-		index = index + 1
-	end
 
-	local index = 1
 	while true do
-		local name, _, _, _, _, _, _, _, _, spellID = UnitDebuff(UnitID, index)
+		local name, icon, count, _, duration, expires, caster, _, _, spellID, _, _, _, _, _, number = UnitAura(unit, index, filter)
 		if not name then
 			break
 		end
-		Module:AuraWatch_SetupAura(Module:AuraWatch_UpdateAura(name, spellID, UnitID, index, false))
+		Module:AuraWatch_UpdateAura(unit, index, filter, name, icon, count, duration, expires, caster, spellID, number, inCombat)
+
 		index = index + 1
 	end
+end
+
+function Module:UpdateAuraWatch(unit, inCombat)
+	Module:UpdateAuraWatchByFilter(unit, "HELPFUL", inCombat)
+	Module:UpdateAuraWatchByFilter(unit, "HARMFUL", inCombat)
 end
 
 -- Update InternalCD
@@ -614,15 +633,16 @@ function Module:AuraWatch_SortBars()
 		IntTable[i]:ClearAllPoints()
 		if i == 1 then
 			IntTable[i]:SetPoint("CENTER", IntCD.MoveHandle)
-		elseif IntCD.Direction:lower() == "right" then
-			IntTable[i]:SetPoint("LEFT", IntTable[i-1], "RIGHT", IntCD.Interval, 0)
-		elseif IntCD.Direction:lower() == "left" then
-			IntTable[i]:SetPoint("RIGHT", IntTable[i-1], "LEFT", -IntCD.Interval, 0)
-		elseif IntCD.Direction:lower() == "up" then
-			IntTable[i]:SetPoint("BOTTOM", IntTable[i-1], "TOP", 0, IntCD.Interval)
-		elseif IntCD.Direction:lower() == "down" then
-			IntTable[i]:SetPoint("TOP", IntTable[i-1], "BOTTOM", 0, -IntCD.Interval)
+		elseif IntCD.Direction == "RIGHT" then
+			IntTable[i]:SetPoint("LEFT", IntTable[i - 1], "RIGHT", IntCD.Interval, 0)
+		elseif IntCD.Direction == "LEFT" then
+			IntTable[i]:SetPoint("RIGHT", IntTable[i - 1], "LEFT", -IntCD.Interval, 0)
+		elseif IntCD.Direction == "UP" then
+			IntTable[i]:SetPoint("BOTTOM", IntTable[i - 1], "TOP", 0, IntCD.Interval)
+		elseif IntCD.Direction == "DOWN" then
+			IntTable[i]:SetPoint("TOP", IntTable[i - 1], "BOTTOM", 0, -IntCD.Interval)
 		end
+
 		IntTable[i].ID = i
 	end
 end
@@ -633,7 +653,7 @@ function Module:AuraWatch_IntTimer(elapsed)
 	if timer < 0 then
 		self:SetScript("OnUpdate", nil)
 		self:Hide()
-		tremove(IntTable, self.ID)
+		table_remove(IntTable, self.ID)
 		Module:AuraWatch_SortBars()
 	elseif timer < 60 then
 		if self.Time then
@@ -658,7 +678,7 @@ function Module:AuraWatch_SetupInt(intID, itemID, duration, unitID, guid, source
 	local frame = BuildBAR(IntCD.BarWidth, IntCD.IconSize)
 	if frame then
 		frame:Show()
-		tinsert(IntTable, frame)
+		table_insert(IntTable, frame)
 		Module:AuraWatch_SortBars()
 	end
 
@@ -675,7 +695,7 @@ function Module:AuraWatch_SetupInt(intID, itemID, duration, unitID, guid, source
 
 	if unitID:lower() == "all" then
 		class = select(2, GetPlayerInfoByGUID(guid))
-		name = "*"..sourceName
+		name = "*" .. sourceName
 	else
 		class = K.Class
 	end
@@ -742,6 +762,7 @@ function Module:IsAuraTracking(value, eventType, sourceGUID, sourceName, sourceF
 end
 
 local cache = {}
+local soundKitID = SOUNDKIT.ALARM_CLOCK_WARNING_3
 function Module:AuraWatch_UpdateInt(event, ...)
 	if not IntCD.List then
 		return
@@ -754,11 +775,12 @@ function Module:AuraWatch_UpdateInt(event, ...)
 			local unitID = value.UnitID:lower()
 			local guid = UnitGUID(unit)
 			local isPassed
-			if unitID == "all" and (unit == "player" or strfind(unit, "pet") or UnitInRaid(unit) or UnitInParty(unit) or not GetPlayerInfoByGUID(guid)) then
+			if unitID == "all" and (unit == "player" or string_find(unit, "pet") or UnitInRaid(unit) or UnitInParty(unit) or not GetPlayerInfoByGUID(guid)) then
 				isPassed = true
 			elseif unitID == "player" and (unit == "player" or unit == "pet") then
 				isPassed = true
 			end
+
 			if isPassed then
 				Module:AuraWatch_SetupInt(value.IntID, value.ItemID, value.Duration, value.UnitID, guid, UnitName(unit))
 			end
@@ -768,14 +790,20 @@ function Module:AuraWatch_UpdateInt(event, ...)
 		local value = IntCD.List[spellID]
 		if value and cache[timestamp] ~= spellID and Module:IsAuraTracking(value, eventType, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags) then
 			local guid, name = destGUID, destName
-			if value.OnSuccess then guid, name = sourceGUID, sourceName end
+			if value.OnSuccess then
+				guid, name = sourceGUID, sourceName
+			end
 
 			Module:AuraWatch_SetupInt(value.IntID, value.ItemID, value.Duration, value.UnitID, guid, name)
+			if C["AuraWatch"].QuakeRing and spellID == 240447 then -- 'Ding' on quake
+				PlaySound(soundKitID, "Master")
+			end
+
 			cache[timestamp] = spellID
 		end
 
 		if #cache > 666 then
-			wipe(cache)
+			table_wipe(cache)
 		end
 	end
 end
@@ -806,7 +834,6 @@ function Module:AuraWatch_Cleanup() -- FIXME: there should be a better way to do
 				frame.Spellname:SetText(nil)
 			end
 		end
-
 		value.Index = 1
 	end
 end
@@ -834,6 +861,24 @@ K:RegisterEvent("PLAYER_ENTERING_WORLD", Module.AuraWatch_OnEvent)
 K:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", Module.AuraWatch_OnEvent)
 K:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", Module.AuraWatch_OnEvent)
 
+function Module:AuraWatch_Centralize(force)
+	if not hasCentralize then
+		return
+	end
+
+	for i = 1, #FrameList do
+		local frames = FrameList[i]
+		local frame1 = frames and frames[1]
+		if frame1.__direction == "CENTER" and frame1:IsShown() then
+			local numIndex = force and 7 or frames.Index
+			local width = frame1.__width
+			local interval = frame1.__interval
+			frame1:ClearAllPoints()
+			frame1:SetPoint("CENTER", frame1.MoveHandle, "CENTER", -(width + interval) / 2 * (numIndex - 2), 0)
+		end
+	end
+end
+
 function Module:AuraWatch_OnUpdate(elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	if self.elapsed > 0.1 then
@@ -842,17 +887,20 @@ function Module:AuraWatch_OnUpdate(elapsed)
 		Module:AuraWatch_Cleanup()
 		Module:AuraWatch_UpdateCD()
 
+		local inCombat = InCombatLockdown()
 		for _, value in pairs(UnitIDTable) do
-			Module:UpdateAuraWatch(value)
+			Module:UpdateAuraWatch(value, inCombat)
 		end
+
+		Module:AuraWatch_Centralize()
 	end
 end
-updater:SetScript("OnUpdate", Module.AuraWatch_OnUpdate)
+auraWatchUpdater:SetScript("OnUpdate", Module.AuraWatch_OnUpdate)
 
 -- Mover
 SlashCmdList.AuraWatch = function(msg)
 	if msg:lower() == "move" then
-		updater:SetScript("OnUpdate", nil)
+		auraWatchUpdater:SetScript("OnUpdate", nil)
 		for _, value in pairs(FrameList) do
 			for i = 1, 6 do
 				if value[i] then
@@ -861,7 +909,7 @@ SlashCmdList.AuraWatch = function(msg)
 				end
 
 				if value[i].Icon then
-					value[i].Icon:SetColorTexture(0, 0, 0, .25)
+					value[i].Icon:SetColorTexture(0, 0, 0, 0.25)
 				end
 
 				if value[i].Count then
@@ -884,7 +932,7 @@ SlashCmdList.AuraWatch = function(msg)
 					K.HideButtonGlow(value[i].glowFrame)
 				end
 			end
-
+			Module:AuraWatch_Centralize(true)
 			value[1].MoveHandle:Show()
 		end
 
@@ -895,7 +943,7 @@ SlashCmdList.AuraWatch = function(msg)
 					IntTable[i]:Hide()
 				end
 			end
-			wipe(IntTable)
+			table_wipe(IntTable)
 
 			Module:AuraWatch_SetupInt(2825, nil, 0, "player")
 			Module:AuraWatch_SetupInt(2825, nil, 0, "player")
@@ -911,7 +959,7 @@ SlashCmdList.AuraWatch = function(msg)
 				IntTable[i].Time:SetText("59")
 				IntTable[i].Statusbar:SetMinMaxValues(0, 1)
 				IntTable[i].Statusbar:SetValue(1)
-				IntTable[i].Icon:SetColorTexture(0, 0, 0, .25)
+				IntTable[i].Icon:SetColorTexture(0, 0, 0, 0.25)
 			end
 		end
 	elseif msg:lower() == "lock" then
@@ -919,7 +967,7 @@ SlashCmdList.AuraWatch = function(msg)
 		for _, value in pairs(FrameList) do
 			value[1].MoveHandle:Hide()
 		end
-		updater:SetScript("OnUpdate", Module.AuraWatch_OnUpdate)
+		auraWatchUpdater:SetScript("OnUpdate", Module.AuraWatch_OnUpdate)
 
 		if IntCD.MoveHandle then
 			IntCD.MoveHandle:Hide()
@@ -928,7 +976,7 @@ SlashCmdList.AuraWatch = function(msg)
 					IntTable[i]:Hide()
 				end
 			end
-			wipe(IntTable)
+			table_wipe(IntTable)
 		end
 	end
 end

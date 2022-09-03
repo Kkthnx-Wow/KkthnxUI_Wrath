@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Automation")
 
 -- Auto opening of items in bag (kAutoOpen by Kellett)
@@ -10,7 +10,9 @@ local GetContainerItemInfo = _G.GetContainerItemInfo
 local OPENING = _G.OPENING
 local GetContainerItemLink = _G.GetContainerItemLink
 
-local atBank, atMail, atMerchant
+local atBank
+local atMail
+local atMerchant
 
 local function BankOpened()
 	atBank = true
@@ -53,7 +55,7 @@ local function BagDelayedUpdate()
 		for slot = 0, GetContainerNumSlots(bag) do
 			local _, _, locked, _, _, lootable, _, _, _, id = GetContainerItemInfo(bag, slot)
 			if lootable and not locked and id and C.AutoOpenItems[id] then
-				K.Print(K.SystemColor..OPENING..":|r "..GetContainerItemLink(bag, slot))
+				K.Print(K.SystemColor .. OPENING .. ":|r " .. GetContainerItemLink(bag, slot))
 				UseContainerItem(bag, slot)
 				return
 			end

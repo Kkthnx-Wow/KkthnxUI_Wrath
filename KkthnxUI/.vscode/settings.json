@@ -1,0 +1,6 @@
+{
+    "Lua.diagnostics.disable": [
+        "undefined-field",
+        "redundant-parameter"
+    ]
+}

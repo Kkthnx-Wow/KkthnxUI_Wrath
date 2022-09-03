@@ -1,4 +1,4 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:NewModule("Loot")
 
 local _G = _G
@@ -11,19 +11,17 @@ local CreateFrame = _G.CreateFrame
 local CursorOnUpdate = _G.CursorOnUpdate
 local CursorUpdate = _G.CursorUpdate
 local GameTooltip = _G.GameTooltip
+local GetCursorPosition = _G.GetCursorPosition
 local GetCVar = _G.GetCVar
 local GetCVarBool = _G.GetCVarBool
-local GetCursorPosition = _G.GetCursorPosition
 local GetLootSlotInfo = _G.GetLootSlotInfo
 local GetLootSlotLink = _G.GetLootSlotLink
 local GetNumLootItems = _G.GetNumLootItems
-local ITEM_QUALITY_COLORS = _G.ITEM_QUALITY_COLORS
 local IsFishingLoot = _G.IsFishingLoot
 local IsModifiedClick = _G.IsModifiedClick
+local ITEM_QUALITY_COLORS = _G.ITEM_QUALITY_COLORS
 local LOOT = _G.LOOT
 local LootSlotHasItem = _G.LootSlotHasItem
-local MasterLooterFrame_Show = _G.MasterLooterFrame_Show
-local MasterLooterFrame_UpdatePlayers = _G.MasterLooterFrame_UpdatePlayers
 local ResetCursor = _G.ResetCursor
 local StaticPopup_Hide = _G.StaticPopup_Hide
 local TEXTURE_ITEM_QUEST_BANG = _G.TEXTURE_ITEM_QUEST_BANG
@@ -59,7 +57,7 @@ end
 
 local function OnLeave(self)
 	if self.quality and (self.quality > 1) then
-		local color = ITEM_QUALITY_COLORS[self.quality or 0]
+		local color = ITEM_QUALITY_COLORS[self.quality]
 		self.drop:SetVertexColor(color.r, color.g, color.b)
 	else
 		self.drop:Hide()
@@ -77,7 +75,7 @@ local function OnClick(self)
 	LootFrame.selectedTexture = self.icon:GetTexture()
 
 	if IsModifiedClick() then
-		HandleModifiedItemClick(GetLootSlotLink(self:GetID()))
+		_G.HandleModifiedItemClick(GetLootSlotLink(self:GetID()))
 	else
 		StaticPopup_Hide("CONFIRM_LOOT_DISTRIBUTION")
 		LootSlot(self:GetID())
@@ -137,7 +135,7 @@ local function createSlot(id)
 	local count = iconFrame:CreateFontString(nil, "OVERLAY")
 	count:SetJustifyH("RIGHT")
 	count:SetPoint("BOTTOMRIGHT", iconFrame, -2, 2)
-	count:FontTemplate(nil, nil, "OUTLINE")
+	count:SetFontObject(K.UIFontOutline)
 	count:SetText(1)
 	frame.count = count
 
@@ -146,7 +144,7 @@ local function createSlot(id)
 	name:SetPoint("LEFT", frame)
 	name:SetPoint("RIGHT", icon, "LEFT")
 	name:SetNonSpaceWrap(true)
-	name:FontTemplate(nil, nil, "OUTLINE")
+	name:SetFontObject(K.UIFontOutline)
 	frame.name = name
 
 	local drop = frame:CreateTexture(nil, "ARTWORK")
@@ -280,11 +278,12 @@ function Module.LOOT_OPENED(_, autoloot)
 	else
 		local slot = lootFrame.slots[1] or createSlot(1)
 		local color = ITEM_QUALITY_COLORS[0]
-		slot.name:SetText("No Loot")
+
+		slot.name:SetText(L["Empty Slot"])
 		if color then
 			slot.name:SetTextColor(color.r, color.g, color.b)
 		end
-		slot.icon:SetTexture()
+		slot.icon:SetTexture([[Interface\Icons\INV_Misc_Herb_AncientLichen]])
 
 		w = max(w, slot.name:GetStringWidth())
 
@@ -303,16 +302,6 @@ function Module.LOOT_OPENED(_, autoloot)
 	lootFrame:SetWidth(max(w, t))
 end
 
-function Module:OPEN_MASTER_LOOT_LIST()
-	MasterLooterFrame_Show(_G.LootFrame.selectedLootButton)
-end
-
-function Module:UPDATE_MASTER_LOOT_LIST()
-	if _G.LootFrame.selectedLootButton then
-		MasterLooterFrame_UpdatePlayers()
-	end
-end
-
 function Module:OnEnable()
 	if not C["Loot"].Enable then
 		return
@@ -328,7 +317,6 @@ function Module:OnEnable()
 	lootFrameHolder:SetHeight(22)
 
 	lootFrame = CreateFrame("Button", "KKUI_LootFrame", lootFrameHolder)
-	lootFrame:Hide()
 	lootFrame:SetClampedToScreen(true)
 	lootFrame:SetPoint("TOPLEFT")
 	lootFrame:SetSize(256, 64)
@@ -336,23 +324,17 @@ function Module:OnEnable()
 	lootFrame:SetFrameStrata(LootFrame:GetFrameStrata())
 	lootFrame:SetToplevel(true)
 	lootFrame.title = lootFrame:CreateFontString(nil, "OVERLAY")
-	lootFrame.title:FontTemplate(nil, nil, "OUTLINE")
+	lootFrame.title:SetFontObject(K.UIFontOutline)
 	lootFrame.title:SetPoint("BOTTOMLEFT", lootFrame, "TOPLEFT", 0, 4)
 	lootFrame.slots = {}
 	lootFrame:SetScript("OnHide", function()
 		StaticPopup_Hide("CONFIRM_LOOT_DISTRIBUTION")
 		CloseLoot()
-
-		if _G.MasterLooterFrame then
-			_G.MasterLooterFrame:Hide()
-		end
 	end)
 
 	K:RegisterEvent("LOOT_OPENED", self.LOOT_OPENED)
 	K:RegisterEvent("LOOT_SLOT_CLEARED", self.LOOT_SLOT_CLEARED)
 	K:RegisterEvent("LOOT_CLOSED", self.LOOT_CLOSED)
-	K:RegisterEvent("OPEN_MASTER_LOOT_LIST", self.OPEN_MASTER_LOOT_LIST)
-	K:RegisterEvent("UPDATE_MASTER_LOOT_LIST", self.UPDATE_MASTER_LOOT_LIST)
 
 	if GetCVar("lootUnderMouse") == "0" then
 		K.Mover(lootFrameHolder, "LootFrame", "LootFrame", { "TOPLEFT", 36, -195 })

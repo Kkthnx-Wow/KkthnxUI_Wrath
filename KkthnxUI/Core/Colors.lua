@@ -1,10 +1,12 @@
-local K = unpack(select(2, ...))
-local oUF = oUF or K.oUF
+local K = unpack(KkthnxUI)
+local oUF = K.oUF
 
 if not oUF then
 	K.Print("Could not find a vaild instance of oUF. Stopping Colors.lua code!")
 	return
 end
+
+oUF.colors.fallback = { 1, 1, 0.8 }
 
 oUF.colors.castbar = {
 	CastingColor = { 1.0, 0.7, 0.0 },
@@ -12,6 +14,16 @@ oUF.colors.castbar = {
 	notInterruptibleColor = { 0.7, 0.7, 0.7 },
 	CompleteColor = { 0.0, 1.0, 0.0 },
 	FailColor = { 1.0, 0.0, 0.0 },
+}
+
+-- Aura Coloring
+oUF.colors.debuff = {
+	none = { 204 / 255, 0 / 255, 0 / 255 },
+	Magic = { 51 / 255, 153 / 255, 255 / 255 },
+	Curse = { 204 / 255, 0 / 255, 255 / 255 },
+	Disease = { 153 / 255, 102 / 255, 0 / 255 },
+	Poison = { 0 / 255, 153 / 255, 0 / 255 },
+	[""] = { 0 / 255, 0 / 255, 0 / 255 },
 }
 
 oUF.colors.reaction = {
@@ -25,9 +37,26 @@ oUF.colors.reaction = {
 	[8] = { 0.29, 0.67, 0.30 }, -- Exalted
 }
 
+oUF.colors.selection = {
+	[0] = { 255 / 255, 0 / 255, 0 / 255 }, -- Hostile
+	[1] = { 255 / 255, 129 / 255, 0 / 255 }, -- Unfriendly
+	[2] = { 255 / 255, 255 / 255, 0 / 255 }, -- Neutral
+	[3] = { 0 / 255, 255 / 255, 0 / 255 }, -- Friendly
+	[4] = { 0 / 255, 0 / 255, 255 / 255 }, -- Player Simple
+	[5] = { 96 / 255, 96 / 255, 255 / 255 }, -- Player Extended
+	[6] = { 170 / 255, 170 / 255, 255 / 255 }, -- Party
+	[7] = { 170 / 255, 255 / 255, 170 / 255 }, -- Party PvP
+	[8] = { 83 / 255, 201 / 255, 255 / 255 }, -- Friend
+	[9] = { 128 / 255, 128 / 255, 128 / 255 }, -- Dead
+	[12] = { 255 / 255, 255 / 255, 139 / 255 }, -- Self, buggy
+	[13] = { 0 / 255, 153 / 255, 0 / 255 }, -- Battleground Friendly PvP
+}
+
 oUF.colors.power = {
 	["ALTPOWER"] = { 0.00, 1.00, 1.00 },
 	["AMMOSLOT"] = { 0.80, 0.60, 0.00 },
+	["ARCANE_CHARGES"] = { 0.41, 0.8, 0.94 },
+	["CHI"] = { 0.71, 1.00, 0.92 },
 	["COMBO_POINTS"] = { 0.69, 0.31, 0.31 },
 	["ENERGY"] = { 0.65, 0.63, 0.35 },
 	["FOCUS"] = { 0.71, 0.43, 0.27 },
@@ -55,66 +84,19 @@ oUF.colors.power = {
 
 oUF.colors.class = {
 	["DEATHKNIGHT"] = { 0.77, 0.12, 0.24 },
+	["DEMONHUNTER"] = { 0.64, 0.19, 0.79 },
 	["DRUID"] = { 1.00, 0.49, 0.03 },
+	["EVOKER"] = { 0.20, 0.58, 0.50 },
 	["HUNTER"] = { 0.67, 0.84, 0.45 },
 	["MAGE"] = { 0.41, 0.80, 1.00 },
+	["MONK"] = { 0.00, 1.00, 0.59 },
 	["PALADIN"] = { 0.96, 0.55, 0.73 },
 	["PRIEST"] = { 0.86, 0.92, 0.98 },
 	["ROGUE"] = { 1.00, 0.95, 0.32 },
 	["SHAMAN"] = { 0.16, 0.31, 0.61 },
 	["WARLOCK"] = { 0.58, 0.51, 0.79 },
 	["WARRIOR"] = { 0.78, 0.61, 0.43 },
-}
-
-oUF.colors.selection = {
-	-- these colours are sorted by r, then by g, then by b
-	-- very light yellow, used for player's character while in combat
-	[1] = { 0.89, 0.83, 0.54 },
-	-- yellow, used for neutral units
-	[2] = { 0.85, 0.77, 0.36 },
-	-- orange, used for non-interactive unfriendly units
-	[3] = { 0.90, 0.53, 0.26 },
-	-- red, used for hostile units
-	[4] = { 0.87, 0.37, 0.37 },
-	-- grey, used for dead units
-	[5] = { 0.7, 0.7, 0.7 },
-	-- green, used for friendly units
-	[6] = { 0.29, 0.67, 0.30 },
-	-- blue, the default colour, also used for friendly player names in dungeons, sanctuaries, unattackable
-	[7] = { 0.31, 0.45, 0.63 },
-}
-
-function oUF:UnitSelectionColor(unit)
-	local r, g, b = UnitSelectionColor(unit)
-	r = r * 255 + 0.5 - (r * 255 + 0.5) % 1
-	g = g * 255 + 0.5 - (g * 255 + 0.5) % 1
-	b = b * 255 + 0.5 - (b * 255 + 0.5) % 1
-	local color
-	if r == 255 and g == 255 and b == 139 then
-		color = oUF.colors.selection[1]
-	elseif r == 255 and g == 255 and b == 0 then
-		color = oUF.colors.selection[2]
-	elseif r == 255 and g == 129 and b == 0 then
-		color = oUF.colors.selection[3]
-	elseif r == 255 and g == 0 and b == 0 then
-		color = oUF.colors.selection[4]
-	elseif r == 128 and g == 128 and b == 128 then
-		color = oUF.colors.selection[5]
-	elseif r == 0 and g == 255 and b == 0 then
-		color = oUF.colors.selection[6]
-	elseif r == 0 and g == 0 and b == 255 then
-		color = oUF.colors.selection[7]
-	else
-		print("|cffffd200Unknown colour:|r", r, g, b)
-		color = oUF.colors.selection[7]
-	end
-	return color[1], color[2], color[3]
-end
-
-oUF.colors.happiness = {
-	[1] = { 0.69, 0.31, 0.31 },
-	[2] = { 0.65, 0.63, 0.35 },
-	[3] = { 0.33, 0.59, 0.33 },
+	["UNKNOWN"] = { 0.76, 0.79, 0.85 },
 }
 
 K["Colors"] = oUF.colors

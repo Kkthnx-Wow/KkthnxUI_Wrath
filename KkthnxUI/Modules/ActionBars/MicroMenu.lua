@@ -1,31 +1,31 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("ActionBar")
 
+-- TODO: Add mouseover back
+
 local _G = _G
-local assert = _G.assert
+local table_insert = _G.table.insert
+local pairs = _G.pairs
+local type = _G.type
 
-local CharacterMicroButton = _G.CharacterMicroButton
-local CreateFrame = _G.CreateFrame
-local MICRO_BUTTONS = _G.MICRO_BUTTONS
-local MainMenuBarPerformanceBar = _G.MainMenuBarPerformanceBar
-local MicroButtonPortrait = _G.MicroButtonPortrait
-local UIParent = _G.UIParent
-local hooksecurefunc = _G.hooksecurefunc
+local MAINMENU_BUTTON = _G.MAINMENU_BUTTON
+local MicroButtonTooltipText = _G.MicroButtonTooltipText
+local RegisterStateDriver = _G.RegisterStateDriver
 
-local microBar
+local buttonList = {}
 
 local function onLeaveBar()
-	if C["ActionBar"].FadeMicroBar then
-		UIFrameFadeOut(microBar, 0.5, microBar:GetAlpha(), 0)
-	end
+	local KKUI_MB = _G.KKUI_MenuBar
+	return C["ActionBar"].FadeMicroBar and UIFrameFadeOut(KKUI_MB, 0.2, KKUI_MB:GetAlpha(), 0)
 end
 
 local watcher = 0
-local function onUpdate(self, elapsed)
+local function onUpdate(_, elapsed)
+	local KKUI_MB = _G.KKUI_MenuBar
 	if watcher > 0.1 then
-		if not self:IsMouseOver() then
-			self.IsMouseOvered = nil
-			self:SetScript("OnUpdate", nil)
+		if not KKUI_MB:IsMouseOver() then
+			KKUI_MB.IsMouseOvered = nil
+			KKUI_MB:SetScript("OnUpdate", nil)
 			onLeaveBar()
 		end
 		watcher = 0
@@ -34,106 +34,99 @@ local function onUpdate(self, elapsed)
 	end
 end
 
-local function onEnter(button)
-	if button.backdrop and button:IsEnabled() then
-		if C["General"].ColorTextures then
-			button.backdrop.KKUI_Border:SetVertexColor(unpack(C["General"].TexturesColor))
-		else
-			button.backdrop.KKUI_Border:SetVertexColor(1, 1, 0)
-		end
-	end
-
-	if C["ActionBar"].FadeMicroBar and not microBar.IsMouseOvered then
-		microBar.IsMouseOvered = true
-		microBar:SetScript("OnUpdate", onUpdate)
-		UIFrameFadeIn(microBar, 0.2, microBar:GetAlpha(), 1)
+local function onEnter()
+	local KKUI_MB = _G.KKUI_MenuBar
+	if not KKUI_MB.IsMouseOvered then
+		KKUI_MB.IsMouseOvered = true
+		KKUI_MB:SetScript("OnUpdate", onUpdate)
+		UIFrameFadeIn(KKUI_MB, 0.2, KKUI_MB:GetAlpha(), 1)
 	end
 end
 
-local function onLeave(button)
-	if button.backdrop and button:IsEnabled() then
-		if C["General"].ColorTextures then
-			button.backdrop.KKUI_Border:SetVertexColor(unpack(C["General"].TexturesColor))
-		else
-			button.backdrop.KKUI_Border:SetVertexColor(1, 1, 1)
-		end
+function Module:MicroButton_SetupTexture(icon, texture)
+	icon:SetPoint("TOPLEFT", -9, 5)
+	icon:SetPoint("BOTTOMRIGHT", 10, -6)
+	icon:SetTexture(K.MediaFolder .. "Skins\\" .. texture)
+end
+
+local function ResetButtonParent(button, parent)
+	if parent ~= button.__owner then
+		button:SetParent(button.__owner)
 	end
 end
 
-local function HandleMicroButtons(button)
-	assert(button, "Invalid micro button name.")
-
-	local pushed = button:GetPushedTexture()
-	local normal = button:GetNormalTexture()
-	local disabled = button:GetDisabledTexture()
-
-	local f = CreateFrame("Frame", nil, button)
-	f:SetFrameLevel(button:GetFrameLevel())
-	f:CreateBorder()
-	f:SetAllPoints(button)
-	button.backdrop = f
-
-	button:SetParent(microBar)
-	button:GetHighlightTexture():Kill()
-	button:HookScript("OnEnter", onEnter)
-	button:HookScript("OnLeave", onLeave)
-	button:SetHitRectInsets(0, 0, 0, 0)
-
-	if button.Flash then
-		button.Flash:SetAllPoints(button)
-		button.Flash:SetTexture()
-	end
-
-	pushed:SetTexCoord(0.17, 0.87, 0.5, 0.908)
-	pushed:SetAllPoints(button)
-
-	normal:SetTexCoord(0.17, 0.87, 0.5, 0.908)
-	normal:SetAllPoints(button)
-
-	if disabled then
-		disabled:SetTexCoord(0.17, 0.87, 0.5, 0.908)
-		disabled:SetAllPoints(button)
-	end
+local function ResetButtonAnchor(button)
+	button:ClearAllPoints()
+	button:SetAllPoints()
 end
 
-local function UpdateMicroButtonsParent()
-	for _, x in pairs(MICRO_BUTTONS) do
-		_G[x]:SetParent(microBar)
-	end
-end
+function Module:MicroButton_Create(parent, data)
+	local texture, method, tooltip = unpack(data)
 
-local function UpdateMicroPositionDimensions()
-	if not microBar then
-		return
-	end
+	local bu = CreateFrame("Frame", "KKUI_MicroButtons", parent)
+	table_insert(buttonList, bu)
+	bu:SetSize(20, 20 * 1.4)
+	bu:CreateBorder()
 
-	local prevButton = microBar
-	local offset = 4
-	local spacing = offset + 2
+	local icon = bu:CreateTexture(nil, "ARTWORK")
+	Module:MicroButton_SetupTexture(icon, texture)
 
-	for i = 1, #_G.MICRO_BUTTONS do
-		local button = _G[_G.MICRO_BUTTONS[i]]
-		button:SetSize(20, 20 * 1.4)
-		button:ClearAllPoints()
+	if type(method) == "string" then
+		local button = _G[method]
+		button:SetHitRectInsets(0, 0, 0, 0)
+		button:SetParent(bu)
+		button.__owner = bu
+		hooksecurefunc(button, "SetParent", ResetButtonParent)
+		ResetButtonAnchor(button)
+		hooksecurefunc(button, "SetPoint", ResetButtonAnchor)
+		button:UnregisterAllEvents()
+		button:SetNormalTexture(nil)
 
-		if prevButton == microBar then
-			button:SetPoint("TOPLEFT", prevButton, "TOPLEFT", offset, -offset)
-		else
-			button:SetPoint("LEFT", prevButton, "RIGHT", spacing, 0)
+		if tooltip then
+			K.AddTooltip(button, "ANCHOR_RIGHT", tooltip)
 		end
 
-		prevButton = button
-	end
+		if C["ActionBar"].FadeMicroBar then
+			button:HookScript("OnEnter", onEnter)
+		end
 
-	if C["ActionBar"].FadeMicroBar and not microBar:IsMouseOver() then
-		microBar:SetAlpha(0)
+		local pushed = button:GetPushedTexture()
+		local disabled = button:GetDisabledTexture()
+		local highlight = button:GetHighlightTexture()
+		local flash = button.Flash
+
+		if pushed then
+			pushed:SetColorTexture(1, 0.84, 0, 0.2)
+			pushed:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+			pushed:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+		end
+
+		if disabled then
+			disabled:SetColorTexture(1, 0, 0, 0.4)
+			disabled:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+			disabled:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+		end
+
+		highlight:SetTexture(K.MediaFolder .. "Skins\\HighlightMicroButtonWhite")
+		highlight:SetVertexColor(K.r, K.g, K.b)
+		highlight:SetPoint("TOPLEFT", button, "TOPLEFT", -22, 18)
+		highlight:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 24, -18)
+
+		if flash then
+			flash:SetTexture(K.MediaFolder .. "Skins\\HighlightMicroButtonYellow")
+			flash:SetPoint("TOPLEFT", button, "TOPLEFT", -22, 18)
+			flash:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 24, -18)
+		end
 	else
-		microBar:SetAlpha(1)
-	end
-end
+		bu:SetScript("OnMouseUp", method)
+		K.AddTooltip(bu, "ANCHOR_RIGHT", tooltip)
 
-local function UpdateMicroButtons()
-	UpdateMicroPositionDimensions()
+		local highlight = bu:CreateTexture(nil, "HIGHLIGHT")
+		highlight:SetTexture(K.MediaFolder .. "Skins\\HighlightMicroButtonWhite")
+		highlight:SetVertexColor(K.r, K.g, K.b)
+		highlight:SetPoint("TOPLEFT", bu, "TOPLEFT", -22, 18)
+		highlight:SetPoint("BOTTOMRIGHT", bu, "BOTTOMRIGHT", 24, -18)
+	end
 end
 
 function Module:CreateMicroMenu()
@@ -141,31 +134,51 @@ function Module:CreateMicroMenu()
 		return
 	end
 
-	microBar = microBar or CreateFrame("Frame", "KKUI_MicroBar", UIParent)
-	microBar:SetSize(262, 20 * 1.8)
-	microBar:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0)
-	microBar:EnableMouse(false)
+	local menubar = CreateFrame("Frame", "KKUI_MenuBar", UIParent)
+	menubar:SetSize(280, 20 * 1.4)
+	menubar:SetAlpha((C["ActionBar"].FadeMicroBar and not menubar.IsMouseOvered and 0) or 1)
+	menubar:EnableMouse(false)
+	K.Mover(menubar, "Menubar", "Menubar", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -4, 4 })
 
-	for _, x in pairs(MICRO_BUTTONS) do
-		HandleMicroButtons(_G[x])
+	-- Generate Buttons
+	local buttonInfo = {
+		{ "CharacterMicroButton", "CharacterMicroButton", MicroButtonTooltipText(CHARACTER_BUTTON, "TOGGLECHARACTER0") },
+		{ "SpellbookMicroButton", "SpellbookMicroButton", MicroButtonTooltipText(SPELLBOOK_ABILITIES_BUTTON, "TOGGLESPELLBOOK") },
+		{ "TalentMicroButton", "TalentMicroButton", MicroButtonTooltipText(TALENTS, "TOGGLETALENTS") },
+		{ "AchievementMicroButton", "AchievementMicroButton", MicroButtonTooltipText(ACHIEVEMENT_BUTTON, "TOGGLEACHIEVEMENT") },
+		{ "QuestLogMicroButton", "QuestLogMicroButton", MicroButtonTooltipText(QUESTLOG_BUTTON, "TOGGLEQUESTLOG") },
+		{ "GuildMicroButton", "SocialsMicroButton", MicroButtonTooltipText(SOCIAL_BUTTON, "TOGGLESOCIAL") },
+		{ "LFDMicroButton", "PVPMicroButton", MicroButtonTooltipText(PLAYER_V_PLAYER, "TOGGLECHARACTER4") },
+		{ "LFDMicroButton", "LFGMicroButton", MicroButtonTooltipText(LFG_BUTTON, "TOGGLELFG") },
+		{
+			"StoreMicroButton",
+			function()
+				ToggleStoreUI()
+			end,
+			BLIZZARD_STORE,
+		},
+		{ "MainMenuMicroButton", "HelpMicroButton", MicroButtonTooltipText(HELP_BUTTON, "TOGGLEHELP") },
+		{ "MainMenuMicroButton", "MainMenuMicroButton", MicroButtonTooltipText(MAINMENU_BUTTON, "TOGGLEGAMEMENU") },
+	}
+
+	for _, info in pairs(buttonInfo) do
+		Module:MicroButton_Create(menubar, info)
 	end
 
-	MicroButtonPortrait:SetAllPoints(CharacterMicroButton.backdrop)
-
-	hooksecurefunc("UpdateMicroButtonsParent", UpdateMicroButtonsParent)
-	hooksecurefunc("MoveMicroButtons", UpdateMicroPositionDimensions)
-	hooksecurefunc("UpdateMicroButtons", UpdateMicroButtons)
-
-	UpdateMicroButtonsParent()
-	UpdateMicroPositionDimensions()
+	-- Order Positions
+	for i = 1, #buttonList do
+		if i == 1 then
+			buttonList[i]:SetPoint("LEFT")
+		else
+			buttonList[i]:SetPoint("LEFT", buttonList[i - 1], "RIGHT", 6, 0)
+		end
+	end
 
 	-- Default elements
-	_G.MainMenuBar.slideOut:GetAnimations():SetOffset(0, 0)
-	MainMenuBarPerformanceBar:SetAlpha(0)
-	MainMenuBarPerformanceBar:SetScale(0.00001)
-
-	PVPMicroButtonTexture:ClearAllPoints()
-	PVPMicroButtonTexture:SetPoint("TOP", PVPMicroButton, "TOP", 6, -3)
-
-	K.Mover(microBar, "MicroBar", "MicroBar", { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0 })
+	K.HideInterfaceOption(PVPMicroButtonTexture)
+	K.HideInterfaceOption(MicroButtonPortrait)
+	K.HideInterfaceOption(MainMenuBarDownload)
+	K.HideInterfaceOption(HelpOpenWebTicketButton)
+	K.HideInterfaceOption(MainMenuBarPerformanceBar)
+	MainMenuMicroButton:SetScript("OnUpdate", nil)
 end

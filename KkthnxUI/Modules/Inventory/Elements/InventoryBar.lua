@@ -1,87 +1,62 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Bags")
 
 local _G = _G
 local table_insert = _G.table.insert
-local unpack = _G.unpack
 
 local CreateFrame = _G.CreateFrame
+local MainMenuBarBackpackButton = _G.MainMenuBarBackpackButton
+local MainMenuBarBackpackButtonCount = _G.MainMenuBarBackpackButtonCount
 local NUM_BAG_FRAMES = _G.NUM_BAG_FRAMES or 4
 local RegisterStateDriver = _G.RegisterStateDriver
 local UIParent = _G.UIParent
 
-local function OnEnter()
-	if not C["Inventory"].BagBarMouseover then
-		return
-	end
+local buttonPosition
+local buttonList = {}
 
-	UIFrameFadeIn(Module.BagBar, 0.2, Module.BagBar:GetAlpha(), 1)
+local function OnEnter()
+	local KKUI_BB = _G.KKUI_BagBar
+	return C["Inventory"].BagBarMouseover and UIFrameFadeIn(KKUI_BB, 0.2, KKUI_BB:GetAlpha(), 1)
 end
 
 local function OnLeave()
-	if not C["Inventory"].BagBarMouseover then
-		return
-	end
-
-	UIFrameFadeOut(Module.BagBar, 0.2, Module.BagBar:GetAlpha(), 0)
+	local KKUI_BB = _G.KKUI_BagBar
+	return C["Inventory"].BagBarMouseover and UIFrameFadeOut(KKUI_BB, 0.2, KKUI_BB:GetAlpha(), 0)
 end
 
 function Module:SkinBag(bag)
-	local icon = _G[bag:GetName().."IconTexture"]
+	local icon = _G[bag:GetName() .. "IconTexture"]
 	bag.oldTex = icon:GetTexture()
-	bag.IconBorder:SetAlpha(0)
 
+	bag.IconBorder:SetAlpha(0)
 	bag:StripTextures()
 	bag:CreateBorder()
-	bag:StyleButton(true)
 
-	icon:SetTexture(bag.oldTex)
 	icon:SetAllPoints()
-	icon:SetTexCoord(unpack(K.TexCoords))
+	icon:SetTexture(bag.oldTex == 1721259 and "Interface\\AddOns\\KkthnxUI\\Media\\Inventory\\Backpack.tga" or bag.oldTex)
+	icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 end
 
 function Module:SizeAndPositionBagBar()
-	if not Module.BagBar then
+	local KKUI_BB = _G.KKUI_BagBar
+	if not KKUI_BB then
 		return
 	end
 
-	local buttonPadding = 0
-	local buttonSpacing = 6
-	local bagBarSize = 30
+	RegisterStateDriver(KKUI_BB, "visibility", "[petbattle] hide; show")
+	KKUI_BB:SetAlpha(C["Inventory"].BagBarMouseover and 0 or 1)
 
-	local visibility = "[petbattle] hide; show"
-	if visibility and visibility:match("[\n\r]") then
-		visibility = visibility:gsub("[\n\r]", "")
-	end
-
-	RegisterStateDriver(Module.BagBar, "visibility", visibility)
-	Module.BagBar:SetAlpha(C["Inventory"].BagBarMouseover and 0 or 1)
-
-	for i, button in ipairs(Module.BagBar.buttons) do
-		local prevButton = Module.BagBar.buttons[i - 1]
-		button:SetSize(bagBarSize, bagBarSize)
+	for i, button in ipairs(buttonList) do
+		local prevButton = buttonList[i - 1]
+		button:SetSize(30, 30)
 		button:ClearAllPoints()
 
 		if i == 1 then
-			button:SetPoint("RIGHT", Module.BagBar, "RIGHT", 0, 0)
+			button:SetPoint("RIGHT", KKUI_BB, "RIGHT", 0, 0)
 		elseif prevButton then
-			button:SetPoint("RIGHT", prevButton, "LEFT", -buttonSpacing, 0)
-		end
-
-		if i ~= 1 then
-			button.IconBorder:SetSize(bagBarSize, bagBarSize)
+			button:SetPoint("RIGHT", prevButton, "LEFT", -6, 0)
 		end
 	end
-
-	Module.BagBar:SetWidth(bagBarSize * (NUM_BAG_FRAMES + 1) + buttonSpacing * (NUM_BAG_FRAMES) + buttonPadding * 2)
-	Module.BagBar:SetHeight(bagBarSize + buttonPadding * 2)
-
-	Module:UpdateMainButtonCount()
-end
-
-function Module:UpdateMainButtonCount()
-	Module.BagBar.buttons[1].Count:SetShown(GetCVarBool('displayFreeBagSlots'))
-	Module.BagBar.buttons[1].Count:SetText(CalculateTotalNumberOfFreeBagSlots())
 end
 
 function Module:CreateInventoryBar()
@@ -93,47 +68,42 @@ function Module:CreateInventoryBar()
 		return
 	end
 
-	local setPosition
-	Module.BagBar = CreateFrame("Frame", "KKUI_BagBar", UIParent)
+	local menubar = CreateFrame("Frame", "KKUI_BagBar", UIParent)
+	menubar:SetSize(174, 30)
 	if C["ActionBar"].MicroBar then
-		setPosition = {"BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -4, 38}
+		buttonPosition = { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -4, 38 }
 	else
-		setPosition = {"BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -4, 4}
+		buttonPosition = { "BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -4, 4 }
 	end
-	Module.BagBar.buttons = {}
-	Module.BagBar:EnableMouse(true)
-	Module.BagBar:SetScript("OnEnter", OnEnter)
-	Module.BagBar:SetScript("OnLeave", OnLeave)
+	menubar:SetScript("OnEnter", OnEnter)
+	menubar:SetScript("OnLeave", OnLeave)
 
-	_G.MainMenuBarBackpackButton:SetParent(Module.BagBar)
-	_G.MainMenuBarBackpackButton.SetParent = K.Noop
-	_G.MainMenuBarBackpackButton:ClearAllPoints()
-	_G.MainMenuBarBackpackButtonCount:FontTemplate(nil, 11, "OUTLINE")
-	_G.MainMenuBarBackpackButtonCount:ClearAllPoints()
-	_G.MainMenuBarBackpackButtonCount:SetPoint("BOTTOMRIGHT", _G.MainMenuBarBackpackButton, "BOTTOMRIGHT", -1, 3)
-	_G.MainMenuBarBackpackButton:HookScript("OnEnter", OnEnter)
-	_G.MainMenuBarBackpackButton:HookScript("OnLeave", OnLeave)
-	_G.MainMenuBarBackpackButton:UnregisterEvent("ITEM_PUSH")
-	for slot = 0, 3 do
-		_G["CharacterBag"..slot.."Slot"]:UnregisterEvent("ITEM_PUSH")
-	end
+	MainMenuBarBackpackButton:SetParent(menubar)
+	MainMenuBarBackpackButton:ClearAllPoints()
 
-	table_insert(Module.BagBar.buttons, _G.MainMenuBarBackpackButton)
-	self:SkinBag(_G.MainMenuBarBackpackButton)
+	MainMenuBarBackpackButtonCount:SetFontObject(K.UIFontOutline)
+	MainMenuBarBackpackButtonCount:ClearAllPoints()
+	MainMenuBarBackpackButtonCount:SetPoint("BOTTOMRIGHT", MainMenuBarBackpackButton, "BOTTOMRIGHT", 2, 2)
+
+	MainMenuBarBackpackButton:HookScript("OnEnter", OnEnter)
+	MainMenuBarBackpackButton:HookScript("OnLeave", OnLeave)
+	MainMenuBarBackpackButton:UnregisterEvent("ITEM_PUSH") -- Gets rid of the loot anims
+
+	table_insert(buttonList, MainMenuBarBackpackButton)
+	Module:SkinBag(MainMenuBarBackpackButton)
 
 	for i = 0, NUM_BAG_FRAMES - 1 do
-		local b = _G["CharacterBag"..i.."Slot"]
-		b:SetParent(Module.BagBar)
-		b.SetParent = K.Noop
-		b:HookScript("OnEnter", OnEnter)
-		b:HookScript("OnLeave", OnLeave)
+		local CharacterBagSlot = _G["CharacterBag" .. i .. "Slot"]
+		CharacterBagSlot:SetParent(menubar)
+		CharacterBagSlot:HookScript("OnEnter", OnEnter)
+		CharacterBagSlot:HookScript("OnLeave", OnLeave)
+		CharacterBagSlot:UnregisterEvent("ITEM_PUSH") -- Gets rid of the loot anims
 
-		self:SkinBag(b)
-		table_insert(Module.BagBar.buttons, b)
+		Module:SkinBag(CharacterBagSlot)
+		table_insert(buttonList, CharacterBagSlot)
 	end
 
-	self:SizeAndPositionBagBar()
-	K.Mover(Module.BagBar, "BagBar", "BagBar", setPosition)
+	Module:SizeAndPositionBagBar()
+	K.Mover(menubar, "BagBar", "BagBar", buttonPosition)
 	K:RegisterEvent("BAG_SLOT_FLAGS_UPDATED", Module.SizeAndPositionBagBar)
-	K:RegisterEvent("BAG_UPDATE_DELAYED", Module.UpdateMainButtonCount)
 end

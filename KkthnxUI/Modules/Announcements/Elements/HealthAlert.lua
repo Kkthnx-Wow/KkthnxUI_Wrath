@@ -1,65 +1,50 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Announcements")
 
 local _G = _G
+local string_format = _G.string.format
 
-local DoEmote = _G.DoEmote
-local UnitHealth = _G.UnitHealth
-local UnitHealthMax = _G.UnitHealthMax
-local UnitPower = _G.UnitPower
-local UnitPowerMax = _G.UnitPowerMax
-local UnitPowerType = _G.UnitPowerType
+local UIErrorsFrame = _G.UIErrorsFrame
 
--- Low Mana
-local oom = false
-local function IamOutOfMana()
-    local _, powerToken = UnitPowerType("player")
-    if powerToken and powerToken == "MANA" then
-        local mana = UnitPower("player")
-        local manamax = UnitPowerMax("player")
-        local manaperc = K.Round(mana / manamax * 100, 1)
+local playerNearDeath = false
+local petNearDeath = false
 
-        -- OOM
-        if manaperc <= C["Announcements"].ManaThreshold and not oom then
-            oom = true
-            if C["Announcements"].ManaAlertEmote then
-                DoEmote("oom")
-            end
-			UIErrorsFrame:AddMessage(K.InfoColor.."Your MANA is below "..C["Announcements"].ManaThreshold.."%!!!")
-        elseif manaperc > C["Announcements"].ManaThreshold + 20 and oom then
-            oom = false
-        end
-    end
-end
+function Module:SetupHealthAnnounce()
+	local playerHealth = UnitHealth("player")
+	local playerHealthMax = UnitHealthMax("player")
+	local playerHealthPercent = K.Round(playerHealth / playerHealthMax * 100, 1)
 
--- Near Death
-local neardeath = false
-local function IamNearDeath()
-    local health = UnitHealth("player")
-	local healthmax = UnitHealthMax("player")
-	local healthperc = K.Round(health / healthmax * 100, 1)
+	if not UnitIsDead("player") then
+		if playerHealthPercent <= 30 and not playerNearDeath then
+			playerNearDeath = true
+			UIErrorsFrame:AddMessage(K.InfoColor .. string_format(L["The health for %s is low!"], K.Name))
+		elseif playerHealthPercent > 30 + 20 and playerNearDeath then
+			playerNearDeath = false
+		end
+	end
 
-    if healthperc <= C["Announcements"].HealthThreshold and not neardeath then
-        neardeath = true
-        if C["Announcements"].HealthAlertEmote then
-            DoEmote("flee")
-        end
-		UIErrorsFrame:AddMessage(K.InfoColor.."Your HEALTH is below "..C["Announcements"].HealthThreshold.."%!!!")
-    elseif healthperc > C["Announcements"].HealthThreshold + 20 and neardeath then
-        neardeath = false
-    end
+	local petHealth = UnitHealth("pet")
+	local petHealthMax = UnitHealthMax("pet")
+	local petHealthPercent = K.Round(petHealth / petHealthMax * 100, 1)
+
+	if not UnitIsDead("pet") then
+		if K.Class ~= "HUNTER" or K.Class ~= "WARLOCK" then
+			return
+		end
+
+		if petHealthPercent <= 30 and not petNearDeath then
+			petNearDeath = true
+			UIErrorsFrame:AddMessage(K.InfoColor .. string_format(L["The health for %s is low!"], UnitName("pet")))
+		elseif petHealthPercent > 30 + 20 and petNearDeath then
+			petNearDeath = false
+		end
+	end
 end
 
 function Module:CreateHealthAnnounce()
-	if C["Announcements"].HealthAlert then
-		K:RegisterEvent("UNIT_HEALTH_FREQUENT", IamNearDeath)
-	else
-		K:UnregisterEvent("UNIT_HEALTH_FREQUENT", IamNearDeath)
+	if not C["Announcements"].HealthAlert then
+		return
 	end
 
-	if C["Announcements"].ManaAlert then
-		K:RegisterEvent("UNIT_POWER_FREQUENT", IamOutOfMana)
-	else
-		K:UnregisterEvent("UNIT_POWER_FREQUENT", IamOutOfMana)
-	end
+	C_Timer.NewTicker(1, Module.SetupHealthAnnounce)
 end

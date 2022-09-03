@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 
 -- Application Programming Interface for KkthnxUI (API)
 
@@ -32,65 +32,64 @@ do
 end
 
 -- This is a lot...
-local function CreateBorder(bFrame, bSubLevel, bLayer, bSize, bTexture, bOffset, bRed, bGreen, bBlue, bAlpha, bgTexture, bgSubLevel, bgLayer, bgPoint, bgRed, bgGreen, bgBlue, bgAlpha, bgBackground)
-	if bFrame.KKUI_Border then
-		return
-	end
-
-	if bFrame:IsObjectType("Texture") then
-		bFrame = bFrame:GetParent()
-	end
-
+local function CreateBorder(bFrame, bSubLevel, bLayer, bSize, bTexture, bOffset, bRed, bGreen, bBlue, bAlpha, bgTexture, bgSubLevel, bgLayer, bgPoint, bgRed, bgGreen, bgBlue, bgAlpha)
 	-- Border
 	local BorderSubLevel = bSubLevel or "OVERLAY"
-	local BorderLayer = bLayer or 1
+	local BorderLayer = bLayer or 2
+	local BorderValue = C["General"].BorderStyle.Value or "KkthnxUI"
 	local BorderSize
-	if C["General"].BorderStyle.Value == "KkthnxUI" then
+
+	if BorderValue == "KkthnxUI" then
 		BorderSize = bSize or 12
 	else
 		BorderSize = bSize or 10
 	end
-	local BorderTexture = bTexture or "Interface\\AddOns\\KkthnxUI\\Media\\Border\\"..C["General"].BorderStyle.Value.."\\Border.tga"
+
+	local BorderTexture = bTexture or ("Interface\\AddOns\\KkthnxUI\\Media\\Border\\" .. BorderValue .. "\\Border.tga")
 	local BorderOffset = bOffset or -4
 	local BorderRed = bRed or C["General"].ColorTextures and C["General"].TexturesColor[1] or C["Media"].Borders.ColorBorder[1]
 	local BorderGreen = bGreen or C["General"].ColorTextures and C["General"].TexturesColor[2] or C["Media"].Borders.ColorBorder[2]
 	local BorderBlue = bBlue or C["General"].ColorTextures and C["General"].TexturesColor[3] or C["Media"].Borders.ColorBorder[3]
 	local BorderAlpha = bAlpha or 1
 
-	-- Background
-	local BackgroundTexture = bgTexture or C["Media"].Textures.BlankTexture
-	local BackgroundSubLevel = bgSubLevel or "BACKGROUND"
-	local BackgroundLayer = bgLayer or -1
-	local BackgroundPoint = bgPoint or 0
-	local BackgroundRed = bgRed or C["Media"].Backdrops.ColorBackdrop[1]
-	local BackgroundGreen = bgGreen or C["Media"].Backdrops.ColorBackdrop[2]
-	local BackgroundBlue = bgBlue or C["Media"].Backdrops.ColorBackdrop[3]
-	local BackgroundAlpha = bgAlpha or C["Media"].Backdrops.ColorBackdrop[4]
-	local UseBackground = bgBackground or true
+	if bFrame and not bFrame.KKUI_Border then -- Do not keep creating it!
+		if bFrame:IsObjectType("Texture") then
+			bFrame = bFrame:GetParent()
+		end
 
-	-- Create Our Border
-	if not bFrame.KKUI_Border then
+		-- Create Our Border
 		local kkui_border = K.CreateBorder(bFrame, BorderSubLevel, BorderLayer)
 		kkui_border:SetSize(BorderSize)
 		kkui_border:SetTexture(BorderTexture)
 		kkui_border:SetOffset(BorderOffset)
 		kkui_border:SetVertexColor(BorderRed, BorderGreen, BorderBlue, BorderAlpha)
+
 		bFrame.KKUI_Border = true
 		bFrame.KKUI_Border = kkui_border
 	end
 
-	-- Create Our Background (true/false)
-	if UseBackground == true then
-		if not bFrame.KKUI_Background then
-			local kkui_background = bFrame:CreateTexture()
-			kkui_background:SetDrawLayer(BackgroundSubLevel, BackgroundLayer)
-			kkui_background:SetTexture(BackgroundTexture)
-			kkui_background:SetPoint("TOPLEFT", bFrame ,"TOPLEFT", BackgroundPoint, -BackgroundPoint)
-			kkui_background:SetPoint("BOTTOMRIGHT", bFrame ,"BOTTOMRIGHT", -BackgroundPoint, BackgroundPoint)
-			kkui_background:SetVertexColor(BackgroundRed, BackgroundGreen, BackgroundBlue, BackgroundAlpha)
-			bFrame.KKUI_Background = true
-			bFrame.KKUI_Background = kkui_background
-		end
+	-- Background
+	local BackgroundTexture = bgTexture or C["Media"].Textures.BlankTexture
+	local BackgroundSubLevel = bgSubLevel or "BACKGROUND"
+	local BackgroundLayer = bgLayer or -2
+	local BackgroundPoint = bgPoint or 0
+	local BackgroundRed = bgRed or C["Media"].Backdrops.ColorBackdrop[1]
+	local BackgroundGreen = bgGreen or C["Media"].Backdrops.ColorBackdrop[2]
+	local BackgroundBlue = bgBlue or C["Media"].Backdrops.ColorBackdrop[3]
+	local BackgroundAlpha = bgAlpha or C["Media"].Backdrops.ColorBackdrop[4]
+
+	if bFrame and not bFrame.KKUI_Background then -- Do not keep creating it!
+		-- Create Our Background
+		local kkui_background = bFrame:CreateTexture()
+		kkui_background:SetDrawLayer(BackgroundSubLevel, BackgroundLayer)
+		kkui_background:SetTexture(BackgroundTexture)
+		kkui_background:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
+		kkui_background:SetPoint("TOPLEFT", bFrame, "TOPLEFT", BackgroundPoint, -BackgroundPoint)
+		kkui_background:SetPoint("BOTTOMRIGHT", bFrame, "BOTTOMRIGHT", -BackgroundPoint, BackgroundPoint)
+		kkui_background:SetVertexColor(BackgroundRed, BackgroundGreen, BackgroundBlue, BackgroundAlpha)
+
+		bFrame.KKUI_Background = true
+		bFrame.KKUI_Background = kkui_background
 	end
 end
 
@@ -134,12 +133,12 @@ local function CreateShadow(f, bd)
 			bgFile = C["Media"].Textures.BlankTexture,
 			edgeFile = C["Media"].Textures.GlowTexture,
 			edgeSize = 3,
-			insets = {left = 3, right = 3, top = 3, bottom = 3}
+			insets = { left = 3, right = 3, top = 3, bottom = 3 },
 		})
 	else
 		f.Shadow:SetBackdrop({
 			edgeFile = C["Media"].Textures.GlowTexture,
-			edgeSize = 3
+			edgeSize = 3,
 		})
 	end
 	f.Shadow:SetFrameLevel(lvl == 0 and 0 or lvl - 1)
@@ -191,7 +190,7 @@ local blizzTextures = {
 local function StripTextures(object, kill)
 	local frameName = object.GetName and object:GetName()
 	for _, texture in pairs(blizzTextures) do
-		local blizzFrame = object[texture] or (frameName and _G[frameName..texture])
+		local blizzFrame = object[texture] or (frameName and _G[frameName .. texture])
 		if blizzFrame then
 			StripTextures(blizzFrame, kill)
 		end
@@ -217,31 +216,6 @@ local function StripTextures(object, kill)
 	end
 end
 
--- Font Template.
-local function FontTemplate(fs, font, fontSize, fontStyle)
-	fs.font = font
-	fs.fontSize = fontSize
-	fs.fontStyle = fontStyle
-
-	font = font or C["Media"].Fonts.KkthnxUIFont
-
-	fontSize = fontSize or 12
-
-	if fontSize > 12 and not fs.fontSize then
-		fontSize = 12
-	end
-
-	fs:SetFont(font, fontSize, fontStyle)
-	if fontStyle and (fontStyle ~= "NONE") then
-		fs:SetShadowOffset(0, 0)
-		fs:SetShadowColor(0, 0, 0, 0)
-	else
-		local s = K.Mult or 1
-		fs:SetShadowOffset(s, -s / 2)
-		fs:SetShadowColor(0, 0, 0, 1)
-	end
-end
-
 local function StyleButton(button, noHover, noPushed, noChecked, setPoints)
 	local pointsSet = setPoints or 0
 
@@ -259,7 +233,7 @@ local function StyleButton(button, noHover, noPushed, noChecked, setPoints)
 		local pushed = button:CreateTexture()
 		pushed:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
 		pushed:SetDesaturated(true)
-		pushed:SetVertexColor(246/255, 196/255, 66/255)
+		pushed:SetVertexColor(246 / 255, 196 / 255, 66 / 255)
 		pushed:SetPoint("TOPLEFT", button, "TOPLEFT", pointsSet, -pointsSet)
 		pushed:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -pointsSet, pointsSet)
 		pushed:SetBlendMode("ADD")
@@ -278,7 +252,7 @@ local function StyleButton(button, noHover, noPushed, noChecked, setPoints)
 	end
 
 	local name = button.GetName and button:GetName()
-	local cooldown = name and _G[name.."Cooldown"]
+	local cooldown = name and _G[name .. "Cooldown"]
 	if cooldown then
 		cooldown:ClearAllPoints()
 		cooldown:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
@@ -293,12 +267,12 @@ local function SetModifiedBackdrop(self)
 		return
 	end
 
-	self.KKUI_Border:SetVertexColor(102/255, 157/255, 255/255, 1)
+	self.KKUI_Border:SetVertexColor(102 / 255, 157 / 255, 255 / 255)
 end
 
 local function SetOriginalBackdrop(self)
 	if C["General"].ColorTextures then
-		self.KKUI_Border:SetVertexColor(unpack(C["General"].TexturesColor))
+		self.KKUI_Border:SetVertexColor(C["General"].TexturesColor[1], C["General"].TexturesColor[2], C["General"].TexturesColor[3])
 	else
 		self.KKUI_Border:SetVertexColor(1, 1, 1)
 	end
@@ -359,7 +333,7 @@ local function SkinButton(f, forceStrip)
 
 	local buttonName = f.GetName and f:GetName()
 	for _, region in pairs(blizzButtonRegions) do
-		region = buttonName and _G[buttonName..region] or f[region]
+		region = buttonName and _G[buttonName .. region] or f[region]
 		if region then
 			region:SetAlpha(0)
 		end
@@ -441,19 +415,13 @@ function K.SetupArrow(self, direction)
 	self:SetRotation(rad(arrowDegree[direction]))
 end
 
-function K.ReskinArrow(self, direction, skin)
-	if skin == nil then
-		skin = true
-	end
-
+function K.ReskinArrow(self, direction)
 	self:SetSize(16, 16)
-	if skin == true then
-		self:SkinButton()
-	end
+	self:SkinButton()
 
 	self:SetDisabledTexture("Interface\\ChatFrame\\ChatFrameBackground")
 	local dis = self:GetDisabledTexture()
-	dis:SetVertexColor(0, 0, 0, .3)
+	dis:SetVertexColor(0, 0, 0, 0.3)
 	dis:SetDrawLayer("OVERLAY")
 	dis:SetAllPoints()
 
@@ -465,7 +433,7 @@ end
 
 local function GrabScrollBarElement(frame, element)
 	local frameName = frame:GetDebugName()
-	return frame[element] or frameName and (_G[frameName..element] or string.find(frameName, element)) or nil
+	return frame[element] or frameName and (_G[frameName .. element] or string.find(frameName, element)) or nil
 end
 
 local function SkinScrollBar(self)
@@ -490,6 +458,16 @@ local function SkinScrollBar(self)
 	K.ReskinArrow(down, "down")
 end
 
+local function HideBackdrop(self)
+	if self.NineSlice then
+		self.NineSlice:SetAlpha(0)
+	end
+
+	if self.SetBackdrop then
+		self:SetBackdrop(nil)
+	end
+end
+
 local function addapi(object)
 	local mt = getmetatable(object).__index
 
@@ -503,10 +481,6 @@ local function addapi(object)
 
 	if not object.CreateShadow then
 		mt.CreateShadow = CreateShadow
-	end
-
-	if not object.FontTemplate then
-		mt.FontTemplate = FontTemplate
 	end
 
 	if not object.Kill then
@@ -536,9 +510,13 @@ local function addapi(object)
 	if not object.SkinScrollBar then
 		mt.SkinScrollBar = SkinScrollBar
 	end
+
+	if not object.HideBackdrop then
+		mt.HideBackdrop = HideBackdrop
+	end
 end
 
-local handled = {["Frame"] = true}
+local handled = { Frame = true }
 local object = CreateFrame("Frame")
 addapi(object)
 addapi(object:CreateTexture())
@@ -547,11 +525,13 @@ addapi(object:CreateMaskTexture())
 
 object = EnumerateFrames()
 while object do
-	local objectType = object.GetObjectType and object:GetObjectType()
-	if objectType and not handled[objectType] and not object:IsForbidden() then
+	if not object:IsForbidden() and not handled[object:GetObjectType()] then
 		addapi(object)
-		handled[objectType] = true
+		handled[object:GetObjectType()] = true
 	end
 
 	object = EnumerateFrames(object)
 end
+
+addapi(_G.GameFontNormal) -- Add API to `CreateFont` objects without actually creating one
+addapi(CreateFrame("ScrollFrame")) -- Hacky fix for issue on 7.1 PTR where scroll frames no longer seem to inherit the methods from the 'Frame' widget

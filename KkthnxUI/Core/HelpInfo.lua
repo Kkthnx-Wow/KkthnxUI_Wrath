@@ -1,5 +1,4 @@
-local K, C = unpack(select(2, ...))
--- local Module = K:NewModule("HelpInfo")
+local K, C = unpack(KkthnxUI)
 
 local helpCommands = {
 	["checkquest"] = "|cff669DFF/checkquest ID|r or |cff669DFF/questcheck ID|r - Check the completion status of a quest",
@@ -10,18 +9,14 @@ local helpCommands = {
 	["deletequestitems"] = "|cff669DFF/deletequestitems|r or |cff669DFF/dqi|r - Delete all quest items that are in your bags",
 	["grid"] = "|cff669DFF/grid #|r or |cff669DFF/align #|r - Display a grid which allows you to better align frames",
 	["install"] = "|cff669DFF/install|r - Show KkthnxUI installer",
-	["kaw"] = "|cff669DFF/kaw|r - Show KkthnxUI aurawatch configurations window",
-	["kcl"] = "|cff669DFF/kcl|r - Show KkthnxUI most recent changelog",
+	["kkaw"] = "|cff669DFF/kkaw|r - Show KkthnxUI aurawatch configurations window",
 	["killquests"] = "|cff669DFF/killquests|r - Remove all quests from your questlog",
-	["kstatus"] = "|cff669DFF/kstatus|r - Show KkthnxUI status report window. Used to reporting bugs",
 	["moveui"] = "|cff669DFF/moveui|r - Move 'most' KkthnxUI elements as you please",
 	["rc"] = "|cff669DFF/rc|r - Start a readycheck on your current group",
 	["ri"] = "|cff669DFF/ri|r - Reset the most recent instance you were in",
 	["rl"] = "|cff669DFF/rl|r - Reload your user interface quickly",
 	["ticket"] = "|cff669DFF/ticket|r - Write a ticket to Blizzard for help",
 	["trackingdebuffs"] = "|cff669DFF/tracking|r or |cff669DFF/kt|r - Add/remove debuff tracking for auras on raid",
-	["volume"] = "|cff669DFF/vol 0 - 1|r or |cff669DFF/volume 0 - 1|r - Adjust your volume on the fly",
-	["gui"] = "|cff669DFF/kkconfig|r or |cff669DFF/kkgui|r - Toggle the KkthnxUI options/gui menu",
 }
 
 local Help = CreateFrame("Frame", "KKUI_HelpInfo", UIParent)
@@ -41,29 +36,31 @@ function Help:OnEnable()
 	self.Logo:SetPoint("CENTER", self, "CENTER", 0, 0)
 
 	self.Title = self:CreateFontString(nil, "OVERLAY")
-	self.Title:SetFontObject(KkthnxUIFont)
+	self.Title:SetFontObject(K.UIFont)
 	self.Title:SetFont(select(1, self.Title:GetFont()), 22, select(3, self.Title:GetFont()))
 	self.Title:SetPoint("TOP", self, "TOP", 0, -8)
-	self.Title:SetText(K.InfoColor.."KkthnxUI|r "..K.SystemColor.."Commands Help|r")
+	self.Title:SetText(K.InfoColor .. "KkthnxUI|r " .. K.SystemColor .. "Commands Help|r")
 
 	local ll = CreateFrame("Frame", nil, self)
 	ll:SetPoint("TOP", self.Title, -100, -30)
-	K.CreateGF(ll, 200, 1, "Horizontal", .7, .7, .7, 0, .7)
+	K.CreateGF(ll, 200, 1, "Horizontal", 0.7, 0.7, 0.7, 0, 0.7)
 	ll:SetFrameStrata("HIGH")
 	local lr = CreateFrame("Frame", nil, self)
 	lr:SetPoint("TOP", self.Title, 100, -30)
-	K.CreateGF(lr, 200, 1, "Horizontal", .7, .7, .7, .7, 0)
+	K.CreateGF(lr, 200, 1, "Horizontal", 0.7, 0.7, 0.7, 0.7, 0)
 	lr:SetFrameStrata("HIGH")
 
 	self.Close = CreateFrame("Button", nil, self)
 	self.Close:SetSize(32, 32)
 	self.Close:SetPoint("TOPRIGHT", self, "TOPRIGHT", -4, -4)
 	self.Close:SkinCloseButton()
-	self.Close:SetScript("OnClick", function(self) self:GetParent():Hide() end)
+	self.Close:SetScript("OnClick", function(self)
+		self:GetParent():Hide()
+	end)
 
 	for Index, Value in pairs(helpCommands) do
 		Texts[Index] = self:CreateFontString(nil, "OVERLAY")
-		Texts[Index]:SetFontObject(KkthnxUIFont)
+		Texts[Index]:SetFontObject(K.UIFont)
 		Texts[Index]:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 20, 22 * Count)
 		Texts[Index]:SetText(Value)
 
@@ -78,4 +75,4 @@ Help:OnEnable()
 SlashCmdList["KKUI_HELP"] = function()
 	Help:Show()
 end
-_G.SLASH_KKUI_HELP1 = "/khelp"
+_G.SLASH_KKUI_HELP1 = "/kkhelp"

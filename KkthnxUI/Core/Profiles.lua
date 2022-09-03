@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 
 local Profiles = CreateFrame("Frame", "KKUI_Profiles", UIParent)
 local Prefix = "KkthnxUI:Profile:"
@@ -20,7 +20,7 @@ function Profiles:Export()
 	local Serialized = K.Serialize:Serialize(Settings)
 	local Compressed = K.Deflate:CompressDeflate(Serialized)
 	local Encoded = K.Deflate:EncodeForPrint(Compressed)
-	local Result = Prefix..Encoded
+	local Result = Prefix .. Encoded
 
 	return Result
 end
@@ -31,8 +31,9 @@ function Profiles:Import()
 	local Code = EditBox:GetText()
 	local LibCode = string.gsub(Code, Prefix, "")
 	local Decoded = K.Deflate:DecodeForPrint(LibCode)
+	local CurrentCode = self:GetParent():Export()
 
-	if Code == EditBox.Code then
+	if Code == CurrentCode then
 		Status:SetText("|cffff0000Sorry, You Are Currently Using This Profile Already|r")
 	elseif Decoded then
 		local Decompressed = K.Deflate:DecompressDeflate(Decoded)
@@ -56,20 +57,21 @@ function Profiles:Toggle()
 		self:Hide()
 	else
 		self:Show()
-		self.EditBox:SetText(self.EditBox.Code)
+		self.EditBox:SetText(self:Export())
 	end
 end
 
-local class = select(2, UnitClass("player"))
-local texcoord = CLASS_ICON_TCOORDS[class]
+local texcoord = CLASS_ICON_TCOORDS[K.Class]
 function Profiles:OnTextChanged()
 	local Code = self:GetText()
 	local Status = self:GetParent().Status
+	local CurrentCode = self:GetParent():Export()
 
-	if Code ~= self.Code then
+	if Code ~= CurrentCode then
 		Status:SetText("You Are Currently Trying To Apply A New Profile Code")
 	else
-		Status:SetText("Export Profile For: ".."|TInterface\\WorldStateFrame\\Icons-Classes:16:16:0:0:256:256:"..tostring(texcoord[1]*256)..":"..tostring(texcoord[2]*256)..":"..tostring(texcoord[3]*256)..":"..tostring(texcoord[4]*256).."|t "..K.RGBToHex(unpack(K.Colors.class[K.Class]))..(K.Name).."|r")
+		-- stylua: ignore
+		Status:SetText("Export Profile For: " .. "|TInterface\\WorldStateFrame\\Icons-Classes:16:16:0:0:256:256:" .. tostring(texcoord[1] * 256) .. ":" .. tostring(texcoord[2] * 256) .. ":" .. tostring(texcoord[3] * 256) .. ":" .. tostring(texcoord[4] * 256) .. "|t " .. K.RGBToHex(unpack(K.Colors.class[K.Class])) .. K.Name .. "|r")
 	end
 end
 
@@ -87,37 +89,38 @@ function Profiles:Enable()
 	K.CreateMoverFrame(self)
 
 	self.Logo = self:CreateTexture(nil, "OVERLAY")
-	self.Logo:SetSize(320, 150)
-	self.Logo:SetScale(0.8)
+	self.Logo:SetSize(256, 128)
+	self.Logo:SetScale(0.9)
 	self.Logo:SetTexture(C["Media"].Textures.LogoTexture)
-	self.Logo:SetPoint("TOP", self, "TOP", 0, 20)
+	self.Logo:SetPoint("TOP", self, "TOP", 0, 14)
 
 	self.Title = self:CreateFontString(nil, "OVERLAY")
-	self.Title:SetFontObject(KkthnxUIFont)
+	self.Title:SetFontObject(K.UIFont)
 	self.Title:SetFont(select(1, self.Title:GetFont()), 15, select(3, self.Title:GetFont()))
 	self.Title:SetPoint("TOP", self, "TOP", 0, -86)
-	self.Title:SetText(K.SystemColor.."In this window, you will be able to export, import or share your profile.|r")
+	self.Title:SetText(K.SystemColor .. "In this window, you will be able to export, import or share your profile.|r")
 
 	self.Description = self:CreateFontString(nil, "OVERLAY")
-	self.Description:SetFontObject(KkthnxUIFont)
+	self.Description:SetFontObject(K.UIFont)
 	self.Description:SetFont(select(1, self.Description:GetFont()), 15, select(3, self.Description:GetFont()))
 	self.Description:SetPoint("TOP", self.Title, "TOP", 0, -20)
-	self.Description:SetText(K.SystemColor.."If you wish to use another profile, just replace the code below and hit apply.|r")
+	-- stylua: ignore
+	self.Description:SetText(K.SystemColor .. "If you wish to use another profile, just replace the code below and hit apply.|r")
 
 	local ll = CreateFrame("Frame", nil, self)
 	ll:SetPoint("TOP", self.Description, -100, -30)
-	K.CreateGF(ll, 200, 1, "Horizontal", .7, .7, .7, 0, .7)
+	K.CreateGF(ll, 200, 1, "Horizontal", 0.7, 0.7, 0.7, 0, 0.7)
 	ll:SetFrameStrata("HIGH")
 	local lr = CreateFrame("Frame", nil, self)
 	lr:SetPoint("TOP", self.Description, 100, -30)
-	K.CreateGF(lr, 200, 1, "Horizontal", .7, .7, .7, .7, 0)
+	K.CreateGF(lr, 200, 1, "Horizontal", 0.7, 0.7, 0.7, 0.7, 0)
 	lr:SetFrameStrata("HIGH")
 
 	self.Status = self:CreateFontString(nil, "OVERLAY")
-	self.Status:SetFontObject(KkthnxUIFont)
+	self.Status:SetFontObject(K.UIFont)
 	self.Status:SetFont(select(1, self.Status:GetFont()), 15, select(3, self.Status:GetFont()))
 	self.Status:SetPoint("TOP", self.Title, "TOP", 0, -60)
-	self.Status:SetTextColor(102/255, 157/255, 255/255, 1)
+	self.Status:SetTextColor(102 / 255, 157 / 255, 255 / 255, 1)
 
 	self.EditBox = CreateFrame("EditBox", nil, self)
 	self.EditBox:SetMultiLine(true)
@@ -135,7 +138,7 @@ function Profiles:Enable()
 	self.EditBox:CreateBackdrop()
 	self.EditBox.Backdrop:SetPoint("TOPLEFT", -4, 4)
 	self.EditBox.Backdrop:SetPoint("BOTTOMRIGHT", 4, -4)
-	self.EditBox.Backdrop.KKUI_Border:SetVertexColor(102/255, 157/255, 255/255, 1)
+	self.EditBox.Backdrop.KKUI_Border:SetVertexColor(102 / 255, 157 / 255, 255 / 255, 1)
 	self.EditBox:SetTextInsets(4, 4, 4, 4)
 	self.EditBox.Code = self:Export()
 
@@ -161,9 +164,9 @@ function Profiles:Enable()
 	self.Apply:SkinButton()
 	self.Apply:SetPoint("TOPLEFT", self.EditBox, "BOTTOMLEFT", -4, -10)
 	self.Apply.Text = self.Apply:CreateFontString(nil, "OVERLAY")
-	self.Apply.Text:SetFontObject(KkthnxUIFont)
+	self.Apply.Text:SetFontObject(K.UIFont)
 	self.Apply.Text:SetPoint("CENTER")
-	self.Apply.Text:SetText("|CFF00CC4C"..APPLY.."|r")
+	self.Apply.Text:SetText("|CFF00CC4C" .. APPLY .. "|r")
 	self.Apply:SetScript("OnClick", Profiles.Import)
 
 	self.Reset = CreateFrame("Button", nil, self)
@@ -171,10 +174,10 @@ function Profiles:Enable()
 	self.Reset:SkinButton()
 	self.Reset:SetPoint("TOPRIGHT", self.EditBox, "BOTTOMRIGHT", 4, -10)
 	self.Reset.Text = self.Reset:CreateFontString(nil, "OVERLAY")
-	self.Reset.Text:SetFontObject(KkthnxUIFont)
+	self.Reset.Text:SetFontObject(K.UIFont)
 	self.Reset.Text:SetPoint("CENTER")
 	self.Reset.Text:SetText(RESET)
-	self.Reset.Text:SetTextColor(102/255, 157/255, 255/255, 1)
+	self.Reset.Text:SetTextColor(102 / 255, 157 / 255, 255 / 255, 1)
 	self.Reset:SetScript("OnClick", Profiles.RestoreCode)
 
 	self:Hide()

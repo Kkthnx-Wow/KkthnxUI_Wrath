@@ -1,34 +1,18 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Bags")
 
 local _G = _G
-local string_format = _G.string.format
 local table_wipe = _G.table.wipe
 
 local C_Timer_After = _G.C_Timer.After
+local GetContainerItemEquipmentSetInfo = _G.GetContainerItemEquipmentSetInfo
 local GetContainerItemInfo = _G.GetContainerItemInfo
-local GetContainerItemLink = _G.GetContainerItemLink
 local GetContainerNumSlots = _G.GetContainerNumSlots
-local GetItemInfo = _G.GetItemInfo
 local IsShiftKeyDown = _G.IsShiftKeyDown
 
--- Those items should not be deleted by Vendor / Delete Grays
-local GreysBlackList = {
-	[32888] = "The Relics of Terokk",
-	[28664] = "Nitrin's Instructions",
-}
-
-
-local sellCount, stop, cache = 0, true, {}
+local stop = true
+local cache = {}
 local errorText = _G.ERR_VENDOR_DOESNT_BUY
-
-local function stopSelling(tell)
-	stop = true
-	if sellCount > 0 and tell then
-		K.Print(string_format("%s%s", K.SystemColor..L["Vendored Items"], K.FormatMoney(sellCount)))
-	end
-	sellCount = 0
-end
 
 local function startSelling()
 	if stop then
@@ -41,19 +25,13 @@ local function startSelling()
 				return
 			end
 
-			local link = GetContainerItemLink(bag, slot)
-			if link then
-				local _, _, _, _, _, itemType, _, _, _, _, price = GetItemInfo(link)
-				local _, count, _, quality, _, _, _, _, _, itemID = GetContainerItemInfo(bag, slot)
-				if not GreysBlackList[itemID] then
-					if (quality and quality == 0 and itemType and itemType ~= "Quest" or KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList[itemID]) and price and price > 0 and not cache["b"..bag.."s"..slot] then
-						sellCount = sellCount + price * count
-						cache["b"..bag.."s"..slot] = true
-						_G.UseContainerItem(bag, slot)
-						C_Timer_After(0.15, startSelling)
-						return
-					end
-				end
+			local _, _, _, quality, _, _, link, _, noValue, itemID = GetContainerItemInfo(bag, slot)
+			local isInSet = GetContainerItemEquipmentSetInfo(bag, slot)
+			if link and not noValue and not isInSet and not Module:IsPetTrashCurrency(itemID) and (quality == 0 or KkthnxUIDB.CustomJunkList[itemID]) and not cache["b" .. bag .. "s" .. slot] then
+				cache["b" .. bag .. "s" .. slot] = true
+				UseContainerItem(bag, slot)
+				C_Timer_After(0.15, startSelling)
+				return
 			end
 		end
 	end
@@ -74,10 +52,8 @@ local function updateSelling(event, ...)
 		table_wipe(cache)
 		startSelling()
 		K:RegisterEvent("UI_ERROR_MESSAGE", updateSelling)
-	elseif event == "UI_ERROR_MESSAGE" and arg == errorText then
-		stopSelling(false)
-	elseif event == "MERCHANT_CLOSED" then
-		stopSelling(true)
+	elseif event == "UI_ERROR_MESSAGE" and arg == errorText or event == "MERCHANT_CLOSED" then
+		stop = true
 	end
 end
 

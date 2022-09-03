@@ -1,4 +1,4 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("ActionBar")
 
 local _G = _G
@@ -6,81 +6,59 @@ local math_min = _G.math.min
 local math_ceil = _G.math.ceil
 local table_insert = _G.table.insert
 
-local FilterConfig = C.ActionBars.actionBarCustom
-local padding, margin = 0, 6
+local RegisterStateDriver = _G.RegisterStateDriver
 
-local prevPage = 8
-local function ChangeActionPageForDruid()
-	local page = IsPlayerSpell(33891) and 10 or 8
-	if prevPage ~= page then
-		RegisterStateDriver(_G["KKUI_CustomBar"], "page", page)
-		for i = 1, 12 do
-			local button = _G["KKUI_CustomBarButton"..i]
-			button.id = (page - 1) * 12 + i
-			button:SetAttribute("action", button.id)
-		end
-
-		prevPage = page
-	end
-end
-
-local function UpdatePageBySpells()
-	if InCombatLockdown() then
-		K:RegisterEvent("PLAYER_REGEN_ENABLED", UpdatePageBySpells)
-	else
-		ChangeActionPageForDruid()
-		K:UnregisterEvent("PLAYER_REGEN_ENABLED", UpdatePageBySpells)
-	end
-end
+local cfg = C.Bars.Bar4
+local margin, padding = C.Bars.BarMargin, C.Bars.BarPadding
 
 function Module:SetupCustomBar(anchor)
-	local size = C["ActionBar"].CustomBarButtonSize
 	local num = 12
-	local name = "KKUI_CustomBar"
-	local page = K.Class == "WARRIOR" and 10 or 8
+	local name = "KKUI_ActionBarX"
+	local page = 8
 
 	local frame = CreateFrame("Frame", name, UIParent, "SecureHandlerStateTemplate")
-	frame:SetWidth(num * size + (num - 1) * margin + 2 * padding)
-	frame:SetHeight(size + 2 * padding)
-	frame:SetPoint(unpack(anchor))
 	frame.mover = K.Mover(frame, L[name], "CustomBar", anchor)
-	frame.buttons = {}
 
-	-- RegisterStateDriver(frame, "visibility", "[petbattle] hide; show")
+	-- stylua: ignore
+	RegisterStateDriver(frame, "visibility", "[petbattle][overridebar][vehicleui][possessbar,@vehicle,exists][shapeshift] hide; show")
 	RegisterStateDriver(frame, "page", page)
 
 	local buttonList = {}
 	for i = 1, num do
-		local button = CreateFrame("CheckButton", "$parentButton"..i, frame, "ActionBarButtonTemplate")
-		button:SetSize(size, size)
+		local button = CreateFrame("CheckButton", "$parentButton" .. i, frame, "ActionBarButtonTemplate")
 		button.id = (page - 1) * 12 + i
 		button.isCustomButton = true
-		button.commandName = L[name]..i
+		button.commandName = L[name] .. i
 		button:SetAttribute("action", button.id)
-		frame.buttons[i] = button
 		table_insert(buttonList, button)
 		table_insert(Module.buttons, button)
 	end
+	frame.buttons = buttonList
 
-	if C["ActionBar"].FadeCustomBar and FilterConfig.fader then
-		Module.CreateButtonFrameFader(frame, buttonList, FilterConfig.fader)
+	if cfg.fader then
+		frame.isDisable = not C["ActionBar"].BarXFader
+		Module.CreateButtonFrameFader(frame, buttonList, cfg.fader)
 	end
 
 	Module:UpdateCustomBar()
 end
 
 function Module:UpdateCustomBar()
-	local frame = _G.KKUI_CustomBar
+	local frame = _G.KKUI_ActionBarX
 	if not frame then
 		return
 	end
 
 	local size = C["ActionBar"].CustomBarButtonSize
+	local scale = size / 34
 	local num = C["ActionBar"].CustomBarNumButtons
 	local perRow = C["ActionBar"].CustomBarNumPerRow
 	for i = 1, num do
 		local button = frame.buttons[i]
 		button:SetSize(size, size)
+		button.Name:SetScale(scale)
+		button.Count:SetScale(scale)
+		button.HotKey:SetScale(scale)
 		button:ClearAllPoints()
 		if i == 1 then
 			button:SetPoint("TOPLEFT", frame, padding, -padding)
@@ -107,13 +85,7 @@ function Module:UpdateCustomBar()
 end
 
 function Module:CreateCustomBar()
-	if not C["ActionBar"].CustomBar then
-		return
-	end
-
-	Module:SetupCustomBar({"BOTTOM", UIParent, "BOTTOM", 0, 140})
-	if K.Class == "DRUID" then
-		UpdatePageBySpells()
-		K:RegisterEvent("LEARNED_SPELL_IN_TAB", UpdatePageBySpells)
+	if C["ActionBar"].CustomBar then
+		Module:SetupCustomBar({ "BOTTOM", UIParent, "BOTTOM", 0, 140 })
 	end
 end

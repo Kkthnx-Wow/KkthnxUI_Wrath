@@ -1,4 +1,4 @@
-local K = unpack(select(2, ...))
+local K, _, L = unpack(KkthnxUI)
 local Module = K:GetModule("Tooltip")
 
 local _G = _G
@@ -6,6 +6,8 @@ local string_match = _G.string.match
 
 local GameTooltip = _G.GameTooltip
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
+
+local strmatch = string.match
 
 local orig1, orig2 = {}, {}
 local linkTypes = {
@@ -44,7 +46,7 @@ function Module:HyperLink_OnLeave(_, ...)
 end
 
 for i = 1, NUM_CHAT_WINDOWS do
-	local frame = _G["ChatFrame"..i]
+	local frame = _G["ChatFrame" .. i]
 	orig1[frame] = frame:GetScript("OnHyperlinkEnter")
 	frame:SetScript("OnHyperlinkEnter", Module.HyperLink_OnEnter)
 	orig2[frame] = frame:GetScript("OnHyperlinkLeave")

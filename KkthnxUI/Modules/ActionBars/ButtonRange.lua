@@ -1,5 +1,5 @@
-local K = unpack(select(2, ...))
-local Module = K:NewModule("ButtonRange")
+local K = unpack(KkthnxUI)
+local Module = K:GetModule("ActionBar")
 
 local _G = _G
 local next = _G.next
@@ -10,15 +10,15 @@ local HasAction = _G.HasAction
 local IsActionInRange = _G.IsActionInRange
 local IsUsableAction = _G.IsUsableAction
 
-local UPDATE_DELAY = .2
+local UPDATE_DELAY = 0.2
 local buttonColors, buttonsToUpdate = {}, {}
 local updater = CreateFrame("Frame")
 
 local colors = {
-	["normal"] = {1, 1, 1},
-	["oor"] = {.8, .1, .1},
-	["oom"] = {.5, .5, 1},
-	["unusable"] = {.3, .3, .3}
+	["normal"] = { 1, 1, 1 },
+	["oor"] = { 0.8, 0.1, 0.1 },
+	["oom"] = { 0.5, 0.5, 1 },
+	["unusable"] = { 0.3, 0.3, 0.3 },
 }
 
 function Module:OnUpdateRange(elapsed)
@@ -101,8 +101,10 @@ local function button_UpdateUsable(button)
 	Module.UpdateButtonUsable(button, true)
 end
 
-function Module:OnEnable()
-	hooksecurefunc("ActionButton_OnUpdate", self.Register)
-	hooksecurefunc("ActionButton_Update", self.UpdateButtonStatus)
-	hooksecurefunc("ActionButton_UpdateUsable", button_UpdateUsable)
+function Module:RegisterButtonRange(button)
+	if button.Update then
+		Module.Register(button)
+		hooksecurefunc(button, "Update", Module.UpdateButtonStatus)
+		hooksecurefunc(button, "UpdateUsable", button_UpdateUsable)
+	end
 end

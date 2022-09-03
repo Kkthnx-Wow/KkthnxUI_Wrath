@@ -1,15 +1,13 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 local Module = K:GetModule("Miscellaneous")
 
-local _G = _G
-local pairs = _G.pairs
-local table_insert = _G.table.insert
+local pairs, unpack, tinsert = pairs, unpack, tinsert
+local GetSpellCooldown, GetSpellInfo = GetSpellCooldown, GetSpellInfo
+local InCombatLockdown, IsPlayerSpell, IsCurrentSpell = InCombatLockdown, IsPlayerSpell, IsCurrentSpell
 
-local GetSpellCooldown = _G.GetSpellCooldown
-local GetSpellInfo = _G.GetSpellInfo
-local InCombatLockdown = _G.InCombatLockdown
-local IsCurrentSpell = _G.IsCurrentSpell
-local IsPlayerSpell = _G.IsPlayerSpell
+local CAMPFIRE_ID = 818
+local SMELTING_ID = 2656
+local RUNEFORGING_ID = 53428
 
 local tradeList = {
 	["Cooking"] = {
@@ -87,9 +85,6 @@ local tradeList = {
 	},
 }
 
-local CAMPFIRE_ID = 818
-local SMELTING_ID = 2656
-local index = 1
 local myProfessions = {}
 local tabList = {}
 
@@ -122,14 +117,17 @@ function Module:TradeTabs_Update()
 	end
 end
 
+local index = 1
 function Module:TradeTabs_Create(spellID, tradeName)
 	local name, _, texture = GetSpellInfo(spellID)
+
 	local tab = CreateFrame("CheckButton", nil, TradeSkillFrame, "SpellBookSkillLineTabTemplate, SecureActionButtonTemplate")
 	tab.tooltip = name
 	tab.spellID = spellID
 	tab:SetAttribute("type", "spell")
 	tab:SetAttribute("spell", name)
 	tab:SetNormalTexture(texture)
+	tab:GetHighlightTexture():SetColorTexture(1, 1, 1, 0.25)
 	tab:Show()
 
 	tab.CD = CreateFrame("Cooldown", nil, tab, "CooldownFrameTemplate")
@@ -137,13 +135,13 @@ function Module:TradeTabs_Create(spellID, tradeName)
 
 	local cover = CreateFrame("Frame", nil, tab)
 	cover:SetAllPoints()
-	if tradeName ~= "Enchanting" then -- clickthru on enchant
+	if tradeName ~= "Enchanting" then
 		cover:EnableMouse(true)
-	end
+	end -- clickthru on enchant
 	tab.cover = cover
 
 	tab:SetPoint("TOPLEFT", TradeSkillFrame, "TOPRIGHT", -33, -70 - (index - 1) * 45)
-	table_insert(tabList, tab)
+	tinsert(tabList, tab)
 	index = index + 1
 
 	return tab
@@ -152,7 +150,12 @@ end
 function Module:TradeTabs_OnLoad()
 	Module:UpdateProfessions()
 
+	if K.Class == "DEATHKNIGHT" then
+		Module:TradeTabs_Create(RUNEFORGING_ID)
+	end
+
 	local hasCooking
+
 	for tradeName, spellID in pairs(myProfessions) do
 		if tradeName == "Mining" then
 			spellID = SMELTING_ID
@@ -190,13 +193,11 @@ function Module.TradeTabs_OnEvent(event, addon)
 end
 
 function Module:CreateTradeTabs()
-	if not C["Misc"].TradeTabs then
-		return
-	end
-
-	if K.CheckAddOnState("TradeSkillMaster") then
-		return
-	end
+	-- if not C.db["Misc"]["TradeTabs"] then
+	-- 	return
+	-- end
 
 	K:RegisterEvent("ADDON_LOADED", Module.TradeTabs_OnEvent)
 end
+
+Module:RegisterMisc("TradeTabs", Module.CreateTradeTabs)

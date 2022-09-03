@@ -1,4 +1,4 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Announcements")
 
 local _G = _G
@@ -6,53 +6,54 @@ local string_format = _G.string.format
 
 local GetSpellInfo = _G.GetSpellInfo
 local GetSpellLink = _G.GetSpellLink
-local GetTime = _G.GetTime
 local IsInGroup = _G.IsInGroup
 local SendChatMessage = _G.SendChatMessage
-local UnitInParty = _G.UnitInParty
-local UnitInRaid = _G.UnitInRaid
 local UnitName = _G.UnitName
 
-local lastTime = 0
+local groupUnits = { ["player"] = true, ["pet"] = true }
+for i = 1, 4 do
+	groupUnits["party" .. i] = true
+	groupUnits["partypet" .. i] = true
+end
+for i = 1, 40 do
+	groupUnits["raid" .. i] = true
+	groupUnits["raidpet" .. i] = true
+end
+
 local itemList = {
-	[13379] = true, -- Piccolo of the Flaming Fire
-	[17512] = true, -- Piccolo of the Flaming Fire
-	[18232] = true, -- Field Repair Bot 74A
-	[18400] = true, -- Piccolo of the Flaming Fire
-	[22700] = true, -- Field Repair Bot 74A
-	[29893] = true, -- Ritual of Souls
-	[43987] = true, -- Ritual of Refreshment
-	[44389] = true, -- Field Repair Bot 110G
-	[49844] = true, -- Direbrew's Remote
-	[51508] = true, -- Party G.R.E.N.A.D.E.
-	[51510] = true, -- Party G.R.E.N.A.D.E.
-	[698] = true, -- Ritual of Summoning
-	-- Alliance
-	[10059] = true, -- Stormwind
-	[11416] = true, -- Ironforge
-	[11419] = true, -- Darnassus
-	[32266] = true, -- Exodar
-	[33691] = true, -- Shattrath
-	[49360] = true, -- Theramore
-	-- Horde
-	[11417] = true, -- Orgrimmar
-	[11418] = true, -- Undercity
-	[11420] = true, -- Thunder Bluff
-	[32267] = true, -- Silvermoon
-	[35717] = true, -- Shattrath
-	[49361] = true, -- Stonard
-	-- Alliance/Horde
-	[28148] = true, -- Karazhan
+	[54710] = true, -- Portable mailbox
+	[67826] = true, -- Kevis
+	[226241] = true, -- Tranquility
+	[256230] = true, -- Meditation scriptures
+	[185709] = true, -- Caramel Fish Feast
+	[259409] = true, -- Feast of sails
+	[259410] = true, -- Captain's Feast
+	[276972] = true, -- Arcane Cauldron
+	[286050] = true, -- blood meal
+	[265116] = true, -- 8.0 Engineering Battle
+	[308458] = true, -- Amazing meal
+	[308462] = true, -- Indulge in a gluttonous feast
+	[345130] = true, -- 9.0 Engineering Battle
+	[307157] = true, -- Eternal Cauldron
+	[359336] = true, -- stone soup pot
+	[324029] = true, -- Code of Peace of Mind
+
+	[2825] = true, -- bloodthirsty
+	[32182] = true, -- heroic
+	[80353] = true, -- time warp
+	[264667] = true, -- Primal Rage, pet
+	[272678] = true, -- Primal Rage, Pet Mastery
+	[178207] = true, -- Drums of Fury
+	[230935] = true, -- Alpine War Drums
+	[256740] = true, -- Vortex Drums
+	[292686] = true, -- Thunderskin's Hammer
+	[309658] = true, -- Death Brutal War Drum
 }
 
-function Module:ItemAlert_Update(unit, _, spellID)
-	if (UnitInRaid(unit) or UnitInParty(unit)) and spellID and itemList[spellID] and lastTime ~= GetTime() then
-		local who = UnitName(unit)
-		local link = GetSpellLink(spellID)
-		local name = GetSpellInfo(spellID)
-		SendChatMessage(string_format(L["Item Placed"], who, link or name), K.CheckChat())
-
-		lastTime = GetTime()
+function Module:ItemAlert_Update(unit, castID, spellID)
+	if groupUnits[unit] and itemList[spellID] and (itemList[spellID] ~= castID) then
+		SendChatMessage(string_format(L["Spell Item AlertStr"], UnitName(unit), GetSpellLink(spellID) or GetSpellInfo(spellID)), K.CheckChat)
+		itemList[spellID] = castID
 	end
 end
 
@@ -64,16 +65,14 @@ function Module:ItemAlert_CheckGroup()
 	end
 end
 
-function Module:PlacedItemAlert()
-	Module:ItemAlert_CheckGroup()
-	K:RegisterEvent("GROUP_LEFT", Module.ItemAlert_CheckGroup)
-	K:RegisterEvent("GROUP_JOINED", Module.ItemAlert_CheckGroup)
-end
-
 function Module:CreateItemAnnounce()
-	if not C["Announcements"].ItemAlert then
-		return
+	if C["Announcements"].ItemAlert then
+		self:ItemAlert_CheckGroup()
+		K:RegisterEvent("GROUP_LEFT", self.ItemAlert_CheckGroup)
+		K:RegisterEvent("GROUP_JOINED", self.ItemAlert_CheckGroup)
+	else
+		K:UnregisterEvent("GROUP_LEFT", self.ItemAlert_CheckGroup)
+		K:UnregisterEvent("GROUP_JOINED", self.ItemAlert_CheckGroup)
+		K:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED", Module.ItemAlert_Update)
 	end
-
-	Module:PlacedItemAlert()
 end

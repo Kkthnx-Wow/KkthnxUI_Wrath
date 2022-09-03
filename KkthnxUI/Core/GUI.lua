@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 
 -- Sourced: Tukui (Tukz & Hydra)
 -- Edited: KkthnxUI (Kkthnx)
@@ -17,38 +17,32 @@ local unpack = _G.unpack
 local CreateFrame = _G.CreateFrame
 local GameTooltip = _G.GameTooltip
 local UIParent = _G.UIParent
+local StaticPopupDialogs = _G.StaticPopupDialogs
+local YES = _G.YES
+local NO = _G.NO
+local INFO = _G.INFO
+local OKAY = _G.OKAY
+local SlashCmdList = _G.SlashCmdList
 
-local StyleFont = function(fs, font, size)
-	fs:SetFont(font, size)
-	fs:SetShadowColor(0, 0, 0)
-	fs:SetShadowOffset(1, -1)
-end
-
-local Font = C["Media"].Fonts.KkthnxUIFont
-local Texture = C["Media"].Statusbars.KkthnxUIStatusbar
--- local Blank = C["Media"].Textures.BlankTexture
-local ArrowUp = C["Media"].Textures.ArrowTexture
-local ArrowDown = C["Media"].Textures.ArrowTexture
-
-local DeathKnightIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:64:128:128:196|t" .. "|CFFC41F3B"
-local DemonHunterIconColor = "" .. "|CFFA330C9"
-local DruidIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:196:256:0:64|t" .. "|CFFFF7D0A"
-local HunterIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:0:64:64:128|t" .. "|CFFA9D271"
-local MageIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:64:128:0:64|t" .. "|CFF40C7EB"
-local MonkIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:128:196:128:196|t" .. "|CFF00FF96"
-local PaladinIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:0:64:128:196|t" .. "|CFFF58CBA"
-local PriestIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:128:196:64:128|t" .. "|CFFFFFFFF"
-local RogueIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:128:196:0:64|t" .. "|CFFFFF569"
-local ShamanIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:64:128:64:128|t" .. "|CFF0070DE"
-local WarlockIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:196:256:64:128|t" .. "|CFF8787ED"
-local WarriorIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:0:64:0:64|t" .. "|CFFC79C6E"
+-- Rewrite AddClassIconToColor so we can have 2 functions. 1 for class icon and 1 for class color :D
+local DeathKnightIconColor = K.AddClassIconToColor("DEATHKNIGHT", "|CFFC41F3B", 16)
+local DemonHunterIconColor = K.AddClassIconToColor("DEMONHUNTER", "|CFFA330C9", 16)
+local DruidIconColor = K.AddClassIconToColor("DRUID", "|CFFFF7D0A", 16)
+local HunterIconColor = K.AddClassIconToColor("HUNTER", "|CFFA9D271", 16)
+local MageIconColor = K.AddClassIconToColor("MAGE", "|CFF40C7EB", 16)
+local MonkIconColor = K.AddClassIconToColor("MONK", "|CFF00FF96", 16)
+local PaladinIconColor = K.AddClassIconToColor("PALADIN", "|CFFF58CBA", 16)
+local PriestIconColor = K.AddClassIconToColor("PRIEST", "|CFFFFFFFF", 16)
+local RogueIconColor = K.AddClassIconToColor("ROGUE", "|CFFFFF569", 16)
+local ShamanIconColor = K.AddClassIconToColor("SHAMAN", "|CFF0070DE", 16)
+local WarlockIconColor = K.AddClassIconToColor("WARLOCK", "|CFF8787ED", 16)
+local WarriorIconColor = K.AddClassIconToColor("WARRIOR", "|CFFC79C6E", 16)
 
 local BGColor = { 0.2, 0.2, 0.2 }
 local BrightColor = { 0.35, 0.35, 0.35 }
-
 local R, G, B = K.r, K.g, K.b
 
-local HeaderText = K.Title .. K.SystemColor .. " GUI|r"
+local HeaderText = string.format("%s %s", K.Title .. K.SystemColor, SETTINGS .. "|r")
 
 local WindowWidth = 620
 -- local WindowHeight = 360
@@ -65,51 +59,58 @@ local MenuButtonWidth = ButtonListWidth - (Spacing * 2)
 local MenuButtonHeight = 20
 
 local WidgetListWidth = (WindowWidth - ButtonListWidth) - (Spacing * 3) + 1
-
 local WidgetHeight = 20 -- All widgets are the same height
 local WidgetHighlightAlpha = 0.25
 
-local LastActiveWindow
+local SwitchWidth = 46
+local EditBoxWidth = 134
+local ButtonWidth = 138
+local SliderWidth = 84
+local SliderEditBoxWidth = 46
+local DropdownWidth = 180
+local ListItemsToShow = 8
+local ColorButtonWidth = 110
 
+local ColorPickerFrameCancel = K.Noop
+local LastActiveDropdown
+local LastActiveWindow
 local MySelectedProfile = K.Realm .. "-" .. K.Name
 
 -- Do not add class color/icon string unless they ask for it or agree apon it :D
 local CreditLines = {
-	K.GreyColor .. "~~~~|r |CFFfa6a56Patreons|r " .. K.GreyColor .. "~~~~",
-	-- Tier 1
-	"|CFFfa6a56Tier 1|r",
-	"Shale",
-	"Tr0uBl3Sh00t3R",
-	"Bbobz",
-	"Roflmao",
+	-- stylua: ignore
+	K.GreyColor.. "[|r|CFFFFCC66PATREONS|r".. K.GreyColor.. "]",
+	" ",
+	-- -- Tier 1
+	-- stylua: ignore
+	K.GreyColor.. "[|r|CFFFFCC66Tier 1|r".. K.GreyColor.. "]",
 	"",
-	-- Tier 2
-	"|CFFfa6a56Tier 2|r",
-	"Big Balkan Wolf",
+	-- stylua: ignore
+	K.GreyColor.. "[|r|CFFFFCC66Tier 2|r".. K.GreyColor.. "]",
 	"",
-	-- Tier 3
-	"|CFFfa6a56Tier 3|r",
-	PaladinIconColor .. "Chirs|r",
-	HunterIconColor .. "SnerkDevil",
-	"thondr",
+	-- stylua: ignore
+	K.GreyColor.. "[|r|CFFFFCC66Tier 3|r".. K.GreyColor.. "]",
+	WarriorIconColor .. "|cff8b0000Shovil|r",
 	"",
-	-- Tier 4
-	"|CFFfa6a56Tier 4|r",
-	ShamanIconColor .. "Rokalm|r",
+	-- stylua: ignore
+	K.GreyColor.. "[|r|CFFFFCC66Tier 4|r".. K.GreyColor.. "]",
 	"",
-	K.GreyColor .. "~~~~|r |CFFFFCC66Credits|r " .. K.GreyColor .. "~~~~",
+	-- stylua: ignore
+	"",
+	K.GreyColor .. "[|r|CFFFFCC66CREDITS|r" .. K.GreyColor .. "]",
+	"",
 	"Aftermathh",
 	RogueIconColor .. "Alteredcross|r",
 	"Alza",
 	ShamanIconColor .. "Azilroka",
 	"|cff00c0faBenik|r",
-	WarlockIconColor .. "Bitflipped",
 	"Blazeflack",
 	"Caellian",
 	"Caith",
 	HunterIconColor .. "Cassamarra|r",
 	"Darth Predator",
 	"Elv - (|cff1784d1ElvUI|r)",
+	PriestIconColor .. "|cffe31c73Faffi|r|cfffc4796GS|r",
 	DruidIconColor .. "Goldpaw|r - (|c00000002|r|cff7284abA|r|cff6a7a9ez|r|cff617092e|r|cff596785r|r|cff505d78i|r|cff48536bt|r|cff3f495fe|r|cffffffffUI|r)",
 	"Haleth",
 	"Haste",
@@ -118,7 +119,7 @@ local CreditLines = {
 	"Ishtara",
 	"KkthnxUI Community",
 	"LightSpark",
-	"Magicnachos",
+	PriestIconColor .. "Magicnachos",
 	DruidIconColor .. "Merathilis",
 	"Nightcracker",
 	"P3lim",
@@ -136,7 +137,6 @@ local CreditLines = {
 	"Tulla",
 	"Tuller",
 	"oUF Team",
-	PaladinIconColor .. "Yoni",
 }
 
 local GUI = CreateFrame("Frame", "KKUI_GUI", UIParent)
@@ -156,7 +156,7 @@ StaticPopupDialogs["KKUI_SWITCH_PROFILE"] = {
 		KkthnxUIDB.Variables[K.Realm][K.Name] = KkthnxUIDB.Variables[SelectedServer][SelectedNickname]
 		KkthnxUIDB.Settings[K.Realm][K.Name] = KkthnxUIDB.Settings[SelectedServer][SelectedNickname]
 
-		ReloadUI()
+		_G.ReloadUI()
 	end,
 }
 
@@ -202,18 +202,25 @@ end
 
 local AnchorOnEnter = function(self)
 	if self.Tooltip and match(self.Tooltip, "%S") then
+		if GameTooltip:IsForbidden() then
+			return
+		end
+
 		GameTooltip:ClearLines()
 		GameTooltip:SetOwner(self, "ANCHOR_NONE")
-		GameTooltip:SetPoint("TOPLEFT", KKUI_GUI, "TOPRIGHT", -3, -5)
+		GameTooltip:SetPoint("TOPLEFT", "KKUI_GUI", "TOPRIGHT", -3, -5)
 		GameTooltip:AddLine(INFO)
 		GameTooltip:AddLine("|nMost options require a full UI reload|nYou can do this by clicking the |CFF00CC4CApply|r button|n|n", 163 / 255, 211 / 255, 255 / 255)
-
 		GameTooltip:AddLine(self.Tooltip, nil, nil, nil, true)
 		GameTooltip:Show()
 	end
 end
 
 local AnchorOnLeave = function()
+	if GameTooltip:IsForbidden() then
+		return
+	end
+
 	GameTooltip:Hide()
 end
 
@@ -251,7 +258,7 @@ local OrderedNext = function(t, state)
 		return Key, t[Key]
 	end
 
-	return
+	-- return
 end
 
 local PairsByKeys = function(t)
@@ -280,7 +287,7 @@ local CreateSection = function(self, text)
 	Section.Label = Section:CreateFontString(nil, "OVERLAY")
 	Section.Label:SetPoint("CENTER", Section, LabelSpacing, 0)
 	Section.Label:SetWidth(WidgetListWidth - (Spacing * 4))
-	StyleFont(Section.Label, Font, 12)
+	Section.Label:SetFontObject(K.UIFont)
 	Section.Label:SetJustifyH("CENTER")
 	Section.Label:SetText("|CFFFFCC66" .. text .. "|r")
 
@@ -292,8 +299,6 @@ end
 GUI.Widgets.CreateSection = CreateSection
 
 -- Buttons
-local ButtonWidth = 138
-
 local ButtonOnEnter = function(self)
 	self.Highlight:SetAlpha(WidgetHighlightAlpha)
 end
@@ -303,11 +308,11 @@ local ButtonOnLeave = function(self)
 end
 
 local ButtonOnMouseDown = function(self)
-	self.KKUI_Background:SetVertexColor(unpack(BGColor))
+	self.KKUI_Background:SetVertexColor(BGColor[1], BGColor[2], BGColor[3])
 end
 
 local ButtonOnMouseUp = function(self)
-	self.KKUI_Background:SetVertexColor(unpack(C["Media"].Backdrops.ColorBackdrop))
+	self.KKUI_Background:SetVertexColor(C["Media"].Backdrops.ColorBackdrop[1], C["Media"].Backdrops.ColorBackdrop[2], C["Media"].Backdrops.ColorBackdrop[3], C["Media"].Backdrops.ColorBackdrop[4])
 end
 
 local CreateButton = function(self, midtext, text, tooltip, func)
@@ -329,14 +334,14 @@ local CreateButton = function(self, midtext, text, tooltip, func)
 
 	Button.Highlight = Button:CreateTexture(nil, "OVERLAY")
 	Button.Highlight:SetAllPoints()
-	Button.Highlight:SetTexture(Texture)
+	Button.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Button.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Button.Highlight:SetAlpha(0)
 
 	Button.Middle = Button:CreateFontString(nil, "OVERLAY")
 	Button.Middle:SetPoint("CENTER", Button, 0, 0)
 	Button.Middle:SetWidth(WidgetListWidth - (Spacing * 4))
-	StyleFont(Button.Middle, Font, 12)
+	Button.Middle:SetFontObject(K.UIFont)
 	Button.Middle:SetJustifyH("CENTER")
 	Button.Middle:SetText(midtext)
 
@@ -344,7 +349,7 @@ local CreateButton = function(self, midtext, text, tooltip, func)
 	Button.Label:SetPoint("LEFT", Button, "RIGHT", Spacing, 0)
 	Button.Label:SetWidth(WidgetListWidth - ButtonWidth - (Spacing * 4))
 	Button.Label:SetJustifyH("LEFT")
-	StyleFont(Button.Label, Font, 12)
+	Button.Label:SetFontObject(K.UIFont)
 	Button.Label:SetText(text)
 
 	tinsert(self.Widgets, Anchor)
@@ -355,8 +360,6 @@ end
 GUI.Widgets.CreateButton = CreateButton
 
 -- Switches
-local SwitchWidth = 46
-
 local SwitchOnMouseUp = function(self, button)
 	if self.Movement:IsPlaying() then
 		return
@@ -401,7 +404,7 @@ local CreateSwitch = function(self, group, option, text, tooltip, hook)
 	local Value = C[group][option]
 
 	local Anchor = CreateFrame("Frame", nil, self)
-	Anchor:SetSize(WidgetListWidth - (Spacing * 2), WidgetHeight)
+	Anchor:SetSize(WidgetListWidth - SwitchWidth - Spacing, WidgetHeight)
 	Anchor:SetScript("OnEnter", AnchorOnEnter)
 	Anchor:SetScript("OnLeave", AnchorOnLeave)
 	Anchor.Tooltip = tooltip
@@ -420,13 +423,13 @@ local CreateSwitch = function(self, group, option, text, tooltip, hook)
 
 	Switch.Highlight = Switch:CreateTexture(nil, "OVERLAY")
 	Switch.Highlight:SetAllPoints()
-	Switch.Highlight:SetTexture(Texture)
+	Switch.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Switch.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Switch.Highlight:SetAlpha(0)
 
 	Switch.Thumb = CreateFrame("Frame", nil, Switch)
 	Switch.Thumb:SetSize(WidgetHeight, WidgetHeight)
-	Switch.Thumb:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, C["Media"].Statusbars.KkthnxUIStatusbar, nil, nil, nil, 123 / 255, 132 / 255, 137 / 255)
+	Switch.Thumb:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, K.GetTexture(C["General"].Texture), nil, nil, nil, 123 / 255, 132 / 255, 137 / 255)
 
 	Switch.Movement = CreateAnimationGroup(Switch.Thumb):CreateAnimation("Move")
 	Switch.Movement:SetDuration(0.1)
@@ -435,14 +438,14 @@ local CreateSwitch = function(self, group, option, text, tooltip, hook)
 	Switch.TrackTexture = Switch:CreateTexture(nil, "ARTWORK")
 	Switch.TrackTexture:SetPoint("TOPLEFT", Switch, 0, -1)
 	Switch.TrackTexture:SetPoint("BOTTOMRIGHT", Switch.Thumb, "BOTTOMLEFT", 0, 1)
-	Switch.TrackTexture:SetTexture(Texture)
+	Switch.TrackTexture:SetTexture(K.GetTexture(C["General"].Texture))
 	Switch.TrackTexture:SetVertexColor(R, G, B)
 
 	Switch.Label = Switch:CreateFontString(nil, "OVERLAY")
 	Switch.Label:SetPoint("LEFT", Switch, "RIGHT", Spacing, 0)
 	Switch.Label:SetWidth(WidgetListWidth - SwitchWidth - (Spacing * 4))
 	Switch.Label:SetJustifyH("LEFT")
-	StyleFont(Switch.Label, Font, 12)
+	Switch.Label:SetFontObject(K.UIFont)
 	Switch.Label:SetText(text)
 
 	if Value then
@@ -488,12 +491,11 @@ local EditBoxOnEscapePressed = function(self)
 	self:ClearFocus()
 end
 
-local EditBoxWidth = 134
 local CreateEditBox = function(self, group, option, text, tooltip, hook)
 	local Value = C[group][option]
 
 	local Anchor = CreateFrame("Frame", nil, self)
-	Anchor:SetSize(WidgetListWidth - (Spacing * 2), WidgetHeight)
+	Anchor:SetSize(WidgetListWidth - EditBoxWidth - Spacing, WidgetHeight)
 	Anchor:SetScript("OnEnter", AnchorOnEnter)
 	Anchor:SetScript("OnLeave", AnchorOnLeave)
 	Anchor.Tooltip = tooltip
@@ -505,7 +507,7 @@ local CreateEditBox = function(self, group, option, text, tooltip, hook)
 
 	EditBox.Highlight = EditBox:CreateTexture(nil, "OVERLAY")
 	EditBox.Highlight:SetAllPoints()
-	EditBox.Highlight:SetTexture(Texture)
+	EditBox.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	EditBox.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	EditBox.Highlight:SetAlpha(0)
 
@@ -513,11 +515,11 @@ local CreateEditBox = function(self, group, option, text, tooltip, hook)
 	EditBox.Label:SetPoint("LEFT", EditBox, "RIGHT", LabelSpacing, 0)
 	EditBox.Label:SetWidth(WidgetListWidth - (EditBoxWidth + EditBoxWidth) - (Spacing * 5))
 	EditBox.Label:SetJustifyH("LEFT")
-	StyleFont(EditBox.Label, Font, 12)
+	EditBox.Label:SetFontObject(K.UIFont)
 	EditBox.Label:SetText(text)
 
 	EditBox.Box = CreateFrame("EditBox", nil, EditBox)
-	StyleFont(EditBox.Box, Font, 12)
+	EditBox.Box:SetFontObject(K.UIFont)
 	EditBox.Box:SetPoint("TOPLEFT", EditBox, 0, 0)
 	EditBox.Box:SetPoint("BOTTOMRIGHT", EditBox, 0, 0)
 	EditBox.Box:SetJustifyH("CENTER")
@@ -547,15 +549,6 @@ end
 GUI.Widgets.CreateEditBox = CreateEditBox
 
 -- Sliders
-local SliderWidth = 84
-local SliderEditBoxWidth = 46
-
-local Round = function(num, dec)
-	local Mult = 10 ^ (dec or 0)
-
-	return floor(num * Mult + 0.5) / Mult
-end
-
 local SliderEditBoxOnEnter = function(self)
 	self.Highlight:SetAlpha(WidgetHighlightAlpha)
 end
@@ -580,9 +573,9 @@ local SliderOnValueChanged = function(self)
 		Value = floor(Value)
 	else
 		if Step <= 0.01 then
-			Value = Round(Value, 2)
+			Value = K.Round(Value, 2)
 		else
-			Value = Round(Value, 1)
+			Value = K.Round(Value, 1)
 		end
 	end
 
@@ -610,9 +603,9 @@ local SliderOnMouseWheel = function(self, delta)
 		Value = floor(Value)
 	else
 		if Step <= 0.01 then
-			Value = Round(Value, 2)
+			Value = K.Round(Value, 2)
 		else
-			Value = Round(Value, 1)
+			Value = K.Round(Value, 1)
 		end
 	end
 
@@ -707,12 +700,12 @@ local CreateSlider = function(self, group, option, text, minvalue, maxvalue, ste
 
 	EditBox.Highlight = EditBox:CreateTexture(nil, "OVERLAY")
 	EditBox.Highlight:SetAllPoints()
-	EditBox.Highlight:SetTexture(Texture)
+	EditBox.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	EditBox.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	EditBox.Highlight:SetAlpha(0)
 
 	EditBox.Box = CreateFrame("EditBox", nil, EditBox)
-	StyleFont(EditBox.Box, Font, 12)
+	EditBox.Box:SetFontObject(K.UIFont)
 	EditBox.Box:SetPoint("TOPLEFT", EditBox, 0, 0)
 	EditBox.Box:SetPoint("BOTTOMRIGHT", EditBox, 0, 0)
 	EditBox.Box:SetJustifyH("CENTER")
@@ -742,7 +735,7 @@ local CreateSlider = function(self, group, option, text, minvalue, maxvalue, ste
 	local Slider = CreateFrame("Slider", nil, EditBox)
 	Slider:SetPoint("LEFT", EditBox, "RIGHT", Spacing, 0)
 	Slider:SetSize(SliderWidth, WidgetHeight)
-	Slider:SetThumbTexture(Texture)
+	Slider:SetThumbTexture(K.GetTexture(C["General"].Texture))
 	Slider:SetOrientation("HORIZONTAL")
 	Slider:SetValueStep(stepvalue)
 	Slider:CreateBorder()
@@ -758,7 +751,7 @@ local CreateSlider = function(self, group, option, text, minvalue, maxvalue, ste
 
 	Slider.Highlight = Slider:CreateTexture(nil, "OVERLAY")
 	Slider.Highlight:SetAllPoints()
-	Slider.Highlight:SetTexture(Texture)
+	Slider.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Slider.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Slider.Highlight:SetAlpha(0)
 
@@ -766,23 +759,24 @@ local CreateSlider = function(self, group, option, text, minvalue, maxvalue, ste
 	Slider.Label:SetPoint("LEFT", Slider, "RIGHT", LabelSpacing, 0)
 	Slider.Label:SetWidth(WidgetListWidth - (SliderWidth + SliderEditBoxWidth) - (Spacing * 5))
 	Slider.Label:SetJustifyH("LEFT")
-	StyleFont(Slider.Label, Font, 12)
+	Slider.Label:SetFontObject(K.UIFont)
 	Slider.Label:SetText(text)
 
 	local Thumb = Slider:GetThumbTexture()
 	Thumb:SetSize(8, WidgetHeight)
-	Thumb:SetTexture(Texture)
+	Thumb:SetTexture(K.GetTexture(C["General"].Texture))
 	Thumb:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 
 	Thumb.Border = CreateFrame("Frame", nil, Slider)
 	Thumb.Border:SetPoint("TOPLEFT", Slider:GetThumbTexture(), 0, -1)
 	Thumb.Border:SetPoint("BOTTOMRIGHT", Slider:GetThumbTexture(), 0, 1)
-	Thumb.Border:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, C["Media"].Statusbars.KkthnxUIStatusbar, nil, nil, nil, 123 / 255, 132 / 255, 137 / 255)
+	-- stylua: ignore
+	Thumb.Border:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, K.GetTexture(C["General"].Texture), nil, nil, nil, 123 / 255, 132 / 255, 137 / 255)
 
 	Slider.Progress = Slider:CreateTexture(nil, "ARTWORK")
 	Slider.Progress:SetPoint("TOPLEFT", Slider, 1, -1)
 	Slider.Progress:SetPoint("BOTTOMRIGHT", Thumb, "BOTTOMLEFT", 0, 0)
-	Slider.Progress:SetTexture(Texture)
+	Slider.Progress:SetTexture(K.GetTexture(C["General"].Texture))
 	Slider.Progress:SetVertexColor(R, G, B)
 
 	EditBox.Box.Slider = Slider
@@ -797,10 +791,6 @@ end
 GUI.Widgets.CreateSlider = CreateSlider
 
 -- Dropdown Menu
-local DropdownWidth = 180
-local ListItemsToShow = 8
-local LastActiveDropdown
-
 local SetArrowUp = function(self)
 	self.ArrowDown.Fade:SetChange(0)
 	self.ArrowDown.Fade:SetEasing("out-sinusoidal")
@@ -833,7 +823,7 @@ local CloseLastDropdown = function(compare)
 end
 
 local DropdownButtonOnMouseUp = function(self, button)
-	self.Parent.Texture:SetVertexColor(unpack(BrightColor))
+	self.Parent.Texture:SetVertexColor(BrightColor[1], BrightColor[2], BrightColor[3])
 
 	if button == "LeftButton" then
 		if self.Menu:IsVisible() then
@@ -874,8 +864,6 @@ local DropdownButtonOnMouseUp = function(self, button)
 
 		if self.Parent.Type == "Texture" then
 			self.Parent.Texture:SetTexture(K.GetTexture(Value))
-		elseif self.Parent.Type == "Font" then
-			self.Parent.Current:SetFontObject(K.GetFont(Value))
 		end
 
 		self.Parent.Current:SetText(self.Parent.Value)
@@ -885,9 +873,9 @@ local DropdownButtonOnMouseUp = function(self, button)
 end
 
 local DropdownButtonOnMouseDown = function(self)
-	local R, G, B = unpack(BrightColor)
+	local Red, Green, Blue = unpack(BrightColor)
 
-	self.Parent.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
+	self.Parent.Texture:SetVertexColor(Red * 0.85, Green * 0.85, Blue * 0.85)
 end
 
 local MenuItemOnMouseUp = function(self)
@@ -916,8 +904,6 @@ local MenuItemOnMouseUp = function(self)
 
 	if self.GrandParent.Type == "Texture" then
 		self.GrandParent.Texture:SetTexture(K.GetTexture(self.Key))
-	elseif self.GrandParent.Type == "Font" then
-		self.GrandParent.Current:SetFontObject(K.GetFont(self.Key))
 	end
 
 	self.GrandParent.Current:SetText(self.Key)
@@ -993,7 +979,7 @@ local SetDropdownOffset = function(self, offset)
 end
 
 local DropdownScrollBarOnValueChanged = function(self)
-	local Value = Round(self:GetValue())
+	local Value = K.Round(self:GetValue())
 	local Parent = self:GetParent()
 	Parent.Offset = Value
 
@@ -1012,7 +998,7 @@ local AddDropdownScrollBar = function(self)
 	ScrollBar:SetPoint("TOPRIGHT", self, -Spacing, -Spacing)
 	ScrollBar:SetPoint("BOTTOMRIGHT", self, -Spacing, Spacing)
 	ScrollBar:SetWidth(Width)
-	ScrollBar:SetThumbTexture(Texture)
+	ScrollBar:SetThumbTexture(K.GetTexture(C["General"].Texture))
 	ScrollBar:SetOrientation("VERTICAL")
 	ScrollBar:SetValueStep(1)
 	ScrollBar:CreateBorder()
@@ -1026,20 +1012,20 @@ local AddDropdownScrollBar = function(self)
 
 	local Thumb = ScrollBar:GetThumbTexture()
 	Thumb:SetSize(Width, WidgetHeight)
-	Thumb:SetTexture(Texture)
+	Thumb:SetTexture(K.GetTexture(C["General"].Texture))
 	Thumb:SetVertexColor(0, 0, 0)
 
 	ScrollBar.NewTexture = ScrollBar:CreateTexture(nil, "OVERLAY")
 	ScrollBar.NewTexture:SetPoint("TOPLEFT", Thumb, 0, 0)
 	ScrollBar.NewTexture:SetPoint("BOTTOMRIGHT", Thumb, 0, 0)
-	ScrollBar.NewTexture:SetTexture(Texture)
+	ScrollBar.NewTexture:SetTexture(K.GetTexture(C["General"].Texture))
 	ScrollBar.NewTexture:SetVertexColor(0, 0, 0)
 
 	ScrollBar.NewTexture2 = ScrollBar:CreateTexture(nil, "OVERLAY")
 	ScrollBar.NewTexture2:SetPoint("TOPLEFT", ScrollBar.NewTexture, 1, -1)
 	ScrollBar.NewTexture2:SetPoint("BOTTOMRIGHT", ScrollBar.NewTexture, -1, 1)
-	ScrollBar.NewTexture2:SetTexture(Texture)
-	ScrollBar.NewTexture2:SetVertexColor(unpack(BrightColor))
+	ScrollBar.NewTexture2:SetTexture(K.GetTexture(C["General"].Texture))
+	ScrollBar.NewTexture2:SetVertexColor(BrightColor[1], BrightColor[2], BrightColor[3])
 
 	self:EnableMouseWheel(true)
 	self:SetScript("OnMouseWheel", DropdownOnMouseWheel)
@@ -1068,9 +1054,7 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 		Value = C[group][option]
 
 		if custom == "Texture" then
-			Selections = K.TextureTable
-		else
-			Selections = K.FontTable
+			Selections = C["Media"].Statusbars
 		end
 	else
 		Value = C[group][option].Value
@@ -1097,7 +1081,7 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 
 	Dropdown.Texture = Dropdown:CreateTexture(nil, "ARTWORK")
 	Dropdown.Texture:SetAllPoints()
-	Dropdown.Texture:SetVertexColor(unpack(BrightColor))
+	Dropdown.Texture:SetVertexColor(BrightColor[1], BrightColor[2], BrightColor[3])
 
 	Dropdown.Button = CreateFrame("Frame", nil, Dropdown)
 	Dropdown.Button:SetSize(DropdownWidth, WidgetHeight)
@@ -1109,13 +1093,13 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 
 	Dropdown.Button.Highlight = Dropdown:CreateTexture(nil, "ARTWORK")
 	Dropdown.Button.Highlight:SetAllPoints()
-	Dropdown.Button.Highlight:SetTexture(Texture)
+	Dropdown.Button.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Dropdown.Button.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Dropdown.Button.Highlight:SetAlpha(0)
 
 	Dropdown.Current = Dropdown:CreateFontString(nil, "ARTWORK")
 	Dropdown.Current:SetPoint("LEFT", Dropdown, Spacing, 0)
-	Dropdown.Current:SetFontObject(K.GetFont("KkthnxUI"))
+	Dropdown.Current:SetFontObject(K.UIFont)
 	Dropdown.Current:SetJustifyH("LEFT")
 	Dropdown.Current:SetWidth(DropdownWidth - 4)
 	Dropdown.Current:SetText(Value)
@@ -1124,7 +1108,7 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 	Dropdown.Label:SetPoint("LEFT", Dropdown, "RIGHT", LabelSpacing, 0)
 	Dropdown.Label:SetWidth(WidgetListWidth - DropdownWidth - (Spacing * 4))
 	Dropdown.Label:SetJustifyH("LEFT")
-	StyleFont(Dropdown.Label, Font, 12)
+	Dropdown.Label:SetFontObject(K.UIFont)
 	Dropdown.Label:SetJustifyH("LEFT")
 	Dropdown.Label:SetWidth(WidgetListWidth - DropdownWidth - (Spacing * 4))
 	Dropdown.Label:SetText(text)
@@ -1135,16 +1119,15 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 
 	Dropdown.Button.ArrowDown = Dropdown.ArrowAnchor:CreateTexture(nil, "OVERLAY")
 	Dropdown.Button.ArrowDown:SetSize(16, 16)
-	Dropdown.Button.ArrowDown:SetPoint("CENTER", Dropdown.ArrowAnchor, 0, 0)
-	Dropdown.Button.ArrowDown:SetTexture(ArrowDown)
+	Dropdown.Button.ArrowDown:SetPoint("CENTER", Dropdown.ArrowAnchor)
+	Dropdown.Button.ArrowDown:SetTexture(C["Media"].Textures.ArrowTexture)
 	Dropdown.Button.ArrowDown:SetRotation(rad(180))
-	Dropdown.Button.ArrowDown:SetVertexColor(0.85, 0.77, 0.36)
 
 	Dropdown.Button.ArrowUp = Dropdown.ArrowAnchor:CreateTexture(nil, "OVERLAY")
 	Dropdown.Button.ArrowUp:SetSize(16, 16)
-	Dropdown.Button.ArrowUp:SetPoint("CENTER", Dropdown.ArrowAnchor, 0, 0)
-	Dropdown.Button.ArrowUp:SetTexture(ArrowUp)
-	Dropdown.Button.ArrowUp:SetVertexColor(0.85, 0.77, 0.36)
+	Dropdown.Button.ArrowUp:SetPoint("CENTER", Dropdown.ArrowAnchor)
+	Dropdown.Button.ArrowUp:SetTexture(C["Media"].Textures.ArrowTexture)
+	Dropdown.Button.ArrowUp:SetRotation(rad(0))
 	Dropdown.Button.ArrowUp:SetAlpha(0)
 
 	Dropdown.Button.ArrowDown.Fade = CreateAnimationGroup(Dropdown.Button.ArrowDown):CreateAnimation("Fade")
@@ -1201,32 +1184,30 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 
 		MenuItem.Highlight = MenuItem:CreateTexture(nil, "OVERLAY")
 		MenuItem.Highlight:SetAllPoints()
-		MenuItem.Highlight:SetTexture(Texture)
+		MenuItem.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 		MenuItem.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 		MenuItem.Highlight:SetAlpha(0)
 
 		MenuItem.Texture = MenuItem:CreateTexture(nil, "ARTWORK")
 		MenuItem.Texture:SetAllPoints()
-		MenuItem.Texture:SetTexture(Texture)
-		MenuItem.Texture:SetVertexColor(unpack(BrightColor))
+		MenuItem.Texture:SetTexture(K.GetTexture(C["General"].Texture))
+		MenuItem.Texture:SetVertexColor(BrightColor[1], BrightColor[2], BrightColor[3])
 
 		MenuItem.Selected = MenuItem:CreateTexture(nil, "OVERLAY")
 		MenuItem.Selected:SetAllPoints()
-		MenuItem.Selected:SetTexture(Texture)
+		MenuItem.Selected:SetTexture(K.GetTexture(C["General"].Texture))
 		MenuItem.Selected:SetVertexColor(R, G, B)
 
 		MenuItem.Text = MenuItem:CreateFontString(nil, "OVERLAY")
 		MenuItem.Text:SetPoint("LEFT", MenuItem, 5, 0)
 		MenuItem.Text:SetWidth((DropdownWidth + 3) - (Spacing * 2))
-		MenuItem.Text:SetFontObject(K.GetFont("KkthnxUI"))
+		MenuItem.Text:SetFontObject(K.UIFont)
 		MenuItem.Text:SetJustifyH("LEFT")
 		MenuItem.Text:SetText(k)
 
 		if custom == "Texture" then
 			MenuItem.Texture:SetTexture(K.GetTexture(k))
 			MenuItem.Selected:SetTexture(K.GetTexture(k))
-		elseif custom == "Font" then
-			MenuItem.Text:SetFontObject(K.GetFont(k))
 		end
 
 		if custom then
@@ -1262,11 +1243,8 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 
 	if custom == "Texture" then
 		Dropdown.Texture:SetTexture(K.GetTexture(Value))
-	elseif custom == "Font" then
-		Dropdown.Texture:SetTexture(Texture)
-		Dropdown.Current:SetFontObject(K.GetFont(Value))
 	else
-		Dropdown.Texture:SetTexture(Texture)
+		Dropdown.Texture:SetTexture(K.GetTexture(C["General"].Texture))
 	end
 
 	if #Dropdown.Menu > ListItemsToShow then
@@ -1285,18 +1263,14 @@ end
 GUI.Widgets.CreateDropdown = CreateDropdown
 
 -- Color selection
-local ColorButtonWidth = 110
-
-local ColorPickerFrameCancel = function() end
-
 local ColorOnMouseUp = function(self, button)
-	local CPF = ColorPickerFrame
+	local CPF = _G.ColorPickerFrame
 
 	if CPF:IsShown() then
 		return
 	end
 
-	self:SetBackdropColor(unpack(BrightColor))
+	self:SetBackdropColor(BrightColor[1], BrightColor[2], BrightColor[3])
 
 	local CurrentR, CurrentG, CurrentB = unpack(self.Value)
 
@@ -1327,9 +1301,9 @@ local ColorOnMouseUp = function(self, button)
 
 			local NewR, NewG, NewB = CPF:GetColorRGB()
 
-			NewR = Round(NewR, 3)
-			NewG = Round(NewG, 3)
-			NewB = Round(NewB, 3)
+			NewR = K.Round(NewR, 3)
+			NewG = K.Round(NewG, 3)
+			NewB = K.Round(NewB, 3)
 
 			local NewValue = { NewR, NewG, NewB }
 
@@ -1351,7 +1325,7 @@ local ColorOnMouseUp = function(self, button)
 end
 
 local ColorOnMouseDown = function(self)
-	self.KKUI_Background:SetVertexColor(unpack(BGColor))
+	self.KKUI_Background:SetVertexColor(BGColor[1], BGColor[2], BGColor[3])
 end
 
 local ColorOnEnter = function(self)
@@ -1375,7 +1349,8 @@ local CreateColorSelection = function(self, group, option, text, tooltip)
 	local Swatch = CreateFrame("Frame", nil, Anchor)
 	Swatch:SetSize(WidgetHeight, WidgetHeight)
 	Swatch:SetPoint("LEFT", Anchor, 0, 0)
-	Swatch:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, C["Media"].Statusbars.KkthnxUIStatusbar, nil, nil, nil, CurrentR, CurrentG, CurrentB)
+	-- stylua: ignore
+	Swatch:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, K.GetTexture(C["General"].Texture), nil, nil, nil, CurrentR, CurrentG, CurrentB)
 
 	Swatch.Select = CreateFrame("Frame", nil, Swatch, "BackdropTemplate")
 	Swatch.Select:SetSize(ColorButtonWidth, WidgetHeight)
@@ -1391,13 +1366,13 @@ local CreateColorSelection = function(self, group, option, text, tooltip)
 
 	Swatch.Select.Highlight = Swatch.Select:CreateTexture(nil, "OVERLAY")
 	Swatch.Select.Highlight:SetAllPoints()
-	Swatch.Select.Highlight:SetTexture(Texture)
+	Swatch.Select.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Swatch.Select.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Swatch.Select.Highlight:SetAlpha(0)
 
 	Swatch.Select.Label = Swatch.Select:CreateFontString(nil, "OVERLAY")
 	Swatch.Select.Label:SetPoint("CENTER", Swatch.Select, 0, 0)
-	StyleFont(Swatch.Select.Label, Font, 12)
+	Swatch.Select.Label:SetFontObject(K.UIFont)
 	Swatch.Select.Label:SetJustifyH("CENTER")
 	Swatch.Select.Label:SetWidth(ColorButtonWidth - 4)
 	Swatch.Select.Label:SetText("Select Color")
@@ -1406,7 +1381,7 @@ local CreateColorSelection = function(self, group, option, text, tooltip)
 	Swatch.Label:SetPoint("LEFT", Swatch.Select, "RIGHT", LabelSpacing, 0)
 	Swatch.Label:SetWidth(WidgetListWidth - (ColorButtonWidth + WidgetHeight) - (Spacing * 5))
 	Swatch.Label:SetJustifyH("LEFT")
-	StyleFont(Swatch.Label, Font, 12)
+	Swatch.Label:SetFontObject(K.UIFont)
 	Swatch.Label:SetJustifyH("LEFT")
 	Swatch.Label:SetWidth(DropdownWidth - 4)
 	Swatch.Label:SetText(text)
@@ -1519,7 +1494,7 @@ local SetOffset = function(self, offset)
 end
 
 local WindowScrollBarOnValueChanged = function(self)
-	local Value = Round(self:GetValue())
+	local Value = K.Round(self:GetValue())
 	local Parent = self:GetParent()
 	Parent.Offset = Value
 
@@ -1537,7 +1512,7 @@ local AddScrollBar = function(self)
 	ScrollBar:SetPoint("TOPRIGHT", self, -Spacing, -Spacing)
 	ScrollBar:SetPoint("BOTTOMRIGHT", self, -Spacing, Spacing)
 	ScrollBar:SetWidth(WidgetHeight)
-	ScrollBar:SetThumbTexture(Texture)
+	ScrollBar:SetThumbTexture(K.GetTexture(C["General"].Texture))
 	ScrollBar:SetOrientation("VERTICAL")
 	ScrollBar:SetValueStep(1)
 	ScrollBar:CreateBorder()
@@ -1551,7 +1526,7 @@ local AddScrollBar = function(self)
 
 	local Thumb = ScrollBar:GetThumbTexture()
 	Thumb:SetSize(WidgetHeight, WidgetHeight)
-	Thumb:SetTexture(Texture)
+	Thumb:SetTexture(K.GetTexture(C["General"].Texture))
 	Thumb:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 
 	self:EnableMouseWheel(true)
@@ -1574,9 +1549,9 @@ local AddScrollBar = function(self)
 end
 
 GUI.DisplayWindow = function(self, name)
-	if KKUI_Credits and KKUI_Credits:IsShown() then
-		KKUI_Credits:Hide()
-		KKUI_Credits.Move:Stop()
+	if _G.KKUI_Credits and _G.KKUI_Credits:IsShown() then
+		_G.KKUI_Credits:Hide()
+		_G.KKUI_Credits.Move:Stop()
 
 		local Window = GUI:GetWindow(LastActiveWindow)
 
@@ -1642,21 +1617,21 @@ GUI.CreateWindow = function(self, name, default)
 
 	Button.Highlight = Button:CreateTexture(nil, "OVERLAY")
 	Button.Highlight:SetAllPoints()
-	Button.Highlight:SetTexture(Texture)
+	Button.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Button.Highlight:SetVertexColor(R, G, B, 0.3)
 	Button.Highlight:Hide()
 
 	Button.Selected = Button:CreateTexture(nil, "OVERLAY")
 	Button.Selected:SetPoint("TOPLEFT", Button, 1, -1)
 	Button.Selected:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-	Button.Selected:SetTexture(Texture)
+	Button.Selected:SetTexture(K.GetTexture(C["General"].Texture))
 	Button.Selected:SetVertexColor(R * 0.7, G * 0.7, B * 0.7, 0.5)
 	Button.Selected:Hide()
 
 	Button.Label = Button:CreateFontString(nil, "OVERLAY")
 	Button.Label:SetPoint("CENTER", Button, 0, 0)
 	Button.Label:SetWidth(MenuButtonWidth - (Spacing * 2))
-	StyleFont(Button.Label, Font, 12)
+	Button.Label:SetFontObject(K.UIFont)
 	Button.Label:SetText(name)
 
 	tinsert(self.Buttons, Button)
@@ -1717,7 +1692,8 @@ local SetUpCredits = function(frame)
 
 		Line.Text = Line:CreateFontString(nil, "OVERLAY")
 		Line.Text:SetPoint("CENTER", Line, 0, 0)
-		StyleFont(Line.Text, Font, 16)
+		Line.Text:SetFontObject(K.UIFont)
+		Line.Text:SetFont(select(1, Line.Text:GetFont()), 16, select(3, Line.Text:GetFont()))
 		Line.Text:SetJustifyH("CENTER")
 		Line.Text:SetText(CreditLines[i])
 
@@ -1738,13 +1714,13 @@ local ShowCreditFrame = function()
 
 	Window:Hide()
 
-	KKUI_Credits:Show()
-	KKUI_Credits.Move:Play()
+	_G.KKUI_Credits:Show()
+	_G.KKUI_Credits.Move:Play()
 end
 
 local HideCreditFrame = function()
-	KKUI_Credits:Hide()
-	KKUI_Credits.Move:Stop()
+	_G.KKUI_Credits:Hide()
+	_G.KKUI_Credits.Move:Stop()
 
 	local Window = GUI:GetWindow(LastActiveWindow)
 
@@ -1753,7 +1729,7 @@ local HideCreditFrame = function()
 end
 
 local ToggleCreditsFrame = function()
-	if KKUI_Credits:IsShown() then
+	if _G.KKUI_Credits:IsShown() then
 		HideCreditFrame()
 	else
 		ShowCreditFrame()
@@ -1765,7 +1741,7 @@ local function CreateContactEditBox(parent, width, height)
 	eb:SetSize(width, height)
 	eb:SetAutoFocus(false)
 	eb:SetTextInsets(5, 5, 0, 0)
-	eb:FontTemplate(nil, nil, "")
+	eb:SetFontObject(K.UIFont)
 
 	eb.bg = CreateFrame("Frame", nil, eb)
 	eb.bg:SetAllPoints()
@@ -1810,7 +1786,7 @@ local AddContactFrame = function()
 	end
 
 	local frame = CreateFrame("Frame", nil, UIParent)
-	frame:SetSize(300, 340)
+	frame:SetSize(300, 390)
 	frame:SetPoint("CENTER")
 	frame:CreateBorder()
 
@@ -1835,6 +1811,7 @@ local AddContactFrame = function()
 	CreateContactBox(frame, "|CFF666aa7WowInterface|r", "https://www.wowinterface.com/forums/member.php?action=getinfo&userid=303422", 2)
 	CreateContactBox(frame, "|CFFf6f8faGitHub|r", "https://github.com/Kkthnx-Wow/KkthnxUI", 3)
 	CreateContactBox(frame, "|CFF7289DADiscord|r", "https://discord.gg/Rc9wcK9cAB", 4)
+	CreateContactBox(frame, "|CFF6441A4Twitch|r", "https://www.twitch.tv/kkthnxtv", 5)
 
 	local back = CreateFrame("Button", nil, frame)
 	back:SetSize(120, 20)
@@ -1879,7 +1856,7 @@ GUI.Enable = function(self)
 	self.FadeOut:SetScript("OnFinished", function(self)
 		self:GetParent():Hide()
 
-		if KKUI_Credits:IsShown() then
+		if _G.KKUI_Credits:IsShown() then
 			HideCreditFrame()
 		end
 	end)
@@ -1893,7 +1870,8 @@ GUI.Enable = function(self)
 
 	self.Header.Label = self.Header:CreateFontString(nil, "OVERLAY")
 	self.Header.Label:SetPoint("CENTER", self.Header, 0, 0)
-	StyleFont(self.Header.Label, Font, 16)
+	self.Header.Label:SetFontObject(K.UIFont)
+	self.Header.Label:SetFont(select(1, self.Header.Label:GetFont()), 16, select(3, self.Header.Label:GetFont()))
 	self.Header.Label:SetText(HeaderText)
 
 	-- Footer
@@ -1913,18 +1891,18 @@ GUI.Enable = function(self)
 	Apply:SetScript("OnMouseUp", ButtonOnMouseUp)
 	Apply:SetScript("OnEnter", ButtonOnEnter)
 	Apply:SetScript("OnLeave", ButtonOnLeave)
-	Apply:HookScript("OnMouseUp", ReloadUI)
+	Apply:HookScript("OnMouseUp", _G.ReloadUI)
 
 	Apply.Highlight = Apply:CreateTexture(nil, "OVERLAY")
 	Apply.Highlight:SetAllPoints()
-	Apply.Highlight:SetTexture(Texture)
+	Apply.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Apply.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Apply.Highlight:SetAlpha(0)
 
 	Apply.Middle = Apply:CreateFontString(nil, "OVERLAY")
 	Apply.Middle:SetPoint("CENTER", Apply, 0, 0)
 	Apply.Middle:SetWidth(FooterButtonWidth - (Spacing * 2))
-	StyleFont(Apply.Middle, Font, 12)
+	Apply.Middle:SetFontObject(K.UIFont)
 	Apply.Middle:SetJustifyH("CENTER")
 	Apply.Middle:SetText("|CFF00CC4CApply|r")
 
@@ -1938,19 +1916,19 @@ GUI.Enable = function(self)
 	Reset:SetScript("OnEnter", ButtonOnEnter)
 	Reset:SetScript("OnLeave", ButtonOnLeave)
 	Reset:HookScript("OnMouseUp", function()
-		StaticPopup_Show("KKUI_RESET_DATA")
+		_G.StaticPopup_Show("KKUI_RESET_DATA")
 	end)
 
 	Reset.Highlight = Reset:CreateTexture(nil, "OVERLAY")
 	Reset.Highlight:SetAllPoints()
-	Reset.Highlight:SetTexture(Texture)
+	Reset.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Reset.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Reset.Highlight:SetAlpha(0)
 
 	Reset.Middle = Reset:CreateFontString(nil, "OVERLAY")
 	Reset.Middle:SetPoint("CENTER", Reset, 0, 0)
 	Reset.Middle:SetWidth(FooterButtonWidth - (Spacing * 2))
-	StyleFont(Reset.Middle, Font, 12)
+	Reset.Middle:SetFontObject(K.UIFont)
 	Reset.Middle:SetJustifyH("CENTER")
 	Reset.Middle:SetText(K.SystemColor .. "Reset UI|r")
 
@@ -1974,14 +1952,14 @@ GUI.Enable = function(self)
 
 	Move.Highlight = Move:CreateTexture(nil, "OVERLAY")
 	Move.Highlight:SetAllPoints()
-	Move.Highlight:SetTexture(Texture)
+	Move.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Move.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Move.Highlight:SetAlpha(0)
 
 	Move.Middle = Move:CreateFontString(nil, "OVERLAY")
 	Move.Middle:SetPoint("CENTER", Move, 0, 0)
 	Move.Middle:SetWidth(FooterButtonWidth - (Spacing * 2))
-	StyleFont(Move.Middle, Font, 12)
+	Move.Middle:SetFontObject(K.UIFont)
 	Move.Middle:SetJustifyH("CENTER")
 	Move.Middle:SetText(K.SystemColor .. "Toggle UI|r")
 
@@ -1998,14 +1976,14 @@ GUI.Enable = function(self)
 
 	Credits.Highlight = Credits:CreateTexture(nil, "OVERLAY")
 	Credits.Highlight:SetAllPoints()
-	Credits.Highlight:SetTexture(Texture)
+	Credits.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Credits.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Credits.Highlight:SetAlpha(0)
 
 	Credits.Middle = Credits:CreateFontString(nil, "OVERLAY")
 	Credits.Middle:SetPoint("CENTER", Credits, 0, 0)
 	Credits.Middle:SetWidth(FooterButtonWidth - (Spacing * 2))
-	StyleFont(Credits.Middle, Font, 12)
+	Credits.Middle:SetFontObject(K.UIFont)
 	Credits.Middle:SetJustifyH("CENTER")
 	Credits.Middle:SetText(K.InfoColor .. "Credits|r")
 
@@ -2019,19 +1997,19 @@ GUI.Enable = function(self)
 	ResetCVars:SetScript("OnEnter", ButtonOnEnter)
 	ResetCVars:SetScript("OnLeave", ButtonOnLeave)
 	ResetCVars:HookScript("OnMouseUp", function()
-		StaticPopup_Show("KKUI_RESET_CVARS")
+		_G.StaticPopup_Show("KKUI_RESET_CVARS")
 	end)
 
 	ResetCVars.Highlight = ResetCVars:CreateTexture(nil, "OVERLAY")
 	ResetCVars.Highlight:SetAllPoints()
-	ResetCVars.Highlight:SetTexture(Texture)
+	ResetCVars.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	ResetCVars.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	ResetCVars.Highlight:SetAlpha(0)
 
 	ResetCVars.Middle = ResetCVars:CreateFontString(nil, "OVERLAY")
 	ResetCVars.Middle:SetPoint("CENTER", ResetCVars, 0, 0)
 	ResetCVars.Middle:SetWidth(FooterButtonWidth - (Spacing * 2))
-	StyleFont(ResetCVars.Middle, Font, 12)
+	ResetCVars.Middle:SetFontObject(K.UIFont)
 	ResetCVars.Middle:SetJustifyH("CENTER")
 	ResetCVars.Middle:SetText(K.SystemColor .. "Reset CVars|r")
 
@@ -2045,19 +2023,19 @@ GUI.Enable = function(self)
 	ResetChat:SetScript("OnEnter", ButtonOnEnter)
 	ResetChat:SetScript("OnLeave", ButtonOnLeave)
 	ResetChat:HookScript("OnMouseUp", function()
-		StaticPopup_Show("KKUI_RESET_CHAT")
+		_G.StaticPopup_Show("KKUI_RESET_CHAT")
 	end)
 
 	ResetChat.Highlight = ResetChat:CreateTexture(nil, "OVERLAY")
 	ResetChat.Highlight:SetAllPoints()
-	ResetChat.Highlight:SetTexture(Texture)
+	ResetChat.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	ResetChat.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	ResetChat.Highlight:SetAlpha(0)
 
 	ResetChat.Middle = ResetChat:CreateFontString(nil, "OVERLAY")
 	ResetChat.Middle:SetPoint("CENTER", ResetChat, 0, 0)
 	ResetChat.Middle:SetWidth(FooterButtonWidth - Spacing)
-	StyleFont(ResetChat.Middle, Font, 12)
+	ResetChat.Middle:SetFontObject(K.UIFont)
 	ResetChat.Middle:SetJustifyH("CENTER")
 	ResetChat.Middle:SetText(K.SystemColor .. "Reset Chat|r")
 
@@ -2079,14 +2057,14 @@ GUI.Enable = function(self)
 
 	ContactMe.Highlight = ContactMe:CreateTexture(nil, "OVERLAY")
 	ContactMe.Highlight:SetAllPoints()
-	ContactMe.Highlight:SetTexture(Texture)
+	ContactMe.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	ContactMe.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	ContactMe.Highlight:SetAlpha(0)
 
 	ContactMe.Middle = ContactMe:CreateFontString(nil, "OVERLAY")
 	ContactMe.Middle:SetPoint("CENTER", ContactMe, 0, 0)
 	ContactMe.Middle:SetWidth(FooterButtonWidth - Spacing)
-	StyleFont(ContactMe.Middle, Font, 12)
+	ContactMe.Middle:SetFontObject(K.UIFont)
 	ContactMe.Middle:SetJustifyH("CENTER")
 	ContactMe.Middle:SetText(K.SystemColor .. "Contact Me!|r")
 
@@ -2099,7 +2077,7 @@ GUI.Enable = function(self)
 	Profiles:SetScript("OnMouseUp", ButtonOnMouseUp)
 	Profiles:SetScript("OnEnter", ButtonOnEnter)
 	Profiles:SetScript("OnLeave", ButtonOnLeave)
-	Profiles:SetScript("OnMouseUp", function()
+	Profiles:HookScript("OnMouseUp", function()
 		if GUI:IsShown() then
 			GUI:Toggle()
 		end
@@ -2108,14 +2086,14 @@ GUI.Enable = function(self)
 
 	Profiles.Highlight = Profiles:CreateTexture(nil, "OVERLAY")
 	Profiles.Highlight:SetAllPoints()
-	Profiles.Highlight:SetTexture(Texture)
+	Profiles.Highlight:SetTexture(K.GetTexture(C["General"].Texture))
 	Profiles.Highlight:SetVertexColor(123 / 255, 132 / 255, 137 / 255)
 	Profiles.Highlight:SetAlpha(0)
 
 	Profiles.Middle = Profiles:CreateFontString(nil, "OVERLAY")
 	Profiles.Middle:SetPoint("CENTER", Profiles, 0, 0)
 	Profiles.Middle:SetWidth(FooterButtonWidth - (Spacing * 2))
-	StyleFont(Profiles.Middle, Font, 12)
+	Profiles.Middle:SetFontObject(K.UIFont)
 	Profiles.Middle:SetJustifyH("CENTER")
 	Profiles.Middle:SetText(K.InfoColor .. "Profiles|r")
 
@@ -2144,7 +2122,6 @@ GUI.Enable = function(self)
 
 	-- Set the frame height
 	local Height = (HeaderHeight * 2) + (Spacing + 2) + (self.WindowCount * MenuButtonHeight) + (self.WindowCount * Spacing)
-
 	self:SetHeight(Height)
 
 	if self.DefaultWindow then
@@ -2234,14 +2211,13 @@ end
 GUI.SetProfile = function(self)
 	local Dropdown = self:GetParent()
 	local Profile = Dropdown.Current:GetText()
-	local MyProfileName = K.Realm .. "-" .. K.Name
 
 	if Profile and Profile ~= K.Realm .. "-" .. K.Name then
 		MySelectedProfile = Profile
 
 		GUI:Toggle()
 
-		StaticPopup_Show("KKUI_SWITCH_PROFILE")
+		_G.StaticPopup_Show("KKUI_SWITCH_PROFILE")
 	end
 end
 

@@ -1,30 +1,49 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:NewModule("Chat")
 
 local _G = _G
-local string_sub = _G.string.sub
-local string_len = _G.string.len
-local string_gsub = _G.string.gsub
 local string_find = _G.string.find
 local string_format = _G.string.format
+local string_gsub = _G.string.gsub
+local string_len = _G.string.len
+local string_sub = _G.string.sub
 
-local GetInstanceInfo = _G.GetInstanceInfo
-local InCombatLockdown = _G.InCombatLockdown
-local UnitName = _G.UnitName
+local CHAT_FRAMES = _G.CHAT_FRAMES
+local CHAT_OPTIONS = _G.CHAT_OPTIONS
+local C_GuildInfo_IsGuildOfficer = _G.C_GuildInfo.IsGuildOfficer
+local ChatEdit_ChooseBoxForSend = _G.ChatEdit_ChooseBoxForSend
+local ChatEdit_UpdateHeader = _G.ChatEdit_UpdateHeader
+local ChatFrame1 = _G.ChatFrame1
 local ChatTypeInfo = _G.ChatTypeInfo
 local ConsoleExec = _G.ConsoleExec
+local FCF_SavePositionAndDimensions = _G.FCF_SavePositionAndDimensions
+local GeneralDockManager = _G.GeneralDockManager
 local GetCVar = _G.GetCVar
 local GetChannelName = _G.GetChannelName
+local GetInstanceInfo = _G.GetInstanceInfo
+local InCombatLockdown = _G.InCombatLockdown
+local InterfaceOptionsSocialPanelChatStyle = _G.InterfaceOptionsSocialPanelChatStyle
+local IsAddOnLoaded = _G.IsAddOnLoaded
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInGroup = _G.IsInGroup
 local IsInGuild = _G.IsInGuild
 local IsInRaid = _G.IsInRaid
+local IsPartyLFG = _G.IsPartyLFG
 local IsShiftKeyDown = _G.IsShiftKeyDown
+local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
+local QuickJoinToastButton = _G.QuickJoinToastButton
 local SetCVar = _G.SetCVar
+local UnitName = _G.UnitName
 local hooksecurefunc = _G.hooksecurefunc
 
 local messageSoundID = SOUNDKIT.TELL_MESSAGE
-local maxLines = 1024
+local maxLines = 2048
+Module.MuteCache = {}
+
+local whisperEvents = {
+	["CHAT_MSG_WHISPER"] = true,
+	["CHAT_MSG_BN_WHISPER"] = true,
+}
 
 local function GetGroupDistribution()
 	local _, instanceType = GetInstanceInfo()
@@ -47,11 +66,6 @@ do
 	local charCount
 	local function CountLinkCharacters(self)
 		charCount = charCount + (string_len(self) + 4) -- 4 is ending "|h|r"
-	end
-
-	local a1, a2 = "", "[%s%-]"
-	local function ShortenRealm(realm)
-		return string_gsub(realm, a2, a1)
 	end
 
 	local repeatedText
@@ -84,29 +98,29 @@ do
 				if Name then
 					Name = string_gsub(Name, "%s", "")
 					if Realm and Realm ~= "" then
-						Name = string_format("%s-%s", Name, ShortenRealm(Realm))
+						Name = string_format("%s-%s", Name, string_gsub(Realm, "[%s%-]", ""))
 					end
 				end
 
 				if Name then
 					_G.ChatFrame_SendTell(Name, self.chatFrame)
 				else
-					_G.UIErrorsFrame:AddMessage(K.InfoColor..L["Invalid Target"])
+					_G.UIErrorsFrame:AddMessage(K.InfoColor .. L["Invalid Target"])
 				end
 			elseif text == "/gr " then
-				self:SetText(GetGroupDistribution()..string_sub(text, 5))
+				self:SetText(GetGroupDistribution() .. string_sub(text, 5))
 				_G.ChatEdit_ParseText(self, 0)
 			end
 		end
 
 		-- recalculate the character count correctly with hyperlinks in it, using gsub so it matches multiple without gmatch
 		charCount = 0
-		string_gsub(text, "(|cff%x%x%x%x%x%x|H.-|h).-|h|r", CountLinkCharacters)
+		string_gsub(text, "(|c%x-|H.-|h).-|h|r", CountLinkCharacters)
 		if charCount ~= 0 then
 			len = len - charCount
 		end
 
-		self.__characterCount:SetText(len > 0 and (255 - len) or "")
+		self.characterCount:SetText(len > 0 and (255 - len) or "")
 
 		if repeatedText then
 			repeatedText = nil
@@ -151,9 +165,9 @@ function Module:UpdateChatSize()
 end
 
 local function CreateBackground(self)
-	local frame = CreateFrame("Frame", nil, self)
+	local frame = CreateFrame("Frame", nil, self, "BackdropTemplate")
 	frame:SetPoint("TOPLEFT", self.Background, "TOPLEFT", -1, 1)
-	frame:SetPoint("BOTTOMRIGHT", self.Background, "BOTTOMRIGHT", 22, -1)
+	frame:SetPoint("BOTTOMRIGHT", self.Background, "BOTTOMRIGHT", 1, -1)
 	frame:SetFrameLevel(self:GetFrameLevel())
 	frame:CreateBorder()
 	frame:SetShown(C["Chat"].Background)
@@ -161,31 +175,17 @@ local function CreateBackground(self)
 	return frame
 end
 
--- https://git.tukui.org/Tukz/Tukui/-/blob/master/Tukui/Modules/ChatFrames/ChatFrames.lua#L55
-function Module:SetChatFont()
-	local Font = K.GetFont(C["UIFonts"].ChatFonts)
-	local Path, _, Flag = _G[Font]:GetFont()
-	local CurrentFont, CurrentSize, CurrentFlag = self:GetFont()
-
-	if (CurrentFont == Path and CurrentFlag == Flag) then
-		return
-	end
-
-	self:SetFont(Path, CurrentSize, Flag)
-end
-
 function Module:SkinChat()
 	if not self or self.styled then
 		return
 	end
 
-	local id = self:GetID()
 	local name = self:GetName()
-	local getTabFont = K.GetFont(C["UIFonts"].ChatFonts)
-	local tabFont, tabFontSize, tabFontFlags = _G[getTabFont]:GetFont()
+	local font, fontSize, fontStyle = _G[K.UIFont]:GetFont()
 
 	self:SetMaxResize(K.ScreenWidth, K.ScreenHeight)
 	self:SetMinResize(100, 50)
+	self:SetFont(font, fontSize, fontStyle)
 	self:SetClampRectInsets(0, 0, 0, 0)
 	self:SetClampedToScreen(false)
 	self:SetFading(C["Chat"].Fading)
@@ -197,7 +197,7 @@ function Module:SkinChat()
 
 	self.__background = CreateBackground(self)
 
-	local eb = _G[name.."EditBox"]
+	local eb = _G[name .. "EditBox"]
 	eb:SetAltArrowKeyMode(false)
 	eb:ClearAllPoints()
 	eb:SetPoint("BOTTOMLEFT", self, "TOPLEFT", -3, 25)
@@ -207,48 +207,34 @@ function Module:SkinChat()
 	eb:Hide()
 	eb:HookScript("OnTextChanged", Module.EditBoxOnTextChanged)
 
-	local lang = _G[name.."EditBoxLanguage"]
+	local lang = _G[name .. "EditBoxLanguage"]
 	lang:GetRegions():SetAlpha(0)
 	lang:SetPoint("TOPLEFT", eb, "TOPRIGHT", 5, 0)
 	lang:SetPoint("BOTTOMRIGHT", eb, "BOTTOMRIGHT", 29, 0)
 	lang:CreateBorder()
 
-	local tab = _G[name.."Tab"]
+	local tab = _G[name .. "Tab"]
 	tab:SetAlpha(1)
-	tab.Text:SetFont(tabFont, tabFontSize + 1, tabFontFlags)
-	tab.Text.SetFont = K.Noop
+	tab.Text:SetFont(font, fontSize + 1, fontStyle)
 	tab:StripTextures(7)
 	hooksecurefunc(tab, "SetAlpha", Module.TabSetAlpha)
 
-	-- Hide editbox every time we click on a tab
-	tab:HookScript("OnClick", function()
-		eb:Hide()
-	end)
-
 	-- Character count
 	local charCount = eb:CreateFontString(nil, "ARTWORK")
-	charCount:FontTemplate()
+	charCount:SetFontObject(K.UIFont)
 	charCount:SetTextColor(190, 190, 190, 0.4)
 	charCount:SetPoint("TOPRIGHT", eb, "TOPRIGHT", 4, 0)
 	charCount:SetPoint("BOTTOMRIGHT", eb, "BOTTOMRIGHT", 4, 0)
 	charCount:SetJustifyH("CENTER")
 	charCount:SetWidth(40)
-	eb.__characterCount = charCount
+	eb.characterCount = charCount
 
 	self.buttonFrame:Kill()
 	--self.ScrollBar:Kill()
-	self.ScrollToBottomButton:Kill()
+	--self.ScrollToBottomButton:Kill()
 	Module:ToggleChatFrameTextures(self)
 
 	self.oldAlpha = self.oldAlpha or 0 -- fix blizz error
-
-	-- Temp Chats
-	if (id > 10) then
-		Module.SetChatFont(self)
-	end
-
-	-- Security for font, in case if revert back to WoW default we restore instantly the kkthnxui font default.
-	hooksecurefunc(self, "SetFont", Module.SetChatFont)
 
 	self.styled = true
 end
@@ -275,25 +261,64 @@ end
 
 -- Swith channels by Tab
 local cycles = {
-	{chatType = "SAY", use = function()
-			return 1
-	end},
+	{
+		chatType = "SAY",
+		IsActive = function()
+			return true
+		end,
+	},
 
-	{chatType = "PARTY", use = function()
+	{
+		chatType = "PARTY",
+		IsActive = function()
 			return IsInGroup()
-	end},
+		end,
+	},
 
-	{chatType = "RAID", use = function()
+	{
+		chatType = "RAID",
+		IsActive = function()
 			return IsInRaid()
-	end},
+		end,
+	},
 
-	{chatType = "GUILD", use = function()
+	{
+		chatType = "INSTANCE_CHAT",
+		IsActive = function()
+			return IsPartyLFG()
+		end,
+	},
+
+	{
+		chatType = "GUILD",
+		IsActive = function()
 			return IsInGuild()
-	end},
+		end,
+	},
 
-	{chatType = "SAY", use = function()
-			return 1
-	end},
+	{
+		chatType = "OFFICER",
+		IsActive = function()
+			return C_GuildInfo_IsGuildOfficer()
+		end,
+	},
+
+	{
+		chatType = "CHANNEL",
+		IsActive = function(_, editbox)
+			if Module.InWorldChannel and Module.WorldChannelID then
+				editbox:SetAttribute("channelTarget", Module.WorldChannelID)
+				return true
+			end
+		end,
+	},
+
+	{
+		chatType = "SAY",
+		IsActive = function()
+			return true
+		end,
+	},
 }
 
 -- Update editbox border color
@@ -319,10 +344,10 @@ function Module:UpdateEditBoxColor()
 	editBox:SetTextInsets(insetLeft, insetRight + 18, insetTop, insetBottom)
 
 	if editBoxBorder then
-		if (chatType == "CHANNEL") then
+		if chatType == "CHANNEL" then
 			local id = GetChannelName(editBox:GetAttribute("channelTarget"))
 
-			if (id == 0) then
+			if id == 0 then
 				local r, g, b
 				if C["General"].ColorTextures then
 					r, g, b = unpack(C["General"].TexturesColor)
@@ -331,7 +356,7 @@ function Module:UpdateEditBoxColor()
 				end
 				editBoxBorder:SetVertexColor(r, g, b)
 			else
-				local r, g, b = ChatTypeInfo[chatType..id].r, ChatTypeInfo[chatType..id].g, ChatTypeInfo[chatType..id].b
+				local r, g, b = ChatTypeInfo[chatType .. id].r, ChatTypeInfo[chatType .. id].g, ChatTypeInfo[chatType .. id].b
 				editBoxBorder:SetVertexColor(r, g, b)
 			end
 		else
@@ -342,6 +367,11 @@ function Module:UpdateEditBoxColor()
 end
 hooksecurefunc("ChatEdit_UpdateHeader", Module.UpdateEditBoxColor)
 
+function Module:SwitchToChannel(chatType)
+	self:SetAttribute("chatType", chatType)
+	ChatEdit_UpdateHeader(self)
+end
+
 function Module:UpdateTabChannelSwitch()
 	if not C["Chat"].Enable then
 		return
@@ -351,22 +381,30 @@ function Module:UpdateTabChannelSwitch()
 		return
 	end
 
-	if string_sub(tostring(self:GetText()), 1, 1) == "/" then
+	if string_sub(self:GetText(), 1, 1) == "/" then
 		return
 	end
 
-	local currChatType = self:GetAttribute("chatType")
-	for i, curr in ipairs(cycles) do
-		if curr.chatType == currChatType then
-			local h, r, step = i + 1, #cycles, 1
-			if IsShiftKeyDown() then
-				h, r, step = i - 1, 1, -1
+	local isShiftKeyDown = IsShiftKeyDown()
+	local currentType = self:GetAttribute("chatType")
+	if isShiftKeyDown and (currentType == "WHISPER" or currentType == "BN_WHISPER") then
+		Module.SwitchToChannel(self, "SAY")
+		return
+	end
+
+	local numCycles = #cycles
+	for i = 1, numCycles do
+		local cycle = cycles[i]
+		if currentType == cycle.chatType then
+			local from, to, step = i + 1, numCycles, 1
+			if isShiftKeyDown then
+				from, to, step = i - 1, 1, -1
 			end
 
-			for j = h, r, step do
-				if cycles[j]:use(self, currChatType) then
-					self:SetAttribute("chatType", cycles[j].chatType)
-					ChatEdit_UpdateHeader(self)
+			for j = from, to, step do
+				local nextCycle = cycles[j]
+				if nextCycle:IsActive(self) then
+					Module.SwitchToChannel(self, nextCycle.chatType)
 					return
 				end
 			end
@@ -433,8 +471,9 @@ function Module:UpdateTabColors(selected)
 end
 
 function Module:UpdateTabEventColors(event)
-	local tab = _G[self:GetName().."Tab"]
+	local tab = _G[self:GetName() .. "Tab"]
 	local selected = GeneralDockManager.selected:GetID() == tab:GetID()
+
 	if event == "CHAT_MSG_WHISPER" then
 		tab.whisperIndex = 1
 		Module.UpdateTabColors(tab, selected)
@@ -444,21 +483,19 @@ function Module:UpdateTabEventColors(event)
 	end
 end
 
-local whisperEvents = {
-	["CHAT_MSG_WHISPER"] = true,
-	["CHAT_MSG_BN_WHISPER"] = true,
-}
-function Module:PlayWhisperSound(event)
+function Module:PlayWhisperSound(event, _, author)
 	if whisperEvents[event] then
-		if Module.MuteThisTime then
-			Module.MuteThisTime = nil
+		local name = Ambiguate(author, "none")
+		local currentTime = GetTime()
+
+		if Module.MuteCache[name] == currentTime then
 			return
 		end
 
-		local currentTime = GetTime()
 		if not self.soundTimer or currentTime > self.soundTimer then
 			PlaySound(messageSoundID, "master")
 		end
+
 		self.soundTimer = currentTime + 5
 	end
 end
@@ -468,13 +505,19 @@ function Module:OnEnable()
 		return
 	end
 
+	-- Hide Quick Join button
+	if QuickJoinToastButton then
+		QuickJoinToastButton:SetAlpha(0)
+		QuickJoinToastButton:EnableMouse(false)
+		QuickJoinToastButton:UnregisterAllEvents()
+	end
+
 	if IsAddOnLoaded("Prat-3.0") or IsAddOnLoaded("Chatter") or IsAddOnLoaded("BasicChatMods") or IsAddOnLoaded("Glass") then
 		return
 	end
 
 	for i = 1, NUM_CHAT_WINDOWS do
-		Module.SkinChat(_G["ChatFrame"..i])
-		Module.SetChatFont(_G["ChatFrame"..i])
+		Module.SkinChat(_G["ChatFrame" .. i])
 	end
 
 	hooksecurefunc("FCF_OpenTemporaryWindow", function()
@@ -500,9 +543,9 @@ function Module:OnEnable()
 		CHAT_OPTIONS.HIDE_FRAME_ALERTS = true
 	end
 	SetCVar("chatStyle", "classic")
-	SetCVar("chatClassColorOverride", 0)
+	SetCVar("chatMouseScroll", 1) -- Enable mousescroll
 	K.HideInterfaceOption(InterfaceOptionsSocialPanelChatStyle)
-	CombatLogQuickButtonFrame_CustomTexture:SetTexture(nil)
+	_G.CombatLogQuickButtonFrame_CustomTexture:SetTexture(nil)
 
 	-- Add Elements
 	Module:ChatWhisperSticky()
@@ -510,6 +553,7 @@ function Module:OnEnable()
 	Module:CreateChatHistory()
 	Module:CreateChatItemLevels()
 	Module:CreateChatRename()
+	Module:CreateChatRoleIcon()
 	Module:CreateCopyChat()
 	Module:CreateCopyURL()
 	Module:CreateEmojis()

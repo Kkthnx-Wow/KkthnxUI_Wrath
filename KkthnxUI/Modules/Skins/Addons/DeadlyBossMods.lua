@@ -100,14 +100,14 @@ local function ApplyDBMStyle(self)
 	name:ClearAllPoints()
 	name:SetPoint("LEFT", frame, "LEFT", 2, 8)
 	name:SetPoint("RIGHT", frame, "LEFT", tbar:GetWidth() * 0.85, 8)
-	name:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "OUTLINE")
+	name:SetFontObject(K.UIFontOutline)
 	name:SetJustifyH("LEFT")
 	name:SetWordWrap(false)
 	name:SetShadowColor(0, 0, 0, 0)
 
 	timer:ClearAllPoints()
 	timer:SetPoint("RIGHT", frame, "RIGHT", -2, 8)
-	timer:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "OUTLINE")
+	timer:SetFontObject(K.UIFontOutline)
 	timer:SetJustifyH("RIGHT")
 	timer:SetShadowColor(0, 0, 0, 0)
 end
@@ -120,8 +120,7 @@ function Module:ReskinDeadlyBossMods()
 			if string_match(textString, ":(%d+):(%d+)") then
 				local size1, size2 = string_match(textString, ":(%d+):(%d+)")
 				size1, size2 = size1 + 3, size2 + 3
-				textString =
-					string_gsub(textString, ":(%d+):(%d+)", ":" .. size1 .. ":" .. size2 .. ":0:0:64:64:5:59:5:59")
+				textString = string_gsub(textString, ":(%d+):(%d+)", ":" .. size1 .. ":" .. size2 .. ":0:0:64:64:5:59:5:59")
 			elseif string_match(textString, ":(%d+)|t") then
 				local size = string_match(textString, ":(%d+)|t")
 				size = size + 3

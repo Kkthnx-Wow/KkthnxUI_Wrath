@@ -1,12 +1,14 @@
-local K, C, L = unpack(select(2, ...))
+local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Chat")
 
 local _G = _G
 local string_find = _G.string.find
 local string_gsub = _G.string.gsub
+-- local string_match = _G.string.match
 
 local BetterDate = _G.BetterDate
 local INTERFACE_ACTION_BLOCKED = _G.INTERFACE_ACTION_BLOCKED
+local CHAT_TIMESTAMP_FORMAT = _G.CHAT_TIMESTAMP_FORMAT
 local time = _G.time
 
 local timestampFormat = {
@@ -16,27 +18,26 @@ local timestampFormat = {
 	[5] = "[%H:%M:%S] ",
 }
 
-function Module:UpdateChannelNames(text, ...)
+function Module:SetupChannelNames(text, ...)
 	if string_find(text, INTERFACE_ACTION_BLOCKED) and not K.isDeveloper then
 		return
 	end
 
 	local r, g, b = ...
-	if C["Chat"].WhisperColor and string_find(text, L["To"].." |H[BN]*player.+%]") then
+	if C["Chat"].WhisperColor and string_find(text, L["To"] .. " |H[BN]*player.+%]") then
 		r, g, b = r * 0.7, g * 0.7, b * 0.7
 	end
 
-	-- Timestamps
+	-- Timestamp
 	if C["Chat"].TimestampFormat.Value > 1 then
 		local currentTime = time()
 		local oldTimeStamp = CHAT_TIMESTAMP_FORMAT and string_gsub(BetterDate(CHAT_TIMESTAMP_FORMAT, currentTime), "%[([^]]*)%]", "%%[%1%%]")
-
 		if oldTimeStamp then
 			text = string_gsub(text, oldTimeStamp, "")
 		end
 
-		local timeStamp = BetterDate(K.GreyColor..timestampFormat[C["Chat"].TimestampFormat.Value].."|r", currentTime)
-		text = timeStamp..text
+		local timeStamp = BetterDate(K.GreyColor .. timestampFormat[C["Chat"].TimestampFormat.Value] .. "|r", currentTime)
+		text = timeStamp .. text
 	end
 
 	if C["Chat"].OldChatNames then
@@ -47,52 +48,52 @@ function Module:UpdateChannelNames(text, ...)
 end
 
 function Module:CreateChatRename()
-	for i = 1, NUM_CHAT_WINDOWS do
+	for i = 1, _G.NUM_CHAT_WINDOWS do
 		if i ~= 2 then
-			local chatFrame = _G["ChatFrame"..i]
+			local chatFrame = _G["ChatFrame" .. i]
 			chatFrame.oldAddMsg = chatFrame.AddMessage
-			chatFrame.AddMessage = Module.UpdateChannelNames
+			chatFrame.AddMessage = Module.SetupChannelNames
 		end
 	end
 
-	-- Online/Offline Info
-	ERR_FRIEND_ONLINE_SS = string_gsub(ERR_FRIEND_ONLINE_SS, "%]%|h", "]|h|cff00c957")
-	ERR_FRIEND_OFFLINE_S = string_gsub(ERR_FRIEND_OFFLINE_S, "%%s", "%%s|cffff7f50")
+	-- Online/Offline
+	_G.ERR_FRIEND_ONLINE_SS = string_gsub(_G.ERR_FRIEND_ONLINE_SS, "%]%|h", "]|h|cff00c957")
+	_G.ERR_FRIEND_OFFLINE_S = string_gsub(_G.ERR_FRIEND_OFFLINE_S, "%%s", "%%s|cffff7f50")
 
 	-- Whisper
-	CHAT_WHISPER_INFORM_GET = L["To"].." %s "
-	CHAT_WHISPER_GET = L["From"].." %s "
-	CHAT_BN_WHISPER_INFORM_GET = L["To"].." %s "
-	CHAT_BN_WHISPER_GET = L["From"].." %s "
+	_G.CHAT_WHISPER_INFORM_GET = L["To"] .. " %s "
+	_G.CHAT_WHISPER_GET = L["From"] .. " %s "
+	_G.CHAT_BN_WHISPER_INFORM_GET = L["To"] .. " %s "
+	_G.CHAT_BN_WHISPER_GET = L["From"] .. " %s "
 
 	-- Say/Yell
-	CHAT_SAY_GET = "%s "
-	CHAT_YELL_GET = "%s "
+	_G.CHAT_SAY_GET = "%s "
+	_G.CHAT_YELL_GET = "%s "
 
 	if C["Chat"].OldChatNames then
 		return
 	end
 
 	-- Guild
-	CHAT_GUILD_GET = "|Hchannel:GUILD|h[G]|h %s "
-	CHAT_OFFICER_GET = "|Hchannel:OFFICER|h[O]|h %s "
+	_G.CHAT_GUILD_GET = "|Hchannel:GUILD|h[G]|h %s "
+	_G.CHAT_OFFICER_GET = "|Hchannel:OFFICER|h[O]|h %s "
 
 	-- Raid
-	CHAT_RAID_GET = "|Hchannel:RAID|h[R]|h %s "
-	CHAT_RAID_WARNING_GET = "[RW] %s "
-	CHAT_RAID_LEADER_GET = "|Hchannel:RAID|h[RL]|h %s "
+	_G.CHAT_RAID_GET = "|Hchannel:RAID|h[R]|h %s "
+	_G.CHAT_RAID_WARNING_GET = "[RW] %s "
+	_G.CHAT_RAID_LEADER_GET = "|Hchannel:RAID|h[RL]|h %s "
 
 	-- Party
-	CHAT_PARTY_GET = "|Hchannel:PARTY|h[P]|h %s "
-	CHAT_PARTY_LEADER_GET = "|Hchannel:PARTY|h[PL]|h %s "
-	CHAT_PARTY_GUIDE_GET = "|Hchannel:PARTY|h[PG]|h %s "
+	_G.CHAT_PARTY_GET = "|Hchannel:PARTY|h[P]|h %s "
+	_G.CHAT_PARTY_LEADER_GET = "|Hchannel:PARTY|h[PL]|h %s "
+	_G.CHAT_PARTY_GUIDE_GET = "|Hchannel:PARTY|h[PG]|h %s "
 
 	-- Instance
-	CHAT_INSTANCE_CHAT_GET = "|Hchannel:INSTANCE|h[I]|h %s "
-	CHAT_INSTANCE_CHAT_LEADER_GET = "|Hchannel:INSTANCE|h[IL]|h %s "
+	_G.CHAT_INSTANCE_CHAT_GET = "|Hchannel:INSTANCE|h[I]|h %s "
+	_G.CHAT_INSTANCE_CHAT_LEADER_GET = "|Hchannel:INSTANCE|h[IL]|h %s "
 
 	-- Flags
-	CHAT_FLAG_AFK = "[AFK] "
-	CHAT_FLAG_DND = "[DND] "
-	CHAT_FLAG_GM = "[GM] "
+	_G.CHAT_FLAG_AFK = "[AFK] "
+	_G.CHAT_FLAG_DND = "[DND] "
+	_G.CHAT_FLAG_GM = "[GM] "
 end

@@ -1,4 +1,4 @@
-local K = unpack(select(2, ...))
+local K = unpack(KkthnxUI)
 local Module = K:NewModule("Announcements")
 
 function Module:OnEnable()
@@ -7,6 +7,7 @@ function Module:OnEnable()
 	Module:CreateItemAnnounce()
 	Module:CreateKillingBlow()
 	Module:CreateQuestNotifier()
+	Module:CreateRareAnnounce()
 	Module:CreateResetInstance()
 	Module:CreateSaySappedAnnounce()
 end
