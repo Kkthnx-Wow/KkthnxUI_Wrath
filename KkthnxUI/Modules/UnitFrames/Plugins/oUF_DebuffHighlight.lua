@@ -98,8 +98,8 @@ local function Enable(object)
 
 	-- Make sure aura scanning is active for this object
 	object:RegisterEvent("UNIT_AURA", Update)
-	object:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
-	CheckSpec()
+	--object:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
+	--CheckSpec()
 
 	if not object.DebuffHighlightUseTexture then
 		local r, g, b, a = object.DebuffHighlight:GetVertexColor()
@@ -112,7 +112,7 @@ end
 local function Disable(object)
 	if object.DebuffHighlight then
 		object:UnregisterEvent("UNIT_AURA", Update)
-		object:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec)
+		--object:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec)
 	end
 end
 

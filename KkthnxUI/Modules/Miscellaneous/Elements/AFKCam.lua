@@ -122,9 +122,6 @@ local stats = {
 	5692, -- Rated battlegrounds played
 	5693, -- Rated battleground played the most
 	5695, -- Rated battleground won the most
-	5694, -- Rated battlegrounds won
-	7399, -- Challenge mode dungeons completed
-	8278, -- Pet Battles won at max level
 }
 
 local function IsIn(val, ...)
@@ -204,8 +201,11 @@ end
 -- Create random stats
 local function createStats()
 	local id = stats[math_random(#stats)]
+	-- print("id", id)
 	local _, name = GetAchievementInfo(id)
+	-- print("name", name)
 	local result = GetStatistic(id)
+	-- print("result", result)
 	if result == "--" then
 		result = NONE
 	end

@@ -376,7 +376,7 @@ local function YesTutor()
 			tutor:Hide()
 			progressBar:Hide()
 			currentPage = 0
-			PlaySound(163017)
+			PlaySound(14773)
 			StaticPopup_Show("KKUI_CHANGES_RELOAD")
 		end
 
@@ -411,7 +411,7 @@ local function HelloWorld()
 
 	local welcomeBoss = welcome:CreateTexture(nil, "OVERLAY")
 	welcomeBoss:SetSize(128, 64)
-	welcomeBoss:SetTexture("Interface\\ENCOUNTERJOURNAL\\UI-EJ-BOSS-Jailer")
+	welcomeBoss:SetTexture("Interface\\ENCOUNTERJOURNAL\\UI-EJ-BOSS-The Lich King")
 	welcomeBoss:SetPoint("TOPRIGHT", welcome, "TOPRIGHT", 10, 64)
 
 	local ll = CreateFrame("Frame", nil, welcome)
