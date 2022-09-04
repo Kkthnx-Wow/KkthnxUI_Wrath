@@ -200,4 +200,5 @@ function Module:OnEnable()
 	Module:HideBlizz()
 	Module:CreateBarSkin()
 	Module:UpdateAllScale()
+	Module:CreateTotemBar()
 end
