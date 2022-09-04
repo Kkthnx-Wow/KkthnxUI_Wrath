@@ -167,7 +167,7 @@ end
 local function CreateBackground(self)
 	local frame = CreateFrame("Frame", nil, self, "BackdropTemplate")
 	frame:SetPoint("TOPLEFT", self.Background, "TOPLEFT", -1, 1)
-	frame:SetPoint("BOTTOMRIGHT", self.Background, "BOTTOMRIGHT", 1, -1)
+	frame:SetPoint("BOTTOMRIGHT", self.Background, "BOTTOMRIGHT", 22, -1) -- Why is it so different on classic here?
 	frame:SetFrameLevel(self:GetFrameLevel())
 	frame:CreateBorder()
 	frame:SetShown(C["Chat"].Background)
@@ -231,7 +231,7 @@ function Module:SkinChat()
 
 	self.buttonFrame:Kill()
 	--self.ScrollBar:Kill()
-	--self.ScrollToBottomButton:Kill()
+	self.ScrollToBottomButton:Kill()
 	Module:ToggleChatFrameTextures(self)
 
 	self.oldAlpha = self.oldAlpha or 0 -- fix blizz error
@@ -279,13 +279,6 @@ local cycles = {
 		chatType = "RAID",
 		IsActive = function()
 			return IsInRaid()
-		end,
-	},
-
-	{
-		chatType = "INSTANCE_CHAT",
-		IsActive = function()
-			return IsPartyLFG()
 		end,
 	},
 
@@ -344,11 +337,11 @@ function Module:UpdateEditBoxColor()
 	editBox:SetTextInsets(insetLeft, insetRight + 18, insetTop, insetBottom)
 
 	if editBoxBorder then
+		local r, g, b
 		if chatType == "CHANNEL" then
 			local id = GetChannelName(editBox:GetAttribute("channelTarget"))
 
 			if id == 0 then
-				local r, g, b
 				if C["General"].ColorTextures then
 					r, g, b = unpack(C["General"].TexturesColor)
 				else
@@ -356,11 +349,11 @@ function Module:UpdateEditBoxColor()
 				end
 				editBoxBorder:SetVertexColor(r, g, b)
 			else
-				local r, g, b = ChatTypeInfo[chatType .. id].r, ChatTypeInfo[chatType .. id].g, ChatTypeInfo[chatType .. id].b
+				r, g, b = ChatTypeInfo[chatType .. id].r, ChatTypeInfo[chatType .. id].g, ChatTypeInfo[chatType .. id].b
 				editBoxBorder:SetVertexColor(r, g, b)
 			end
 		else
-			local r, g, b = ChatTypeInfo[chatType].r, ChatTypeInfo[chatType].g, ChatTypeInfo[chatType].b
+			r, g, b = ChatTypeInfo[chatType].r, ChatTypeInfo[chatType].g, ChatTypeInfo[chatType].b
 			editBoxBorder:SetVertexColor(r, g, b)
 		end
 	end
@@ -503,13 +496,6 @@ end
 function Module:OnEnable()
 	if not C["Chat"].Enable then
 		return
-	end
-
-	-- Hide Quick Join button
-	if QuickJoinToastButton then
-		QuickJoinToastButton:SetAlpha(0)
-		QuickJoinToastButton:EnableMouse(false)
-		QuickJoinToastButton:UnregisterAllEvents()
 	end
 
 	if IsAddOnLoaded("Prat-3.0") or IsAddOnLoaded("Chatter") or IsAddOnLoaded("BasicChatMods") or IsAddOnLoaded("Glass") then

@@ -1,5 +1,5 @@
 local K = unpack(KkthnxUI)
-local Module = K:GetModule("ActionBar")
+local Module = K:NewModule("ButtonRange")
 
 local _G = _G
 local next = _G.next
@@ -101,10 +101,8 @@ local function button_UpdateUsable(button)
 	Module.UpdateButtonUsable(button, true)
 end
 
-function Module:RegisterButtonRange(button)
-	if button.Update then
-		Module.Register(button)
-		hooksecurefunc(button, "Update", Module.UpdateButtonStatus)
-		hooksecurefunc(button, "UpdateUsable", button_UpdateUsable)
-	end
+function Module:OnEnable()
+	hooksecurefunc("ActionButton_OnUpdate", self.Register)
+	hooksecurefunc("ActionButton_Update", self.UpdateButtonStatus)
+	hooksecurefunc("ActionButton_UpdateUsable", button_UpdateUsable)
 end

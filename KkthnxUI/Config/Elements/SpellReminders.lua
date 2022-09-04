@@ -2,117 +2,139 @@ local _, C = unpack(KkthnxUI)
 
 -- Reminder Buffs Checklist
 C.SpellReminderBuffs = {
-	ITEMS = {
-		{
-			itemID = 178742, -- Bottled Flayedwing Toxin
-			spells = {
-				[345545] = true,
-			},
-			equip = true,
-			instance = true,
-			combat = true,
-		},
-		{
-			itemID = 174906, -- Lightning-Forged Augment Rune
-			spells = {
-				[317065] = true,
-				[270058] = true,
-			},
-			instance = true,
-			disable = true,
-		},
-	},
 	MAGE = {
 		{
-			spells = { -- Arcane Familiar
-				[210126] = true,
+			spells = { -- 奥术智慧
+				[1459] = true,
+				[8096] = true, -- 智力卷轴
+				[23028] = true, -- 奥术光辉
+				[46302] = true, -- 基鲁的胜利之歌
 			},
-			depend = 205022,
-			spec = 1,
+			depend = 1459,
 			combat = true,
 			instance = true,
 			pvp = true,
 		},
 		{
-			spells = { -- Arcane Wisdom
-				[1459] = true,
+			spells = {
+				[168] = true, -- 霜甲术
+				[7302] = true, -- 冰甲术
+				[6117] = true, -- 法师护甲
+				[30482] = true, -- 熔岩护甲
 			},
-			depend = 1459,
+			depend = 168,
+			combat = true,
 			instance = true,
+			pvp = true,
 		},
 	},
 	PRIEST = {
 		{
-			spells = { -- Power word
-				[21562] = true,
+			spells = { -- 真言术耐
+				[1243] = true,
+				[8099] = true, -- 耐力卷轴
+				[21562] = true, -- 坚韧祷言
 			},
-			depend = 21562,
+			depend = 1243,
+			combat = true,
 			instance = true,
+			pvp = true,
+		},
+		{
+			spells = { -- 心灵之火
+				[588] = true,
+			},
+			depend = 588,
+			pvp = true,
+		},
+	},
+	DRUID = {
+		{
+			spells = { -- 野性印记
+				[1126] = true,
+				[21849] = true, -- 野性赐福
+			},
+			depend = 1126,
+			combat = true,
+			instance = true,
+			pvp = true,
+		},
+		{
+			spells = { --- 荆棘术
+				[467] = true,
+			},
+			depend = 467,
+			pvp = true,
 		},
 	},
 	WARRIOR = {
 		{
-			spells = { -- Battle roar
+			spells = { -- 战斗怒吼
 				[6673] = true,
 			},
-			depend = 6673,
+			depends = { 6673, 5242, 6192, 11549, 11550, 11551, 25289, 2048 },
+			gemini = {
+				[GetSpellInfo(469)] = true, -- 命令怒吼
+			},
+			combat = true,
 			instance = true,
+			pvp = true,
+		},
+		{
+			spells = { -- 命令怒吼
+				[469] = true,
+			},
+			depend = 469,
+			gemini = {
+				[GetSpellInfo(6673)] = true, -- 战斗怒吼
+			},
+			combat = true,
+			instance = true,
+			pvp = true,
 		},
 	},
-	SHAMAN = {
+	HUNTER = {
 		{
-			spells = {
-				[192106] = true, -- Lightning Shield
-				[974] = true, -- Earth Shield
-				[52127] = true, -- Water shield
+			spells = { -- 雄鹰守护
+				[13165] = true,
+				[61846] = true, -- 龙鹰
 			},
-			depend = 192106,
+			depend = 13165,
 			combat = true,
 			instance = true,
 			pvp = true,
 		},
 		{
-			spells = {
-				[33757] = true, -- Windfury weapon
+			spells = { --- 强击光环
+				[19506] = true,
 			},
-			depend = 33757,
+			depend = 19506,
 			combat = true,
 			instance = true,
 			pvp = true,
-			weaponIndex = 1,
-			spec = 2,
-		},
-		{
-			spells = {
-				[318038] = true, -- Fire tongue weapon
-			},
-			depend = 318038,
-			combat = true,
-			instance = true,
-			pvp = true,
-			weaponIndex = 2,
-			spec = 2,
 		},
 	},
-	ROGUE = {
+	WARLOCK = {
 		{
-			spells = { -- Harmful poison
-				[2823] = true, -- Deadly ointment
-				[8679] = true, -- Wound ointment
-				[315584] = true, -- Quick-acting ointment
+			spells = {
+				[28176] = true, -- 邪甲术
+				[706] = true, -- 魔甲术
+				[687] = true, -- 恶魔皮肤
 			},
-			texture = 132273,
-			depend = 315584,
+			depend = 28176,
 			combat = true,
 			instance = true,
 			pvp = true,
 		},
+	},
+	DEATHKNIGHT = {
 		{
-			spells = { -- Effect poison
-				[3408] = true, -- Slowing ointment
-				[5761] = true, -- Sluggish Ointment
+			spells = { -- 寒冬号角
+				[57330] = true,
 			},
-			depend = 3408,
+			depend = 57330,
+			combat = true,
+			instance = true,
 			pvp = true,
 		},
 	},

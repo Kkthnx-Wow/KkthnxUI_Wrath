@@ -67,7 +67,7 @@ function Module:OnEnable()
 	-- self:DisableHelpTips()
 	self:UpdateMaxCameraZoom()
 
-	hooksecurefunc("QuestInfo_Display", Module.CreateQuestXPPercent)
+	-- hooksecurefunc("QuestInfo_Display", Module.CreateQuestXPPercent)
 
 	-- TESTING CMD : /run BNToastFrame:AddToast(BN_TOAST_TYPE_ONLINE, 1)
 	if not BNToastFrame.mover then -- text, value, anchor, width, height, isAuraWatch, postDrag

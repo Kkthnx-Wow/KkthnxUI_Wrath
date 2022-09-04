@@ -107,7 +107,7 @@ function Module:UpdateThreat(_, unit)
 	local r, g, b
 
 	if portraitStyle == "ThreeDPortraits" then
-		if not portrait.KKUI_Border then
+		if not portrait then
 			return
 		end
 
@@ -122,7 +122,7 @@ function Module:UpdateThreat(_, unit)
 			end
 		end
 	elseif portraitStyle ~= "ThreeDPortraits" and portraitStyle ~= "NoPortraits" and portraitStyle ~= "OverlayPortrait" then
-		if not portrait.Border.KKUI_Border then
+		if not portrait then
 			return
 		end
 
@@ -137,7 +137,7 @@ function Module:UpdateThreat(_, unit)
 			end
 		end
 	elseif portraitStyle == "NoPortraits" then
-		if not health.KKUI_Border then
+		if not health then
 			return
 		end
 

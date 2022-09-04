@@ -34,9 +34,7 @@ local GetCVar = _G.GetCVar
 local GetCVarBool = _G.GetCVarBool
 local GetGameTime = _G.GetGameTime
 local GetNumSavedInstances = _G.GetNumSavedInstances
-local GetNumSavedWorldBosses = _G.GetNumSavedWorldBosses
 local GetSavedInstanceInfo = _G.GetSavedInstanceInfo
-local GetSavedWorldBossInfo = _G.GetSavedWorldBossInfo
 local InCombatLockdown = _G.InCombatLockdown
 local PLAYER_DIFFICULTY_TIMEWALKER = _G.PLAYER_DIFFICULTY_TIMEWALKER
 local QUESTS_LABEL = _G.QUESTS_LABEL
@@ -317,27 +315,27 @@ function Module:TimeOnEnter()
 		end
 	end
 
-	-- Torghast
-	if not TorghastInfo then
-		TorghastInfo = C_AreaPoiInfo_GetAreaPOIInfo(1543, 6640)
-	end
+	-- -- Torghast
+	-- if not TorghastInfo then
+	-- 	TorghastInfo = C_AreaPoiInfo_GetAreaPOIInfo(1543, 6640)
+	-- end
 
-	if TorghastInfo and C_QuestLog_IsQuestFlaggedCompleted(60136) then
-		title = false
-		for _, value in pairs(TorghastWidgets) do
-			local nameInfo = C_UIWidgetManager_GetTextWithStateWidgetVisualizationInfo(value.nameID)
-			if nameInfo and nameInfo.shownState == 1 then
-				addTitle(TorghastInfo.name)
-				local nameText = CleanupLevelName(nameInfo.text)
-				local levelInfo = C_UIWidgetManager_GetTextWithStateWidgetVisualizationInfo(value.levelID)
-				local levelText = AVAILABLE
-				if levelInfo and levelInfo.shownState == 1 then
-					levelText = CleanupLevelName(levelInfo.text)
-				end
-				GameTooltip:AddDoubleLine(nameText, levelText)
-			end
-		end
-	end
+	-- if TorghastInfo and C_QuestLog_IsQuestFlaggedCompleted(60136) then
+	-- 	title = false
+	-- 	for _, value in pairs(TorghastWidgets) do
+	-- 		local nameInfo = C_UIWidgetManager_GetTextWithStateWidgetVisualizationInfo(value.nameID)
+	-- 		if nameInfo and nameInfo.shownState == 1 then
+	-- 			addTitle(TorghastInfo.name)
+	-- 			local nameText = CleanupLevelName(nameInfo.text)
+	-- 			local levelInfo = C_UIWidgetManager_GetTextWithStateWidgetVisualizationInfo(value.levelID)
+	-- 			local levelText = AVAILABLE
+	-- 			if levelInfo and levelInfo.shownState == 1 then
+	-- 				levelText = CleanupLevelName(levelInfo.text)
+	-- 			end
+	-- 			GameTooltip:AddDoubleLine(nameText, levelText)
+	-- 		end
+	-- 	end
+	-- end
 
 	-- Quests
 	title = false
@@ -351,56 +349,56 @@ function Module:TimeOnEnter()
 		end
 	end
 
-	if IsShiftKeyDown() then
-		-- Nzoth relavants
-		for _, v in ipairs(horrificVisions) do
-			if C_QuestLog_IsQuestFlaggedCompleted(v.id) then
-				addTitle(QUESTS_LABEL)
-				GameTooltip:AddDoubleLine(SPLASH_BATTLEFORAZEROTH_8_3_0_FEATURE1_TITLE, v.desc, 1, 1, 1, 0, 1, 0)
-				break
-			end
-		end
+	-- if IsShiftKeyDown() then
+	-- 	-- Nzoth relavants
+	-- 	for _, v in ipairs(horrificVisions) do
+	-- 		if C_QuestLog_IsQuestFlaggedCompleted(v.id) then
+	-- 			addTitle(QUESTS_LABEL)
+	-- 			GameTooltip:AddDoubleLine(SPLASH_BATTLEFORAZEROTH_8_3_0_FEATURE1_TITLE, v.desc, 1, 1, 1, 0, 1, 0)
+	-- 			break
+	-- 		end
+	-- 	end
 
-		for _, id in pairs(lesserVisions) do
-			if C_QuestLog_IsQuestFlaggedCompleted(id) then
-				addTitle(QUESTS_LABEL)
-				GameTooltip:AddDoubleLine("Lesser Vision of N'Zoth", QUEST_COMPLETE, 1, 1, 1, 1, 0, 0)
-				break
-			end
-		end
+	-- 	for _, id in pairs(lesserVisions) do
+	-- 		if C_QuestLog_IsQuestFlaggedCompleted(id) then
+	-- 			addTitle(QUESTS_LABEL)
+	-- 			GameTooltip:AddDoubleLine("Lesser Vision of N'Zoth", QUEST_COMPLETE, 1, 1, 1, 1, 0, 0)
+	-- 			break
+	-- 		end
+	-- 	end
 
-		if not nzothAssaults then
-			nzothAssaults = C_TaskQuest_GetThreatQuests() or {}
-		end
-		for _, v in pairs(nzothAssaults) do
-			if C_QuestLog_IsQuestFlaggedCompleted(v) then
-				addTitle(QUESTS_LABEL)
-				GameTooltip:AddDoubleLine(GetNzothThreatName(v), QUEST_COMPLETE, 1, 1, 1, 1, 0, 0)
-			end
-		end
+	-- 	if not nzothAssaults then
+	-- 		nzothAssaults = C_TaskQuest_GetThreatQuests() or {}
+	-- 	end
+	-- 	for _, v in pairs(nzothAssaults) do
+	-- 		if C_QuestLog_IsQuestFlaggedCompleted(v) then
+	-- 			addTitle(QUESTS_LABEL)
+	-- 			GameTooltip:AddDoubleLine(GetNzothThreatName(v), QUEST_COMPLETE, 1, 1, 1, 1, 0, 0)
+	-- 		end
+	-- 	end
 
-		-- Invasions
-		for index, value in ipairs(invIndex) do
-			title = false
-			addTitle(value.title)
-			local timeLeft, zoneName = CheckInvasion(index)
-			local nextTime = GetNextTime(value.baseTime, index)
-			if timeLeft then
-				timeLeft = timeLeft / 60
-				if timeLeft < 60 then
-					r, g, b = 1, 0, 0
-				else
-					r, g, b = 0, 1, 0
-				end
-				GameTooltip:AddDoubleLine(L["Current Invasion"] .. zoneName, string_format("%.2d:%.2d", timeLeft / 60, timeLeft % 60), 1, 1, 1, r, g, b)
-			end
-			local nextLocation = GetNextLocation(nextTime, index)
-			GameTooltip:AddDoubleLine(L["Next Invasion"] .. nextLocation, date("%m/%d %H:%M", nextTime), 1, 1, 1, 192 / 255, 192 / 255, 192 / 255)
-		end
-	else
-		GameTooltip:AddLine(" ")
-		GameTooltip:AddLine(K.InfoColor .. "Hold SHIFT for info|r")
-	end
+	-- 	-- Invasions
+	-- 	for index, value in ipairs(invIndex) do
+	-- 		title = false
+	-- 		addTitle(value.title)
+	-- 		local timeLeft, zoneName = CheckInvasion(index)
+	-- 		local nextTime = GetNextTime(value.baseTime, index)
+	-- 		if timeLeft then
+	-- 			timeLeft = timeLeft / 60
+	-- 			if timeLeft < 60 then
+	-- 				r, g, b = 1, 0, 0
+	-- 			else
+	-- 				r, g, b = 0, 1, 0
+	-- 			end
+	-- 			GameTooltip:AddDoubleLine(L["Current Invasion"] .. zoneName, string_format("%.2d:%.2d", timeLeft / 60, timeLeft % 60), 1, 1, 1, r, g, b)
+	-- 		end
+	-- 		local nextLocation = GetNextLocation(nextTime, index)
+	-- 		GameTooltip:AddDoubleLine(L["Next Invasion"] .. nextLocation, date("%m/%d %H:%M", nextTime), 1, 1, 1, 192 / 255, 192 / 255, 192 / 255)
+	-- 	end
+	-- else
+	-- 	GameTooltip:AddLine(" ")
+	-- 	GameTooltip:AddLine(K.InfoColor .. "Hold SHIFT for info|r")
+	-- end
 
 	-- Help Info
 	GameTooltip:AddLine(" ")
@@ -420,15 +418,9 @@ end
 
 function Module:TimeOnMouseUp(btn)
 	if btn == "RightButton" then
-		_G.ToggleTimeManager()
-	elseif btn == "MiddleButton" then
-		if not WeeklyRewardsFrame then
-			LoadAddOn("Blizzard_WeeklyRewards")
-		end
-		if InCombatLockdown() then
-			K.TogglePanel(WeeklyRewardsFrame)
-		else
-			ToggleFrame(WeeklyRewardsFrame)
+		TimeManager_LoadUI()
+		if TimeManager_Toggle then
+			TimeManager_Toggle()
 		end
 	else
 		_G.ToggleCalendar()

@@ -1169,17 +1169,18 @@ function Module:OnEnable()
 	end
 
 	local bagTypeColor = {
-		[0] = { 0, 0, 0, 0.25 }, -- container
-		[1] = false, -- Ammunition bag
-		[2] = { 0, 0.5, 0, 0.25 }, -- Herbal bag
-		[3] = { 0.8, 0, 0.8, 0.25 }, -- Enchant bag
-		[4] = { 1, 0.8, 0, 0.25 }, -- Engineering bag
-		[5] = { 0, 0.8, 0.8, 0.25 }, -- Gem bag
-		[6] = { 0.5, 0.4, 0, 0.25 }, -- Ore bag
-		[7] = { 0.8, 0.5, 0.5, 0.25 }, -- Leather bag
-		[8] = { 0.8, 0.8, 0.8, 0.25 }, -- Inscription bag
-		[9] = { 0.4, 0.6, 1, 0.25 }, -- Toolbox
-		[10] = { 0.8, 0, 0, 0.25 }, -- Cooking bag
+		[-1] = { 0.67, 0.83, 0.45, 0.25 }, -- 箭袋/弹药
+		[0] = { 0.3, 0.3, 0.3, 0.3 }, -- 容器
+		[1] = { 0.53, 0.53, 0.93, 0.25 }, -- 灵魂袋
+		[2] = { 0, 0.5, 0, 0.25 }, -- 草药袋
+		[3] = { 0.8, 0, 0.8, 0.25 }, -- 附魔袋
+		[4] = { 1, 0.8, 0, 0.25 }, -- 工程袋
+		[5] = { 0, 0.8, 0.8, 0.25 }, -- 宝石袋
+		[6] = { 0.5, 0.4, 0, 0.25 }, -- 矿石袋
+		[7] = { 0.8, 0.5, 0.5, 0.25 }, -- 制皮包
+		[8] = { 0.8, 0.8, 0.8, 0.25 }, -- 铭文包
+		[9] = { 0.4, 0.6, 1, 0.25 }, -- 工具箱
+		[10] = { 0.8, 0, 0, 0.25 }, -- 烹饪包
 	}
 
 	local function isItemNeedsLevel(item)
@@ -1269,15 +1270,8 @@ function Module:OnEnable()
 		end
 
 		self.iLvl:SetText("")
-		if showItemLevel then
-			local level = item.level -- ilvl for keystone and battlepet
-			if not level and isItemNeedsLevel(item) then
-				local ilvl = K.GetItemLevel(item.link, item.bagID ~= -1 and item.bagID, item.slotID) -- SetBagItem return nil for default bank slots
-				if ilvl and ilvl > 1 then
-					level = ilvl
-				end
-			end
-
+		if showItemLevel and isItemNeedsLevel(item) then
+			local level = item.level
 			if level then
 				local color = K.QualityColors[item.quality]
 				self.iLvl:SetText(level)

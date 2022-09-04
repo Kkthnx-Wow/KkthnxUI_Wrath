@@ -111,7 +111,7 @@ function Module:CheckMajorSpells()
 end
 
 function Module:OnEnable()
-	Module:AddDeprecatedGroup()
+	-- Module:AddDeprecatedGroup()
 	C.AuraWatchList = AuraWatchList
 	Module:CheckMajorSpells()
 end

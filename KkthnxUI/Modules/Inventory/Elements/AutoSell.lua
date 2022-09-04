@@ -5,30 +5,28 @@ local _G = _G
 local table_wipe = _G.table.wipe
 
 local C_Timer_After = _G.C_Timer.After
-local GetContainerItemEquipmentSetInfo = _G.GetContainerItemEquipmentSetInfo
 local GetContainerItemInfo = _G.GetContainerItemInfo
 local GetContainerNumSlots = _G.GetContainerNumSlots
 local IsShiftKeyDown = _G.IsShiftKeyDown
 
-local stop = true
-local cache = {}
-local errorText = _G.ERR_VENDOR_DOESNT_BUY
+local autoSellStop = true
+local autoSellCache = {}
+local autoSellErrorText = _G.ERR_VENDOR_DOESNT_BUY
 
 local function startSelling()
-	if stop then
+	if autoSellStop then
 		return
 	end
 
 	for bag = 0, 4 do
 		for slot = 1, GetContainerNumSlots(bag) do
-			if stop then
+			if autoSellStop then
 				return
 			end
 
 			local _, _, _, quality, _, _, link, _, noValue, itemID = GetContainerItemInfo(bag, slot)
-			local isInSet = GetContainerItemEquipmentSetInfo(bag, slot)
-			if link and not noValue and not isInSet and not Module:IsPetTrashCurrency(itemID) and (quality == 0 or KkthnxUIDB.CustomJunkList[itemID]) and not cache["b" .. bag .. "s" .. slot] then
-				cache["b" .. bag .. "s" .. slot] = true
+			if link and not noValue and (quality == 0 or KkthnxUIDB.CustomJunkList[itemID]) and not autoSellCache["b"..bag.."s"..slot] then
+				autoSellCache["b" .. bag .. "s" .. slot] = true
 				UseContainerItem(bag, slot)
 				C_Timer_After(0.15, startSelling)
 				return
@@ -48,12 +46,12 @@ local function updateSelling(event, ...)
 			return
 		end
 
-		stop = false
-		table_wipe(cache)
+		autoSellStop = false
+		table_wipe(autoSellCache)
 		startSelling()
 		K:RegisterEvent("UI_ERROR_MESSAGE", updateSelling)
-	elseif event == "UI_ERROR_MESSAGE" and arg == errorText or event == "MERCHANT_CLOSED" then
-		stop = true
+	elseif event == "UI_ERROR_MESSAGE" and arg == autoSellErrorText or event == "MERCHANT_CLOSED" then
+		autoSellStop = true
 	end
 end
 
