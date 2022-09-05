@@ -144,6 +144,7 @@ C["Inventory"] = {
 	["FilterCustom"] = true,
 	["FilterEquipSet"] = false,
 	["FilterEquipment"] = true,
+	["FilterFavourite"] = true,
 	["FilterGoods"] = false,
 	["FilterJunk"] = true,
 	["FilterLegendary"] = true,
