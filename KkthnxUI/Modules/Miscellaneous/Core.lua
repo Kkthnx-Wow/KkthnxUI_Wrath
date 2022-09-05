@@ -9,8 +9,6 @@ local tonumber = _G.tonumber
 local BNToastFrame = _G.BNToastFrame
 local C_BattleNet_GetGameAccountInfoByGUID = _G.C_BattleNet.GetGameAccountInfoByGUID
 local C_FriendList_IsFriend = _G.C_FriendList.IsFriend
-local C_QuestLog_GetSelectedQuest = _G.C_QuestLog.GetSelectedQuest
-local C_QuestLog_ShouldShowQuestRewards = _G.C_QuestLog.ShouldShowQuestRewards
 local C_Timer_After = _G.C_Timer.After
 local CreateFrame = _G.CreateFrame
 local FRIEND = _G.FRIEND
@@ -19,8 +17,6 @@ local GetItemInfo = _G.GetItemInfo
 local GetItemQualityColor = _G.GetItemQualityColor
 local GetMerchantItemLink = _G.GetMerchantItemLink
 local GetMerchantItemMaxStack = _G.GetMerchantItemMaxStack
-local GetQuestLogRewardXP = _G.GetQuestLogRewardXP
-local GetRewardXP = _G.GetRewardXP
 local GetSpellInfo = _G.GetSpellInfo
 local InCombatLockdown = _G.InCombatLockdown
 local IsAltKeyDown = _G.IsAltKeyDown
@@ -31,8 +27,6 @@ local StaticPopupDialogs = _G.StaticPopupDialogs
 local StaticPopup_Show = _G.StaticPopup_Show
 local UIParent = _G.UIParent
 local UnitGUID = _G.UnitGUID
-local UnitXP = _G.UnitXP
-local UnitXPMax = _G.UnitXPMax
 local YES = _G.YES
 local hooksecurefunc = _G.hooksecurefunc
 
@@ -52,22 +46,16 @@ function Module:OnEnable()
 	end
 
 	self:CreateBlockStrangerInvites()
-	-- self:CreateBossBanner()
 	self:CreateBossEmote()
 	self:CreateDurabilityFrameMove()
 	self:CreateErrorFrameToggle()
 	self:CreateGUIGameMenuButton()
-	self:CreateJerryWay()
 	self:CreateMinimapButtonToggle()
 	self:CreateObjectiveSizeUpdate()
 	self:CreateQuestSizeUpdate()
 	self:CreateTicketStatusFrameMove()
 	self:CreateTradeTargetInfo()
-	-- self:CreateVehicleSeatMover()
-	-- self:DisableHelpTips()
 	self:UpdateMaxCameraZoom()
-
-	-- hooksecurefunc("QuestInfo_Display", Module.CreateQuestXPPercent)
 
 	-- TESTING CMD : /run BNToastFrame:AddToast(BN_TOAST_TYPE_ONLINE, 1)
 	if not BNToastFrame.mover then -- text, value, anchor, width, height, isAuraWatch, postDrag
@@ -193,7 +181,6 @@ function Module:CreateMinimapButtonToggle()
 	icon:SetSize(22, 11)
 	icon:SetPoint("CENTER")
 	icon:SetTexture(C["Media"].Textures.LogoSmallTexture)
-	--icon.__ignored = false -- ignore KkthnxUI recycle bin
 
 	mmb:SetScript("OnEnter", function()
 		GameTooltip:ClearLines()
@@ -274,44 +261,6 @@ function Module:CreateGUIGameMenuButton()
 	_G.GameMenuFrame:HookScript("OnShow", MainMenu_OnShow)
 end
 
-function Module:CreateQuestXPPercent()
-	local unitXP, unitXPMax = UnitXP("player"), UnitXPMax("player")
-	if _G.QuestInfoFrame.questLog then
-		local selectedQuest = C_QuestLog_GetSelectedQuest()
-		if C_QuestLog_ShouldShowQuestRewards(selectedQuest) then
-			local xp = GetQuestLogRewardXP()
-			if xp and xp > 0 then
-				local text = _G.MapQuestInfoRewardsFrame.XPFrame.Name:GetText()
-				if text then
-					_G.MapQuestInfoRewardsFrame.XPFrame.Name:SetFormattedText("%s (|cff4beb2c+%.2f%%|r)", text, (((unitXP + xp) / unitXPMax) - (unitXP / unitXPMax)) * 100)
-				end
-			end
-		end
-	else
-		local xp = GetRewardXP()
-		if xp and xp > 0 then
-			local text = _G.QuestInfoXPFrame.ValueText:GetText()
-			if text then
-				_G.QuestInfoXPFrame.ValueText:SetFormattedText("%s (|cff4beb2c+%.2f%%|r)", text, (((unitXP + xp) / unitXPMax) - (unitXP / unitXPMax)) * 100)
-			end
-		end
-	end
-end
-
--- Reanchor Vehicle
-function Module:CreateVehicleSeatMover()
-	local frame = CreateFrame("Frame", "KKUI_VehicleSeatMover", UIParent)
-	frame:SetSize(125, 125)
-	K.Mover(frame, "VehicleSeat", "VehicleSeat", { "BOTTOM", UIParent, -364, 4 })
-
-	hooksecurefunc(VehicleSeatIndicator, "SetPoint", function(self, _, parent)
-		if parent == "MinimapCluster" or parent == MinimapCluster then
-			self:ClearAllPoints()
-			self:SetPoint("TOPLEFT", frame)
-		end
-	end)
-end
-
 -- Reanchor DurabilityFrame
 function Module:CreateDurabilityFrameMove()
 	hooksecurefunc(DurabilityFrame, "SetPoint", function(self, _, parent)
@@ -330,16 +279,6 @@ function Module:CreateTicketStatusFrameMove()
 			self:SetPoint("TOP", UIParent, "TOP", -400, -20)
 		end
 	end)
-end
-
--- Hide Bossbanner
-function Module:CreateBossBanner()
-	if C["Misc"].HideBanner and not C["Misc"].KillingBlow then
-		BossBanner:UnregisterAllEvents()
-	else
-		BossBanner:RegisterEvent("BOSS_KILL")
-		BossBanner:RegisterEvent("ENCOUNTER_LOOT_RECEIVED")
-	end
 end
 
 -- Hide boss emote
@@ -460,37 +399,6 @@ do
 	end
 end
 
--- Fix Drag Collections taint
-do
-	local done
-	local function setupMisc(event, addon)
-		if event == "ADDON_LOADED" and addon == "Blizzard_Collections" then
-			-- Fix undragable issue
-			local checkBox = WardrobeTransmogFrame.ToggleSecondaryAppearanceCheckbox
-			checkBox.Label:ClearAllPoints()
-			checkBox.Label:SetPoint("LEFT", checkBox, "RIGHT", 2, 1)
-			checkBox.Label:SetWidth(152)
-
-			CollectionsJournal:HookScript("OnShow", function()
-				if not done then
-					if InCombatLockdown() then
-						K:RegisterEvent("PLAYER_REGEN_ENABLED", setupMisc)
-					else
-						K.CreateMoverFrame(CollectionsJournal)
-					end
-					done = true
-				end
-			end)
-			K:UnregisterEvent(event, setupMisc)
-		elseif event == "PLAYER_REGEN_ENABLED" then
-			K.CreateMoverFrame(CollectionsJournal)
-			K:UnregisterEvent(event, setupMisc)
-		end
-	end
-
-	K:RegisterEvent("ADDON_LOADED", setupMisc)
-end
-
 -- Select target when click on raid units
 do
 	local function fixRaidGroupButton()
@@ -522,27 +430,6 @@ do
 	end
 
 	K:RegisterEvent("ADDON_LOADED", setupMisc)
-end
-
--- Fix blizz guild news hyperlink error
-do
-	local function fixGuildNews(event, addon)
-		if addon ~= "Blizzard_GuildUI" then
-			return
-		end
-
-		local _GuildNewsButton_OnEnter = GuildNewsButton_OnEnter
-		function GuildNewsButton_OnEnter(self)
-			if not (self.newsInfo and self.newsInfo.whatText) then
-				return
-			end
-			_GuildNewsButton_OnEnter(self)
-		end
-
-		K:UnregisterEvent(event, fixGuildNews)
-	end
-
-	K:RegisterEvent("ADDON_LOADED", fixGuildNews)
 end
 
 hooksecurefunc("ChatEdit_InsertLink", function(text) -- shift-clicked
@@ -617,66 +504,6 @@ function Module:PostBNToastMove(_, anchor)
 		self:ClearAllPoints()
 		self:SetPoint(BNToastFrame.mover.anchorPoint or "TOPLEFT", BNToastFrame.mover, BNToastFrame.mover.anchorPoint or "TOPLEFT")
 	end
-end
-
-function Module:CreateJerryWay()
-	if K.CheckAddOnState("TomTom") then
-		return
-	end
-
-	local pointString = K.InfoColor .. "|Hworldmap:%d+:%d+:%d+|h[|A:Waypoint-MapPin-ChatIcon:13:13:0:0|a%s (%s, %s)]|h|r"
-
-	local function GetCorrectCoord(x)
-		x = tonumber(x)
-		if x then
-			if x > 100 then
-				return 100
-			elseif x < 0 then
-				return 0
-			end
-			return x
-		end
-	end
-
-	SlashCmdList["KKUI_JERRY_WAY"] = function(msg)
-		if not msg or msg == nil or msg == "" or msg == " " then
-			K.Print(K.SystemColor .. "WARNING:|r Use a proper format for coords. Example: '/way 51.7, 65.2'")
-			return
-		end
-
-		msg = gsub(msg, "(%d)[%.,] (%d)", "%1 %2")
-		local x, y, z = string_match(msg, "(%S+)%s(%S+)(.*)")
-		if x and y then
-			local mapID = C_Map.GetBestMapForUnit("player")
-			if mapID then
-				local mapInfo = C_Map.GetMapInfo(mapID)
-				local mapName = mapInfo and mapInfo.name
-				if mapName then
-					x = GetCorrectCoord(x)
-					y = GetCorrectCoord(y)
-					if x and y then
-						K.Print(format(pointString, mapID, x * 100, y * 100, mapName, x, y, z or ""))
-					end
-				end
-			end
-		end
-	end
-	SLASH_KKUI_JERRY_WAY1 = "/way"
-end
-
-local function AcknowledgeTips()
-	for frame in _G.HelpTip.framePool:EnumerateActive() do
-		frame:Acknowledge()
-	end
-end
-
-function Module:DisableHelpTips() -- Auto complete helptips
-	if not C["General"].NoTutorialButtons then
-		return
-	end
-
-	hooksecurefunc(_G.HelpTip, "Show", AcknowledgeTips)
-	C_Timer.After(2, AcknowledgeTips)
 end
 
 function Module:UpdateMaxCameraZoom()

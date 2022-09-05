@@ -16,7 +16,6 @@
    <Script file="Blizzard\Elements\AlertFrames.lua" />
    <Script file="Blizzard\Elements\ColorPicker.lua" />
    <Script file="Blizzard\Elements\MirrorBars.lua" />
-   <Script file="Blizzard\Elements\ObjectiveFrame.lua" />
    <Script file="Blizzard\Elements\RaidUtility.lua" />
    <Script file="Blizzard\Elements\TimerTracker.lua" />
    <Script file="Blizzard\Elements\UIWidgets.lua" />
@@ -28,7 +27,6 @@
    <Script file="Chat\Elements\History.lua" />
    <Script file="Chat\Elements\ILevel.lua" />
    <Script file="Chat\Elements\Rename.lua" />
-   <Script file="Chat\Elements\RoleIcon.lua" />
    <Script file="Chat\Elements\URL.lua" />
    <Script file="Chat\Elements\Voice.lua" />
    <!-- Inventory -->
@@ -116,8 +114,6 @@
    <Script file="Miscellaneous\Elements\MissingStats.lua" />
    <Script file="Miscellaneous\Elements\MovableFrames.lua" />
    <Script file="Miscellaneous\Elements\MuteSounds.lua" />
-   <Script file="Miscellaneous\Elements\QuestTool.lua" />
-   <Script file="Miscellaneous\Elements\QueueTimer.lua" />
    <Script file="Miscellaneous\Elements\SlotItemLevel.lua" />
    <Script file="Miscellaneous\Elements\TradeTabs.lua" />
    <Script file="Miscellaneous\Elements\yClassColors.lua" />
@@ -140,12 +136,10 @@
    <Script file="Automation\Elements\DeclineDuel.lua" />
    <Script file="Automation\Elements\Goodbye.lua" />
    <Script file="Automation\Elements\Invite.lua" />
-   <Script file="Automation\Elements\PartySync.lua" />
    <Script file="Automation\Elements\Quest.lua" />
    <Script file="Automation\Elements\Release.lua" />
    <Script file="Automation\Elements\Resurrect.lua" />
    <Script file="Automation\Elements\ScreenShot.lua" />
-   <Script file="Automation\Elements\SetRole.lua" />
    <Script file="Automation\Elements\SkipCinematic.lua" />
    <Script file="Automation\Elements\Summon.lua" />
    <Script file="Automation\Elements\WhisperInvite.lua" />
@@ -158,7 +152,6 @@
    <!-- Skins Blizzard -->
    <Include file="Skins\Core.lua" />
    <Include file="Skins\Blizzard\InspectUI.lua" />
-   <Include file="Skins\Blizzard\TalentUI.lua" />
    <Include file="Skins\Blizzard\WorldMap.lua" />
    <!-- Skins FrameXML -->
    <Include file="Skins\Blizzard\FrameXML\CharacterFrame.lua" />

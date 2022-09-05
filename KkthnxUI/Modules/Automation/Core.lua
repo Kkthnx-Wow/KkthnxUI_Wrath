@@ -12,7 +12,6 @@ function Module:OnEnable()
 	self:CreateAutoRelease()
 	self:CreateAutoResurrect()
 	self:CreateAutoScreenShot()
-	self:CreateAutoSetRole()
 	self:CreateAutoWhisperInvite()
 	self:CreateSkipCinematic()
 end

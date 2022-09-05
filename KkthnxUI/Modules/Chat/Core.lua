@@ -28,10 +28,8 @@ local IsControlKeyDown = _G.IsControlKeyDown
 local IsInGroup = _G.IsInGroup
 local IsInGuild = _G.IsInGuild
 local IsInRaid = _G.IsInRaid
-local IsPartyLFG = _G.IsPartyLFG
 local IsShiftKeyDown = _G.IsShiftKeyDown
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
-local QuickJoinToastButton = _G.QuickJoinToastButton
 local SetCVar = _G.SetCVar
 local UnitName = _G.UnitName
 local hooksecurefunc = _G.hooksecurefunc
@@ -539,7 +537,6 @@ function Module:OnEnable()
 	Module:CreateChatHistory()
 	Module:CreateChatItemLevels()
 	Module:CreateChatRename()
-	Module:CreateChatRoleIcon()
 	Module:CreateCopyChat()
 	Module:CreateCopyURL()
 	Module:CreateEmojis()

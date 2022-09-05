@@ -47,9 +47,10 @@ function Bar:CreateTotemBar()
 	if K.Class ~= "SHAMAN" then
 		return
 	end
-	-- if not C["Actionbar"].TotemBar then
-	--     return
-	-- end
+
+	if not C["Actionbar"].TotemBar then
+		return
+	end
 
 	local margin = 6
 	local frame = CreateFrame("Frame", nil, UIParent)
