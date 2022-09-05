@@ -109,6 +109,75 @@ function Module:OnEnable()
 	end
 end
 
+-- Hunter pet happiness
+local lastHappiness
+local petHappinessStr = {
+	[1] = "%sYour pet [%s] is about to run away.",
+	[2] = "%sYour pet [%s] is not in a good mood.",
+	[3] = "%sYour pet [%s] feels happy now.",
+}
+
+L["PetHappiness"] = "Hunter pet happiness"
+
+local function CheckPetHappiness(_, unit)
+	if unit ~= "pet" then
+		return
+	end
+
+	local happiness = GetPetHappiness()
+	if not lastHappiness or lastHappiness ~= happiness then
+		local str = petHappinessStr[happiness]
+		if str then
+			local petName = UnitName(unit)
+			UIErrorsFrame:AddMessage(string.format(str, K.InfoColor, petName))
+			K.Print(string.format(str, K.InfoColor, petName))
+		end
+
+		lastHappiness = happiness
+	end
+end
+
+function Module:TogglePetHappiness()
+	if K.Class ~= "HUNTER" then
+		return
+	end
+
+	if C["Misc"].PetHappiness then
+		K:RegisterEvent("UNIT_HAPPINESS", CheckPetHappiness)
+	else
+		K:UnregisterEvent("UNIT_HAPPINESS", CheckPetHappiness)
+	end
+end
+
+-- Auto dismount on Taxi
+function Module:ToggleTaxiDismount()
+	local lastTaxiIndex
+	local function retryTaxi()
+		if InCombatLockdown() then
+			return
+		end
+
+		if lastTaxiIndex then
+			TakeTaxiNode(lastTaxiIndex)
+			lastTaxiIndex = nil
+		end
+	end
+
+	hooksecurefunc("TakeTaxiNode", function(index)
+		if not C["Misc"].AutoDismount then
+			return
+		end
+
+		if not IsMounted() then
+			return
+		end
+
+		Dismount()
+		lastTaxiIndex = index
+		C_Timer_After(0.5, retryTaxi)
+	end)
+end
+
 local function KKUI_UpdateDragCursor(self)
 	local mx, my = Minimap:GetCenter()
 	local px, py = GetCursorPosition()

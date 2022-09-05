@@ -423,14 +423,14 @@ local ActionBar = function(self)
 	Window:CreateSlider("ActionBar", "BarStanceFont", "Bar Pet Font", 8, 20, 1, nil, UpdateStanceBar)
 
 	if K.Class == "HUNTER" then
-		Window:CreateSection("AspectBar")
+		Window:CreateSection(newFeatureIcon .. "AspectBar")
 		Window:CreateSwitch("ActionBar", "AspectBar", enableTextColor .. "Enable AspectBar", nil, ToggleAspectBar)
 		Window:CreateSlider("ActionBar", "AspectSize", "Aspect Bar Size", 20, 80, 1, nil, UpdateAspectBar)
 		Window:CreateSwitch("ActionBar", "VerticleAspect", "Verticle Aspect Bar", nil, VerticalAspectBar)
 	end
 
 	if K.Class == "SHAMAN" then
-		Window:CreateSection("TotemBar")
+		Window:CreateSection(newFeatureIcon .. "TotemBar")
 		Window:CreateSwitch("ActionBar", "TotemBar", enableTextColor .. "Enable TotemBar")
 	end
 
@@ -688,9 +688,13 @@ local Misc = function(self)
 	Window:CreateSwitch("Misc", "EnhancedFriends", L["Enhanced Colors (Friends/Guild +)"])
 	Window:CreateSwitch("Misc", "EnhancedMail", "Add 'Postal' Like Feaures To The Mailbox")
 	Window:CreateSwitch("Misc", "ExpRep", "Display Exp/Rep Bar (Minimap)")
+	if K.Class == "HUNTER" then
+		Window:CreateSwitch("Misc", "PetHappiness", newFeatureIcon .. "Print Your Pet Happiness Status")
+	end
 	if C["Misc"].ItemLevel then
 		Window:CreateSwitch("Misc", "GemEnchantInfo", L["Character/Inspect Gem/Enchant Info"])
 	end
+	Window:CreateSwitch("Misc", "AutoDismount", newFeatureIcon .. "Auto Dismount Talking To Taxi NPCs")
 	Window:CreateSwitch("Misc", "HideBossEmote", L["Hide BossBanner"])
 	Window:CreateSwitch("Misc", "ImprovedStats", L["Display Character Frame Full Stats"])
 	Window:CreateSwitch("Misc", "ItemLevel", L["Show Character/Inspect ItemLevel Info"])
