@@ -66,6 +66,9 @@ C["ActionBar"] = {
 	["StanceBar"] = true,
 	["TenthTH"] = 3,
 	["VehButtonSize"] = 34,
+	["AspectBar"] = true,
+	["AspectSize"] = 25,
+	["VerticleAspect"] = false,
 }
 
 -- Announcements
@@ -139,7 +142,7 @@ C["Inventory"] = {
 	["DeleteButton"] = true,
 	["Enable"] = true,
 	["FilterAnima"] = true,
-	["FilterAzerite"] = false,
+	["FilterAmmo"] = false,
 	["FilterCollection"] = true,
 	["FilterConsumable"] = true,
 	["FilterCustom"] = true,

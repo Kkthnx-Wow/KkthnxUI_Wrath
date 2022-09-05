@@ -43,20 +43,24 @@ local _, ns = ...
 local cargBags = ns.cargBags
 
 local tagPool, tagEvents, object = {}, {}
-local function tagger(tag, ...) return object.tags[tag] and object.tags[tag](object, ...) or "" end
+local function tagger(tag, ...)
+	return object.tags[tag] and object.tags[tag](object, ...) or ""
+end
 
 -- Update the space display
 local function updater(self, event)
 	object = self
 	self:SetText(self.tagString:gsub("%[([^%]:]+):?(.-)%]", tagger))
 
-	if(self.OnTagUpdate) then self:OnTagUpdate(event) end
+	if self.OnTagUpdate then
+		self:OnTagUpdate(event)
+	end
 end
 
 local function setTagString(self, tagString)
 	self.tagString = tagString
 	for tag in tagString:gmatch("%[([^%]:]+):?.-]") do
-		if(self.tagEvents[tag]) then
+		if self.tagEvents[tag] then
 			for _, event in pairs(self.tagEvents[tag]) do
 				self.implementation:RegisterEvent(event, self, updater)
 			end
@@ -74,7 +78,9 @@ cargBags:RegisterPlugin("TagDisplay", function(self, tagString, parent)
 	plugin.tags = tagPool
 	plugin.tagEvents = tagEvents
 	plugin.iconValues = "16:16:0:0"
-	plugin.forceEvent = function(event) updater(plugin, event) end
+	plugin.forceEvent = function(event)
+		updater(plugin, event)
+	end
 
 	setTagString(plugin, tagString)
 
@@ -83,12 +89,11 @@ cargBags:RegisterPlugin("TagDisplay", function(self, tagString, parent)
 end)
 
 local function createIcon(icon, iconValues)
-	if(type(iconValues) == "table") then
+	if type(iconValues) == "table" then
 		iconValues = table.concat(iconValues, ":")
 	end
 	return ("|T%s:%s|t"):format(icon, iconValues)
 end
-
 
 -- Tags
 local function GetNumFreeSlots(self)
@@ -121,17 +126,17 @@ end
 tagPool["item"] = function(self, item)
 	local bags = GetItemCount(item, nil)
 	local total = GetItemCount(item, true)
-	local bank = total-bags
+	local bank = total - bags
 
-	if(total > 0) then
-		return bags .. (bank and " ("..bank..")") .. createIcon(GetItemIcon(item), self.iconValues)
+	if total > 0 then
+		return bags .. (bank and " (" .. bank .. ")") .. createIcon(GetItemIcon(item), self.iconValues)
 	end
 end
 
 tagPool["currency"] = function(self, id)
 	local _, count, icon = GetBackpackCurrencyInfo(id)
 
-	if(count) then
+	if count then
 		return count .. createIcon(icon, self.iconValues)
 	end
 end
@@ -139,25 +144,33 @@ tagEvents["currency"] = { "CURRENCY_DISPLAY_UPDATE" }
 
 tagPool["currencies"] = function(self)
 	local str
-	for i=1, GetNumWatchedTokens() do
+	for i = 1, GetNumWatchedTokens() do
 		local curr = self.tags["currency"](self, i)
-		if(curr) then
-			str = (str and str.." " or "")..curr
+		if curr then
+			str = (str and str .. " " or "") .. curr
 		end
 	end
 	return str
 end
 tagEvents["currencies"] = tagEvents["currency"]
 
-tagPool["money"] = function(self)
-	local money = GetMoney() or 0
-	local str
+tagPool["money"] = function()
+	local coppername = "|cffeda55fc|r"
+	local goldname = "|cffffd700g|r"
+	local silvername = "|cffc7c7cfs|r"
 
-	local g,s,c = floor(money/1e4), floor(money/100) % 100, money % 100
+	local amount = GetMoney() or 0
+	local value = abs(amount)
+	local gold = floor(value / 10000)
+	local silver = floor(mod(value / 100, 100))
+	local copper = floor(mod(value, 100))
 
-	if(g > 0) then str = (str and str.." " or "") .. g .. createIcon("Interface\\MoneyFrame\\UI-GoldIcon", self.iconValues) end
-	if(s > 0) then str = (str and str.." " or "") .. s .. createIcon("Interface\\MoneyFrame\\UI-SilverIcon", self.iconValues) end
-	if(c >= 0) then str = (str and str.." " or "") .. c .. createIcon("Interface\\MoneyFrame\\UI-CopperIcon", self.iconValues) end
-	return str
+	if gold > 0 then
+		return format("%s%s %02d%s %02d%s", BreakUpLargeNumbers(gold), goldname, silver, silvername, copper, coppername)
+	elseif silver > 0 then
+		return format("%d%s %02d%s", silver, silvername, copper, coppername)
+	else
+		return format("%d%s", copper, coppername)
+	end
 end
 tagEvents["money"] = { "PLAYER_MONEY" }

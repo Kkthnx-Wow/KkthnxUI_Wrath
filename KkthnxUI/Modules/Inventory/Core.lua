@@ -440,9 +440,9 @@ function Module:CreateKeyToggle()
 			PlaySound(SOUNDKIT.KEY_RING_CLOSE)
 		end
 	end)
+
 	KeyRingButton.title = KEYRING
 	K.AddTooltip(KeyRingButton, "ANCHOR_TOP")
-	self.keyToggle = KeyRingButton
 
 	return KeyRingButton
 end
@@ -475,7 +475,7 @@ function Module:CreateSortButton(name)
 	sortButton.Icon = sortButton:CreateTexture(nil, "ARTWORK")
 	sortButton.Icon:SetAllPoints()
 	sortButton.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	sortButton.Icon:SetTexture("Interface\\Icons\\INV_Pet_Broom")
+	sortButton.Icon:SetTexture(K.MediaFolder .. "Inventory\\SortIcon")
 
 	sortButton:SetScript("OnClick", function()
 		if name == "Bank" then
@@ -503,60 +503,61 @@ function Module:CreateSortButton(name)
 	return sortButton
 end
 
-function Module:GetContainerEmptySlot(bagID)
-	for slotID = 1, GetContainerNumSlots(bagID) do
-		if not GetContainerItemID(bagID, slotID) then
-			return slotID
+function Module:GetContainerEmptySlot(bagID, bagGroup)
+	if cargBags.BagGroups[bagID] == bagGroup then
+		for slotID = 1, GetContainerNumSlots(bagID) do
+			if not GetContainerItemID(bagID, slotID) then
+				return slotID
+			end
 		end
 	end
 end
 
-function Module:GetEmptySlot(name)
-	if name == "Bag" then
-		for bagID = 0, 4 do
-			local slotID = Module:GetContainerEmptySlot(bagID)
+function Module:GetEmptySlot(bagType, bagGroup)
+	if bagType == "Bag" then
+		for bagID = 0, NUM_BAG_SLOTS do
+			local slotID = module:GetContainerEmptySlot(bagID, bagGroup)
 			if slotID then
 				return bagID, slotID
 			end
 		end
-	elseif name == "Bank" then
-		local slotID = Module:GetContainerEmptySlot(-1)
+	elseif bagType == "Bank" then
+		local slotID = module:GetContainerEmptySlot(-1, bagGroup)
 		if slotID then
 			return -1, slotID
 		end
 
-		for bagID = 5, 11 do
-			local slotID = Module:GetContainerEmptySlot(bagID)
+		for bagID = NUM_BAG_SLOTS + 1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
+			local slotID = module:GetContainerEmptySlot(bagID, bagGroup)
 			if slotID then
 				return bagID, slotID
 			end
-		end
-	elseif name == "Reagent" then
-		local slotID = Module:GetContainerEmptySlot(-3)
-		if slotID then
-			return -3, slotID
 		end
 	end
 end
 
 function Module:FreeSlotOnDrop()
-	local bagID, slotID = Module:GetEmptySlot(self.__name)
+	local bagID, slotID = Module:GetEmptySlot(self.__owner.Settings.BagType, self.__owner.bagGroup)
 	if slotID then
 		PickupContainerItem(bagID, slotID)
 	end
 end
 
 local freeSlotContainer = {
-	["Bag"] = true,
-	["Bank"] = true,
-	["Reagent"] = true,
+	["Bag"] = 0,
+	["Bank"] = 0,
+	["AmmoItem"] = K.Class == "WARLOCK" and 1 or K.Class == "HUNTER" and -1,
+	["BankAmmoItem"] = K.Class == "WARLOCK" and 1 or K.Class == "HUNTER" and -1,
 }
 
 function Module:CreateFreeSlots()
 	local name = self.name
-	if not freeSlotContainer[name] then
+	local bagGroup = freeSlotContainer[name]
+	if not bagGroup then
 		return
 	end
+
+	self.bagGroup = bagGroup
 
 	local slot = CreateFrame("Button", name .. "FreeSlot", self)
 	slot:SetSize(self.iconSize, self.iconSize)
@@ -565,13 +566,14 @@ function Module:CreateFreeSlots()
 	slot:SetScript("OnMouseUp", Module.FreeSlotOnDrop)
 	slot:SetScript("OnReceiveDrag", Module.FreeSlotOnDrop)
 	K.AddTooltip(slot, "ANCHOR_RIGHT", "FreeSlots")
-	slot.__name = name
+	slot.__owner = self
 
-	-- local tag = self:SpawnPlugin("TagDisplay", "|cff669dff[space]|r", slot)
-	-- tag:SetFontObject(K.UIFontOutline)
-	-- tag:SetFont(select(1, tag:GetFont()), 16, select(3, tag:GetFont()))
-	-- tag:SetPoint("CENTER", 0, 0)
-	-- tag.__name = name
+	local tag = self:SpawnPlugin("TagDisplay", "|cff669dff[space]|r", slot)
+	tag:SetFontObject(K.UIFontOutline)
+	tag:SetFont(select(1, tag:GetFont()), 16, select(3, tag:GetFont()))
+	tag:SetPoint("CENTER", 0, 0)
+	tag.__owner = self
+	slot.tag = tag
 
 	self.freeSlot = slot
 end
@@ -762,8 +764,8 @@ function Module:CreateFavouriteButton()
 	favouriteButton:StyleButton()
 
 	favouriteButton.Icon = favouriteButton:CreateTexture(nil, "ARTWORK")
-	favouriteButton.Icon:SetPoint("TOPLEFT", -4, 3.5)
-	favouriteButton.Icon:SetPoint("BOTTOMRIGHT", 4, -2.5)
+	favouriteButton.Icon:SetPoint("TOPLEFT", -5, 0)
+	favouriteButton.Icon:SetPoint("BOTTOMRIGHT", 5, -5)
 	favouriteButton.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 	favouriteButton.Icon:SetTexture("Interface\\Common\\friendship-heart")
 
@@ -996,10 +998,9 @@ function Module:OnEnable()
 	end)
 
 	Module.Bags = Backpack
-	Module.BagsType = {}
-	Module.BagsType[0] = 0 -- Backpack
-	Module.BagsType[-1] = 0 -- Bank
-	Module.BagsType[-3] = 0 -- Reagent
+	cargBags.BagGroups = {}
+	cargBags.BagGroups[0] = 0 -- backpack
+	cargBags.BagGroups[-1] = 0 -- bank
 
 	local f = {}
 	local filters = Module:GetFilters()
@@ -1313,7 +1314,7 @@ function Module:OnEnable()
 		end
 
 		if C["Inventory"].SpecialBagsColor then
-			local bagType = Module.BagsType[item.bagID]
+			local bagType = Module.BagGroups[item.bagID]
 			local color = bagTypeColor[bagType] or bagTypeColor[0]
 			self:SetBackdropColor(unpack(color))
 		else
@@ -1454,15 +1455,15 @@ function Module:OnEnable()
 		buttons[1] = Module.CreateCloseButton(self, f)
 		buttons[2] = Module.CreateSortButton(self, name)
 		if name == "Bag" then
-			Module.CreateBagBar(self, settings, 4)
+			Module.CreateBagBar(self, settings, NUM_BAG_SLOTS)
 			buttons[3] = Module.CreateBagToggle(self)
 			buttons[4] = Module.CreateKeyToggle(self)
-			buttons[4] = Module.CreateSplitButton(self)
-			buttons[5] = Module.CreateFavouriteButton(self)
-			buttons[6] = Module.CreateJunkButton(self)
-			buttons[7] = Module.CreateDeleteButton(self)
+			buttons[5] = Module.CreateSplitButton(self)
+			buttons[6] = Module.CreateFavouriteButton(self)
+			buttons[7] = Module.CreateJunkButton(self)
+			buttons[8] = Module.CreateDeleteButton(self)
 		elseif name == "Bank" then
-			Module.CreateBagBar(self, settings, 7)
+			Module.CreateBagBar(self, settings, NUM_BANKBAGSLOTS)
 			buttons[3] = Module.CreateBagToggle(self)
 			buttons[4] = Module.CreateReagentButton(self, f)
 		end
@@ -1549,15 +1550,17 @@ function Module:OnEnable()
 		end
 
 		if classID == LE_ITEM_CLASS_CONTAINER then
-			Module.BagsType[self.bagID] = subClassID or 0
+			cargBags.BagGroups[self.bagID] = subClassID or 0
+		elseif classID == LE_ITEM_CLASS_QUIVER then
+			cargBags.BagGroups[self.bagID] = -1
 		else
-			Module.BagsType[self.bagID] = 0
+			cargBags.BagGroups[self.bagID] = 0
 		end
 	end
 
 	-- Sort order
-	-- SetSortBagsRightToLeft(not C["Inventory"].ReverseSort)
-	-- SetInsertItemsLeftToRight(false)
+	SetSortBagsRightToLeft(not C["Inventory"].ReverseSort)
+	SetInsertItemsLeftToRight(false)
 
 	-- Init
 	ToggleAllBags()
