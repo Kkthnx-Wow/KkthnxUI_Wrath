@@ -93,18 +93,6 @@ function Module:CreateTarget()
 		end
 	end
 
-	-- Level
-	local Level = self:CreateFontString(nil, "OVERLAY")
-	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
-		Level:Show()
-		Level:SetPoint("BOTTOMLEFT", self.Portrait, "TOPLEFT", 0, 4)
-		Level:SetPoint("BOTTOMRIGHT", self.Portrait, "TOPRIGHT", 0, 4)
-	else
-		Level:Hide()
-	end
-	Level:SetFontObject(K.UIFont)
-	self:Tag(Level, "[fulllevel]")
-
 	if C["Unitframe"].TargetDebuffs then -- and C["Unitframe"].TargetDebuffsTop
 		local Debuffs = CreateFrame("Frame", nil, self)
 		Debuffs.spacing = 6
@@ -154,7 +142,6 @@ function Module:CreateTarget()
 	self.Health = Health
 	self.Power = Power
 	self.Name = Name
-	self.Level = Level
 	self.Range = Range
 
 	Module:CreateHeader(self)
@@ -164,4 +151,18 @@ function Module:CreateTarget()
 	Module:CreatePrediction(self)
 	Module:CreateFCT(self)
 	Module:CreateIndicators(self)
+
+	-- Level -- We need to add more of these info core to create, so we do not have to do this
+	local Level = self:CreateFontString(nil, "OVERLAY")
+	Level:SetFontObject(K.UIFont)
+	Level:SetPoint("BOTTOMLEFT", self.Portrait, "TOPLEFT", 0, 4)
+	Level:SetPoint("BOTTOMRIGHT", self.Portrait, "TOPRIGHT", 0, 4)
+	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+		Level:Show()
+	else
+		Level:Hide()
+	end
+	self:Tag(Level, "[fulllevel]")
+
+	self.Level = Level
 end

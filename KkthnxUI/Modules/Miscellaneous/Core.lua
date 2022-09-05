@@ -120,8 +120,6 @@ local petHappinessStr = {
 	[3] = "%sYour pet [%s] feels happy now.",
 }
 
-L["PetHappiness"] = "Hunter pet happiness"
-
 local function CheckPetHappiness(_, unit)
 	if unit ~= "pet" then
 		return
