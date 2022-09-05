@@ -60,7 +60,7 @@ local function SetupAutoQuestCheckButton()
 	end
 
 	local AutoQuestCheckButton = CreateFrame("CheckButton", nil, WorldMapFrame, "OptionsCheckButtonTemplate")
-	-- if C["Skins"].WorldMap then
+	-- if C["Skins"].WorldMap then -- Test webhook
 	-- 	AutoQuestCheckButton:SetPoint("TOPRIGHT", -160, -78)
 	-- 	AutoQuestCheckButton:SetSize(16, 16)
 	-- 	AutoQuestCheckButton:SkinCheckBox()
