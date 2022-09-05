@@ -74,6 +74,8 @@ local daysAbr = {
 
 -- Source wowhead.com
 local stats = {
+	344, -- Bandages used
+	759, -- Average daily quests completed per day
 	60, -- Total deaths
 	94, -- Quests abandoned
 	97, -- Daily quests completed
@@ -119,10 +121,16 @@ local stats = {
 	1518, -- Fish caught
 	1776, -- Food eaten most
 	2277, -- Summons accepted
-	5692, -- Rated battlegrounds played
-	5693, -- Rated battleground played the most
-	5695, -- Rated battleground won the most
 }
+
+if K.Faction == "Alliance" then
+	table.insert(stats, 1466) -- Most Alliance factions at Exalted
+	table.insert(stats, 58) -- Deaths from Drek'Thar
+	table.insert(stats, 594) -- Deaths from Hogger
+elseif K.Faction == "Horde" then
+	table.insert(stats, 593) -- Deaths from Vanndar Stormpike
+	table.insert(stats, 926) -- Most Horde factions at Exalted
+end
 
 local function IsIn(val, ...)
 	for i = 1, select("#", ...) do
@@ -201,11 +209,9 @@ end
 -- Create random stats
 local function createStats()
 	local id = stats[math_random(#stats)]
-	-- print("id", id)
 	local _, name = GetAchievementInfo(id)
-	-- print("name", name)
 	local result = GetStatistic(id)
-	-- print("result", result)
+	print("|n[id: " .. id .. "]" .. "|n[name: " .. name .. "]" .. "|n[result: " .. result .. "]")
 	if result == "--" then
 		result = NONE
 	end

@@ -376,31 +376,6 @@ do
 	end
 end
 
--- do
--- 	-- RoleUpdater
--- 	local function CheckRole()
--- 		local tree = GetSpecialization()
--- 		if not tree then
--- 			return
--- 		end
-
--- 		local _, _, _, _, role, stat = GetSpecializationInfo(tree)
--- 		if role == "TANK" then
--- 			K.Role = "Tank"
--- 		elseif role == "HEALER" then
--- 			K.Role = "Healer"
--- 		elseif role == "DAMAGER" then
--- 			if stat == 4 then -- 1 Strength, 2 Agility, 4 Intellect
--- 				K.Role = "Caster"
--- 			else
--- 				K.Role = "Melee"
--- 			end
--- 		end
--- 	end
--- 	K:RegisterEvent("PLAYER_LOGIN", CheckRole)
--- 	K:RegisterEvent("PLAYER_TALENT_UPDATE", CheckRole)
--- end
-
 do
 	-- Chat channel check
 	function K.CheckChat()
