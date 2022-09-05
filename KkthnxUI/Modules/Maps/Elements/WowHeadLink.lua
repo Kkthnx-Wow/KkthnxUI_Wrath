@@ -1,221 +1,119 @@
--- local K, C, L = unpack(KkthnxUI)
--- local Module = K:GetModule("WorldMap")
+local K, C, L = unpack(select(2, ...))
+local Module = K:GetModule("WorldMap")
 
--- local _G = _G
+local _G = _G
 
--- local GameTooltip = _G.GameTooltip
--- local GetAchievementLink = _G.GetAchievementLink
--- local GetQuestLink = _G.GetQuestLink
--- local IsAddOnLoaded = _G.IsAddOnLoaded
--- local QuestMapFrame_GetDetailQuestID = _G.QuestMapFrame_GetDetailQuestID
--- local hooksecurefunc = _G.hooksecurefunc
--- local setmetatable = _G.setmetatable
+local GetLocale = _G.GetLocale
+local IsAddOnLoaded = _G.IsAddOnLoaded
+local hooksecurefunc = _G.hooksecurefunc
+local setmetatable = _G.setmetatable
 
--- -- Wowhead Links
--- function Module:CreateWowHeadLinks()
--- 	if not C["Misc"].ShowWowHeadLinks or IsAddOnLoaded("Leatrix_Maps") then
--- 		return
--- 	end
+-- Wowhead Links
+local GameLocale = GetLocale()
+function Module:CreateWowHeadLinks()
+	if not C["Misc"].ShowWowHeadLinks or IsAddOnLoaded("Leatrix_Maps") then
+		return
+	end
 
--- 	-- Add wowhead link by Goldpaw "Lars" Norberg
--- 	local subDomain = (setmetatable({
--- 		ruRU = "ru",
--- 		frFR = "fr",
--- 		deDE = "de",
--- 		esES = "es",
--- 		esMX = "es",
--- 		ptBR = "pt",
--- 		ptPT = "pt",
--- 		itIT = "it",
--- 		koKR = "ko",
--- 		zhTW = "cn",
--- 		zhCN = "cn",
--- 	}, {
--- 		__index = function(t, v)
--- 			return "www"
--- 		end,
--- 	}))[K.Locale]
+	-- Add wowhead link by Goldpaw "Lars" Norberg
+	local subDomain = (setmetatable({
+		ruRU = "ru",
+		frFR = "fr",
+		deDE = "de",
+		esES = "es",
+		esMX = "es",
+		ptBR = "pt",
+		ptPT = "pt",
+		itIT = "it",
+		koKR = "ko",
+		zhTW = "cn",
+		zhCN = "cn",
+	}, {
+		__index = function(t, v)
+			return "www"
+		end,
+	}))[GameLocale]
 
--- 	local wowheadLoc = subDomain .. ".wowhead.com"
--- 	local urlQuestIcon = [[|TInterface\OptionsFrame\UI-OptionsFrame-NewFeatureIcon:0:0:0:0|t]]
+	local wowheadLoc = subDomain .. ".wowhead.com"
+	local urlQuestIcon = [[|TInterface\OptionsFrame\UI-OptionsFrame-NewFeatureIcon:0:0:0:0|t]]
 
--- 	-- Achievements frame
--- 	-- Achievement link function
--- 	local function DoWowheadAchievementFunc()
--- 		-- Create editbox
--- 		local AchievementEditBox = CreateFrame("EditBox", nil, _G.AchievementFrame)
--- 		AchievementEditBox:ClearAllPoints()
--- 		AchievementEditBox:SetPoint("BOTTOMRIGHT", -50, 1)
--- 		AchievementEditBox:SetHeight(16)
--- 		AchievementEditBox:SetFontObject("GameFontNormalSmall")
--- 		AchievementEditBox:SetBlinkSpeed(0)
--- 		AchievementEditBox:SetJustifyH("RIGHT")
--- 		AchievementEditBox:SetAutoFocus(false)
--- 		AchievementEditBox:EnableKeyboard(false)
--- 		AchievementEditBox:SetHitRectInsets(90, 0, 0, 0)
--- 		AchievementEditBox:SetScript("OnKeyDown", function() end)
--- 		AchievementEditBox:SetScript("OnMouseUp", function()
--- 			if AchievementEditBox:IsMouseOver() then
--- 				AchievementEditBox:HighlightText()
--- 			else
--- 				AchievementEditBox:HighlightText(0, 0)
--- 			end
--- 		end)
+	-- Create editbox
+	local mEB = CreateFrame("EditBox", nil, QuestLogFrame)
+	mEB:ClearAllPoints()
+	mEB:SetPoint("TOPLEFT", 70, 4)
+	mEB:SetHeight(16)
+	mEB:SetFontObject("GameFontNormal")
+	mEB:SetBlinkSpeed(0)
+	mEB:SetAutoFocus(false)
+	mEB:EnableKeyboard(false)
+	mEB:SetHitRectInsets(0, 90, 0, 0)
+	mEB:SetScript("OnKeyDown", function() end)
+	mEB:SetScript("OnMouseUp", function()
+		if mEB:IsMouseOver() then
+			mEB:HighlightText()
+		else
+			mEB:HighlightText(0, 0)
+		end
+	end)
 
--- 		-- Create hidden font string (used for setting width of editbox)
--- 		AchievementEditBox.FakeText = AchievementEditBox:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
--- 		AchievementEditBox.FakeText:Hide()
+	-- Set the background color
+	mEB.t = mEB:CreateTexture(nil, "BACKGROUND")
+	mEB.t:SetPoint(mEB:GetPoint())
+	mEB.t:SetSize(mEB:GetSize())
+	mEB.t:SetColorTexture(0.05, 0.05, 0.05, 1.0)
 
--- 		-- Store last link in case editbox is cleared
--- 		local lastAchievementLink
+	-- Create hidden font string (used for setting width of editbox)
+	mEB.z = mEB:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	mEB.z:Hide()
 
--- 		-- Function to set editbox value
--- 		hooksecurefunc("AchievementFrameAchievements_SelectButton", function(self)
--- 			local achievementID = self.id or nil
--- 			if achievementID then
--- 				-- Set editbox text
--- 				AchievementEditBox:SetText(urlQuestIcon .. "https://" .. wowheadLoc .. "/achievement=" .. achievementID)
--- 				lastAchievementLink = AchievementEditBox:GetText()
--- 				-- Set hidden fontstring then resize editbox to match
--- 				AchievementEditBox.FakeText:SetText(AchievementEditBox:GetText())
--- 				AchievementEditBox:SetWidth(AchievementEditBox.FakeText:GetStringWidth() + 90)
--- 				-- Get achievement title for tooltip
--- 				local achievementLink = GetAchievementLink(self.id)
--- 				if achievementLink then
--- 					AchievementEditBox.tiptext = achievementLink:match("%[(.-)%]") .. "|n" .. L["Press To Copy"]
--- 				end
--- 				-- Show the editbox
--- 				AchievementEditBox:Show()
--- 			end
--- 		end)
+	-- Function to set editbox value
+	local function SetQuestInBox(questListID)
+		local questTitle, _, _, isHeader, _, _, _, questID = GetQuestLogTitle(questListID)
+		if questID and not isHeader then
+			-- Hide editbox if quest ID is invalid
+			if questID == 0 then
+				mEB:Hide()
+			else
+				mEB:Show()
+			end
 
--- 		-- Create tooltip
--- 		AchievementEditBox:HookScript("OnEnter", function()
--- 			AchievementEditBox:HighlightText()
--- 			AchievementEditBox:SetFocus()
--- 			GameTooltip:SetOwner(AchievementEditBox, "ANCHOR_TOP", 0, 10)
--- 			GameTooltip:SetText(AchievementEditBox.tiptext, nil, nil, nil, nil, true)
--- 			GameTooltip:Show()
--- 		end)
+			-- Set editbox text
+			mEB:SetText(urlQuestIcon .. "https://" .. wowheadLoc .. "/quest=" .. questID)
 
--- 		AchievementEditBox:HookScript("OnLeave", function()
--- 			-- Set link text again if it"s changed since it was set
--- 			if AchievementEditBox:GetText() ~= lastAchievementLink then
--- 				AchievementEditBox:SetText(lastAchievementLink)
--- 			end
--- 			AchievementEditBox:HighlightText(0, 0)
--- 			AchievementEditBox:ClearFocus()
--- 			GameTooltip:Hide()
--- 		end)
+			-- Set hidden fontstring then resize editbox to match
+			mEB.z:SetText(mEB:GetText())
+			mEB:SetWidth(mEB.z:GetStringWidth() + 90)
+			mEB.t:SetWidth(mEB.z:GetStringWidth())
 
--- 		-- Hide editbox when achievement is deselected
--- 		hooksecurefunc("AchievementFrameAchievements_ClearSelection", function(self)
--- 			AchievementEditBox:Hide()
--- 		end)
+			-- Get quest title for tooltip
+			if questTitle then
+				mEB.tiptext = questTitle .. "|n" .. L["Press To Copy"]
+			else
+				mEB.tiptext = ""
+				if mEB:IsMouseOver() and GameTooltip:IsShown() then
+					GameTooltip:Hide()
+				end
+			end
+		end
+	end
 
--- 		hooksecurefunc("AchievementCategoryButton_OnClick", function(self)
--- 			AchievementEditBox:Hide()
--- 		end)
--- 	end
+	-- Set URL when quest is selected
+	hooksecurefunc("QuestLog_SetSelection", function(questListID)
+		SetQuestInBox(questListID)
+	end)
 
--- 	-- Run function when achievement UI is loaded
--- 	if IsAddOnLoaded("Blizzard_AchievementUI") then
--- 		DoWowheadAchievementFunc()
--- 	else
--- 		local waitAchievementsFrame = CreateFrame("FRAME")
--- 		waitAchievementsFrame:RegisterEvent("ADDON_LOADED")
--- 		waitAchievementsFrame:SetScript("OnEvent", function(self, event, arg1)
--- 			if arg1 == "Blizzard_AchievementUI" then
--- 				DoWowheadAchievementFunc()
--- 				waitAchievementsFrame:UnregisterAllEvents()
--- 			end
--- 		end)
--- 	end
+	-- Create tooltip
+	mEB:HookScript("OnEnter", function()
+		mEB:HighlightText()
+		mEB:SetFocus()
+		GameTooltip:SetOwner(mEB, "ANCHOR_BOTTOM", 0, -10)
+		GameTooltip:SetText(mEB.tiptext, nil, nil, nil, nil, true)
+		GameTooltip:Show()
+	end)
 
--- 	-- World map frame
--- 	-- Hide the title text
--- 	WorldMapFrameTitleText:Hide()
-
--- 	-- Create editbox
--- 	local WorldMapEditBox = CreateFrame("EditBox", nil, WorldMapFrame.BorderFrame)
--- 	WorldMapEditBox:ClearAllPoints()
--- 	WorldMapEditBox:SetPoint("TOPLEFT", 60, -4)
--- 	WorldMapEditBox:SetHeight(16)
--- 	WorldMapEditBox:SetFontObject("GameFontNormal")
--- 	WorldMapEditBox:SetBlinkSpeed(0)
--- 	WorldMapEditBox:SetAutoFocus(false)
--- 	WorldMapEditBox:EnableKeyboard(false)
--- 	WorldMapEditBox:SetHitRectInsets(0, 90, 0, 0)
--- 	WorldMapEditBox:SetScript("OnKeyDown", function() end)
--- 	WorldMapEditBox:SetScript("OnMouseUp", function()
--- 		if WorldMapEditBox:IsMouseOver() then
--- 			WorldMapEditBox:HighlightText()
--- 		else
--- 			WorldMapEditBox:HighlightText(0, 0)
--- 		end
--- 	end)
-
--- 	-- Create hidden font string (used for setting width of editbox)
--- 	WorldMapEditBox.FakeText = WorldMapEditBox:CreateFontString(nil, "ARTWORK", "GameFontNormal")
--- 	WorldMapEditBox.FakeText:Hide()
-
--- 	-- Function to set editbox value
--- 	local function SetQuestInBox()
--- 		local questID
--- 		if QuestMapFrame.DetailsFrame:IsShown() then
--- 			-- Get quest ID from currently showing quest in details panel
--- 			questID = QuestMapFrame_GetDetailQuestID()
--- 		else
--- 			-- Get quest ID from currently selected quest on world map
--- 			questID = C_SuperTrack.GetSuperTrackedQuestID()
--- 		end
--- 		if questID then
--- 			-- Hide editbox if quest ID is invalid
--- 			if questID == 0 then
--- 				WorldMapEditBox:Hide()
--- 			else
--- 				WorldMapEditBox:Show()
--- 			end
--- 			-- Set editbox text
--- 			WorldMapEditBox:SetText(urlQuestIcon .. "https://" .. wowheadLoc .. "/quest=" .. questID)
--- 			-- Set hidden fontstring then resize editbox to match
--- 			WorldMapEditBox.FakeText:SetText(WorldMapEditBox:GetText())
--- 			WorldMapEditBox:SetWidth(WorldMapEditBox.FakeText:GetStringWidth() + 90)
--- 			-- Get quest title for tooltip
--- 			local questLink = GetQuestLink(questID) or nil
--- 			if questLink then
--- 				WorldMapEditBox.tiptext = questLink:match("%[(.-)%]") .. "|n" .. L["Press To Copy"]
--- 			else
--- 				WorldMapEditBox.tiptext = ""
--- 				if WorldMapEditBox:IsMouseOver() and GameTooltip:IsShown() then
--- 					GameTooltip:Hide()
--- 				end
--- 			end
--- 		end
--- 	end
-
--- 	-- Set URL when super tracked quest changes and on startup
--- 	WorldMapEditBox:RegisterEvent("SUPER_TRACKING_CHANGED")
--- 	WorldMapEditBox:SetScript("OnEvent", SetQuestInBox)
--- 	SetQuestInBox()
-
--- 	-- Set URL when quest details frame is shown or hidden
--- 	hooksecurefunc("QuestMapFrame_ShowQuestDetails", SetQuestInBox)
--- 	hooksecurefunc("QuestMapFrame_CloseQuestDetails", SetQuestInBox)
-
--- 	-- Create tooltip
--- 	WorldMapEditBox:HookScript("OnEnter", function()
--- 		WorldMapEditBox:HighlightText()
--- 		WorldMapEditBox:SetFocus()
--- 		GameTooltip:SetOwner(WorldMapEditBox, "ANCHOR_BOTTOM", 0, -10)
--- 		GameTooltip:SetText(WorldMapEditBox.tiptext, nil, nil, nil, nil, true)
--- 		GameTooltip:Show()
--- 	end)
-
--- 	WorldMapEditBox:HookScript("OnLeave", function()
--- 		WorldMapEditBox:HighlightText(0, 0)
--- 		WorldMapEditBox:ClearFocus()
--- 		GameTooltip:Hide()
--- 		SetQuestInBox()
--- 	end)
--- end
+	mEB:HookScript("OnLeave", function()
+		mEB:HighlightText(0, 0)
+		mEB:ClearFocus()
+		GameTooltip:Hide()
+	end)
+end

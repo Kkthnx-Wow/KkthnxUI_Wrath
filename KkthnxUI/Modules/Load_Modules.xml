@@ -135,7 +135,6 @@
    <Script file="Announcements\Elements\Sapped.lua" />
    <!-- Automation -->
    <Script file="Automation\Core.lua" />
-   <Script file="Automation\Elements\AutoKeystone.lua" />
    <Script file="Automation\Elements\AutoOpen.lua" />
    <Script file="Automation\Elements\BadBuffs.lua" />
    <Script file="Automation\Elements\BestReward.lua" />
@@ -159,28 +158,17 @@
    <Script file="Loot\Elements\FasterLoot.lua" />
    <!-- Skins Blizzard -->
    <Include file="Skins\Core.lua" />
-   <Include file="Skins\Blizzard\AchievementUI.lua" />
-   <Include file="Skins\Blizzard\ArchaeologyUI.lua" />
-   <Include file="Skins\Blizzard\Collections.lua" />
-   <Include file="Skins\Blizzard\DeathRecap.lua" />
    <Include file="Skins\Blizzard\InspectUI.lua" />
    <Include file="Skins\Blizzard\TalentUI.lua" />
-   <Include file="Skins\Blizzard\TalkingHeadUI.lua" />
-   <Include file="Skins\Blizzard\TradeSkillUI.lua" />
+   <Include file="Skins\Blizzard\WorldMap.lua" />
    <!-- Skins FrameXML -->
    <Include file="Skins\Blizzard\FrameXML\CharacterFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatBubbles.lua" />
    <Include file="Skins\Blizzard\FrameXML\ChatFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\Fonts.lua" />
    <Include file="Skins\Blizzard\FrameXML\GameMenuFrame.lua" />
-   <Include file="Skins\Blizzard\FrameXML\GhostFrame.lua" />
-   <Include file="Skins\Blizzard\FrameXML\LootFrame.lua" />
-   <Include file="Skins\Blizzard\FrameXML\LossOfControlFrame.lua" />
    <Include file="Skins\Blizzard\FrameXML\ObjectiveTracker.lua" />
-   <Include file="Skins\Blizzard\FrameXML\SpellBookFrame.lua" />
-   <Include file="Skins\Blizzard\FrameXML\StaticPopup.lua" />
    <Include file="Skins\Blizzard\FrameXML\UIDropDownMenu.lua" />
-   <Include file="Skins\Blizzard\FrameXML\UIWidgets.lua" />
    <!-- Skins AddOns -->
    <Include file="Skins\Addons\Bartender4.lua" />
    <Include file="Skins\Addons\BigWigs.lua" />
