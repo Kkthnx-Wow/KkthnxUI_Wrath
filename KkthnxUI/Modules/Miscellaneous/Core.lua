@@ -45,17 +45,20 @@ function Module:OnEnable()
 		end
 	end
 
-	self:CreateBlockStrangerInvites()
-	self:CreateBossEmote()
-	self:CreateDurabilityFrameMove()
-	self:CreateErrorFrameToggle()
-	self:CreateGUIGameMenuButton()
-	self:CreateMinimapButtonToggle()
-	self:CreateObjectiveSizeUpdate()
-	self:CreateQuestSizeUpdate()
-	self:CreateTicketStatusFrameMove()
-	self:CreateTradeTargetInfo()
-	self:UpdateMaxCameraZoom()
+	Module:CreateBlockStrangerInvites()
+	Module:CreateBossEmote()
+	Module:CreateDurabilityFrameMove()
+	Module:CreateErrorFrameToggle()
+	Module:CreateGUIGameMenuButton()
+	Module:CreateMinimapButtonToggle()
+	Module:CreateObjectiveSizeUpdate()
+	Module:CreatePetHappiness()
+	Module:CreateQuestSizeUpdate()
+	Module:CreateTaxiDismount()
+	Module:CreateTicketStatusFrameMove()
+	Module:CreateTradeTargetInfo()
+	Module:UpdateMaxCameraZoom()
+	C_Timer_After(0, Module.UpdateMaxCameraZoom)
 
 	-- TESTING CMD : /run BNToastFrame:AddToast(BN_TOAST_TYPE_ONLINE, 1)
 	if not BNToastFrame.mover then -- text, value, anchor, width, height, isAuraWatch, postDrag
@@ -137,7 +140,7 @@ local function CheckPetHappiness(_, unit)
 	end
 end
 
-function Module:TogglePetHappiness()
+function Module:CreatePetHappiness()
 	if K.Class ~= "HUNTER" then
 		return
 	end
@@ -150,7 +153,7 @@ function Module:TogglePetHappiness()
 end
 
 -- Auto dismount on Taxi
-function Module:ToggleTaxiDismount()
+function Module:CreateTaxiDismount()
 	local lastTaxiIndex
 	local function retryTaxi()
 		if InCombatLockdown() then
