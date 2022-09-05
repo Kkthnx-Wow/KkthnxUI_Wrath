@@ -25,7 +25,6 @@ local GetItemInfo = _G.GetItemInfo
 local GetMouseFocus = _G.GetMouseFocus
 local GetRaidTargetIndex = _G.GetRaidTargetIndex
 local HEALER = _G.HEALER
-local HIGHLIGHT_FONT_COLOR = _G.HIGHLIGHT_FONT_COLOR
 local ICON_LIST = _G.ICON_LIST
 local INTERACTIVE_SERVER_LABEL = _G.INTERACTIVE_SERVER_LABEL
 local InCombatLockdown = _G.InCombatLockdown
@@ -42,7 +41,6 @@ local TANK = _G.TANK
 local TARGET = _G.TARGET
 local UIDROPDOWNMENU_MAXLEVELS = _G.UIDROPDOWNMENU_MAXLEVELS
 local UIParent = _G.UIParent
-local UnitBattlePetLevel = _G.UnitBattlePetLevel
 local UnitClass = _G.UnitClass
 local UnitClassification = _G.UnitClassification
 local UnitCreatureType = _G.UnitCreatureType
@@ -53,7 +51,6 @@ local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local UnitInParty = _G.UnitInParty
 local UnitInRaid = _G.UnitInRaid
 local UnitIsAFK = _G.UnitIsAFK
-local UnitIsBattlePetCompanion = _G.UnitIsBattlePetCompanion
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsDND = _G.UnitIsDND
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
@@ -327,8 +324,6 @@ function Module:OnTooltipSetUnit()
 	end
 
 	self.StatusBar:SetStatusBarColor(r, g, b)
-
-	Module.InspectUnitSpecAndLevel(self, unit)
 end
 
 function Module:StatusBar_OnValueChanged(value)

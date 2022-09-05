@@ -501,11 +501,7 @@ C["Tooltip"] = {
 	["HideRealm"] = true,
 	["HideTitle"] = true,
 	["Icons"] = true,
-	["LFDRole"] = false,
-	["MDScore"] = true,
 	["ShowIDs"] = false,
-	["ShowMount"] = false,
-	["SpecLevelByShift"] = true,
 	["TargetBy"] = true,
 }
 

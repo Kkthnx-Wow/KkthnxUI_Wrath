@@ -806,13 +806,7 @@ local Tooltip = function(self)
 	Window:CreateSwitch("Tooltip", "HideRealm", L["Show realm name by SHIFT"])
 	Window:CreateSwitch("Tooltip", "HideTitle", L["Hide Player Title"])
 	Window:CreateSwitch("Tooltip", "Icons", L["Item Icons"])
-	Window:CreateSwitch("Tooltip", "LFDRole", L["Show Roles Assigned Icon"])
-	Window:CreateSwitch("Tooltip", "ShowMount", newFeatureIcon .. L["Show Player Mount Source Info By CTRL"])
-	if not K.CheckAddOnState("RaiderIO") then
-		Window:CreateSwitch("Tooltip", "MDScore", "Show Mythic+ Rating")
-	end
 	Window:CreateSwitch("Tooltip", "ShowIDs", L["Show Tooltip IDs"])
-	Window:CreateSwitch("Tooltip", "SpecLevelByShift", L["Show Spec/ItemLevel by SHIFT"])
 	Window:CreateSwitch("Tooltip", "TargetBy", L["Show Player Targeted By"])
 end
 
