@@ -404,7 +404,7 @@ end
 do
 	-- Chat channel check
 	function K.CheckChat()
-		return IsPartyLFG() and "INSTANCE_CHAT" or IsInRaid() and "RAID" or "PARTY"
+		return IsInRaid() and "RAID" or "PARTY"
 	end
 end
 
