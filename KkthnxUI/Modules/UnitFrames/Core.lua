@@ -13,7 +13,6 @@ local CLASS_ICON_TCOORDS = _G.CLASS_ICON_TCOORDS
 local CreateFrame = _G.CreateFrame
 local GetRuneCooldown = _G.GetRuneCooldown
 local IsInInstance = _G.IsInInstance
-local IsReplacingUnit = _G.IsReplacingUnit
 local MAX_BOSS_FRAMES = _G.MAX_BOSS_FRAMES
 local PlaySound = _G.PlaySound
 local SOUNDKIT = _G.SOUNDKIT
@@ -105,13 +104,14 @@ function Module:UpdateThreat(_, unit)
 	local health = self.Health
 	local portrait = self.Portrait
 
+	local r, g, b
 	if portraitStyle == "ThreeDPortraits" then
 		if not portrait.KKUI_Border then
 			return
 		end
 
 		if status and status > 1 then
-			local r, g, b = unpack(oUF.colors.threat[status])
+			r, g, b = GetThreatStatusColor(status)
 			portrait.KKUI_Border:SetVertexColor(r, g, b)
 		else
 			if C["General"].ColorTextures then
@@ -126,7 +126,7 @@ function Module:UpdateThreat(_, unit)
 		end
 
 		if status and status > 1 then
-			local r, g, b = unpack(oUF.colors.threat[status])
+			r, g, b = GetThreatStatusColor(status)
 			portrait.Border.KKUI_Border:SetVertexColor(r, g, b)
 		else
 			if C["General"].ColorTextures then
@@ -141,7 +141,7 @@ function Module:UpdateThreat(_, unit)
 		end
 
 		if status and status > 1 then
-			local r, g, b = unpack(oUF.colors.threat[status])
+			r, g, b = GetThreatStatusColor(status)
 			health.KKUI_Border:SetVertexColor(r, g, b)
 		else
 			if C["General"].ColorTextures then
