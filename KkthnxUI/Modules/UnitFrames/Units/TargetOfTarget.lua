@@ -6,21 +6,21 @@ local _G = _G
 local CreateFrame = _G.CreateFrame
 
 function Module:CreateTargetOfTarget()
-	self.mystyle = "targetoftarget"
-
-	local targetOfTargetPortraitStyle = C["Unitframe"].PortraitStyle.Value
-	local targetOfTargetTexture = K.GetTexture(C["General"].Texture)
+	local UnitframeTexture = K.GetTexture(C["General"].Texture)
 	local targetOfTargetWidth = C["Unitframe"].TargetTargetHealthWidth
+	local targetOfTargetPortraitStyle = C["Unitframe"].PortraitStyle.Value
 
 	local Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
 	Overlay:SetAllPoints()
 	Overlay:SetFrameLevel(5)
 
+	Module.CreateHeader(self)
+
 	local Health = CreateFrame("StatusBar", nil, self)
 	Health:SetHeight(C["Unitframe"].TargetTargetHealthHeight)
 	Health:SetPoint("TOPLEFT")
 	Health:SetPoint("TOPRIGHT")
-	Health:SetStatusBarTexture(targetOfTargetTexture)
+	Health:SetStatusBarTexture(UnitframeTexture)
 	Health:CreateBorder()
 
 	Health.colorTapping = true
@@ -52,7 +52,7 @@ function Module:CreateTargetOfTarget()
 	Power:SetHeight(C["Unitframe"].TargetTargetPowerHeight)
 	Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -6)
 	Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -6)
-	Power:SetStatusBarTexture(targetOfTargetTexture)
+	Power:SetStatusBarTexture(UnitframeTexture)
 	Power:CreateBorder()
 
 	Power.colorPower = true
@@ -78,6 +78,41 @@ function Module:CreateTargetOfTarget()
 		end
 	end
 	Name:SetShown(not C["Unitframe"].HideTargetOfTargetName)
+
+	if targetOfTargetPortraitStyle ~= "NoPortraits" then
+		if targetOfTargetPortraitStyle == "OverlayPortrait" then
+			local Portrait = CreateFrame("PlayerModel", "KKUI_TargetTargetPortrait", self)
+			Portrait:SetFrameStrata(self:GetFrameStrata())
+			Portrait:SetPoint("TOPLEFT", Health, "TOPLEFT", 1, -1)
+			Portrait:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", -1, 1)
+			Portrait:SetAlpha(0.6)
+
+			self.Portrait = Portrait
+		elseif targetOfTargetPortraitStyle == "ThreeDPortraits" then
+			local Portrait = CreateFrame("PlayerModel", "KKUI_TargetTargetPortrait", Health)
+			Portrait:SetFrameStrata(self:GetFrameStrata())
+			Portrait:SetSize(Health:GetHeight() + Power:GetHeight() + 6, Health:GetHeight() + Power:GetHeight() + 6)
+			Portrait:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, 0)
+			Portrait:CreateBorder()
+
+			self.Portrait = Portrait
+		elseif targetOfTargetPortraitStyle ~= "ThreeDPortraits" and targetOfTargetPortraitStyle ~= "OverlayPortrait" then
+			local Portrait = Health:CreateTexture("KKUI_TargetTargetPortrait", "BACKGROUND", nil, 1)
+			Portrait:SetTexCoord(0.15, 0.85, 0.15, 0.85)
+			Portrait:SetSize(Health:GetHeight() + Power:GetHeight() + 6, Health:GetHeight() + Power:GetHeight() + 6)
+			Portrait:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, 0)
+
+			Portrait.Border = CreateFrame("Frame", nil, self)
+			Portrait.Border:SetAllPoints(Portrait)
+			Portrait.Border:CreateBorder()
+
+			self.Portrait = Portrait
+
+			if targetOfTargetPortraitStyle == "ClassPortraits" or targetOfTargetPortraitStyle == "NewClassPortraits" then
+				Portrait.PostUpdate = Module.UpdateClassPortraits
+			end
+		end
+	end
 
 	local Level = self:CreateFontString(nil, "OVERLAY")
 	Level:SetFontObject(K.UIFont)
@@ -105,6 +140,22 @@ function Module:CreateTargetOfTarget()
 	Debuffs.PostCreateIcon = Module.PostCreateAura
 	Debuffs.PostUpdateIcon = Module.PostUpdateAura
 
+	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	if targetOfTargetPortraitStyle ~= "NoPortraits" and targetOfTargetPortraitStyle ~= "OverlayPortrait" then
+		RaidTargetIndicator:SetPoint("TOP", self.Portrait, "TOP", 0, 8)
+	else
+		RaidTargetIndicator:SetPoint("TOP", Health, "TOP", 0, 8)
+	end
+	RaidTargetIndicator:SetSize(12, 12)
+
+	local Highlight = Health:CreateTexture(nil, "OVERLAY")
+	Highlight:SetAllPoints()
+	Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
+	Highlight:SetTexCoord(0, 1, 0.5, 1)
+	Highlight:SetVertexColor(0.6, 0.6, 0.6)
+	Highlight:SetBlendMode("ADD")
+	Highlight:Hide()
+
 	local ThreatIndicator = {
 		IsObjectType = K.Noop,
 		Override = Module.UpdateThreat,
@@ -118,9 +169,8 @@ function Module:CreateTargetOfTarget()
 	self.Name = Name
 	self.Level = Level
 	self.Debuffs = Debuffs
+	self.RaidTargetIndicator = RaidTargetIndicator
+	self.Highlight = Highlight
 	self.ThreatIndicator = ThreatIndicator
 	self.Range = Range
-
-	Module:CreateHeader(self)
-	Module:CreatePortrait(self)
 end

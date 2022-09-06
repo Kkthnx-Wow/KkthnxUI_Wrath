@@ -92,7 +92,6 @@ local function Enable(self)
 		self:RegisterEvent("ARENA_COOLDOWNS_UPDATE", Update, true)
 		self:RegisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE", Update, true)
 		self:RegisterEvent("ARENA_OPPONENT_UPDATE", Update, true)
-		-- self:RegisterEvent("PVP_MATCH_INACTIVE", ClearCooldowns, true)
 
 		return true
 	end
@@ -104,7 +103,6 @@ local function Disable(self)
 		self:UnregisterEvent("ARENA_COOLDOWNS_UPDATE", Update)
 		self:UnregisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE", Update)
 		self:UnregisterEvent("ARENA_OPPONENT_UPDATE", Update)
-		-- self:UnregisterEvent("PVP_MATCH_INACTIVE", ClearCooldowns)
 
 		element:Hide()
 	end

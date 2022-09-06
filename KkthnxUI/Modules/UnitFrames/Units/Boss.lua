@@ -12,17 +12,21 @@ function Module:CreateBoss()
 	local bossWidth = C["Boss"].HealthWidth
 	local bossHeight = C["Boss"].HealthHeight
 	local bossPortraitStyle = C["Unitframe"].PortraitStyle.Value
-	local bossTexture = K.GetTexture(C["General"].Texture)
+
+	local UnitframeTexture = K.GetTexture(C["General"].Texture)
+	-- local HealPredictionTexture = K.GetTexture(C["General"].Texture)
 
 	self.Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
 	self.Overlay:SetAllPoints()
 	self.Overlay:SetFrameLevel(6)
 
+	Module.CreateHeader(self)
+
 	self.Health = CreateFrame("StatusBar", nil, self)
 	self.Health:SetHeight(bossHeight)
 	self.Health:SetPoint("TOPLEFT")
 	self.Health:SetPoint("TOPRIGHT")
-	self.Health:SetStatusBarTexture(bossTexture)
+	self.Health:SetStatusBarTexture(UnitframeTexture)
 	self.Health:CreateBorder()
 
 	self.Health.colorDisconnected = true
@@ -57,7 +61,7 @@ function Module:CreateBoss()
 	self.Power:SetHeight(C["Boss"].PowerHeight)
 	self.Power:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -6)
 	self.Power:SetPoint("TOPRIGHT", self.Health, "BOTTOMRIGHT", 0, -6)
-	self.Power:SetStatusBarTexture(bossTexture)
+	self.Power:SetStatusBarTexture(UnitframeTexture)
 	self.Power:CreateBorder()
 
 	self.Power.colorPower = true
@@ -127,6 +131,7 @@ function Module:CreateBoss()
 	self.Level:SetFontObject(K.UIFont)
 	self:Tag(self.Level, "[nplevel]")
 
+	--if C["Boss"].ShowBuffs then
 	self.Buffs = CreateFrame("Frame", nil, self)
 	self.Buffs:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -6)
 	self.Buffs:SetPoint("TOPRIGHT", self.Power, "BOTTOMRIGHT", 0, -6)
@@ -143,6 +148,7 @@ function Module:CreateBoss()
 	self.Buffs.showStealableBuffs = true
 	self.Buffs.PostCreateIcon = Module.PostCreateAura
 	self.Buffs.PostUpdateIcon = Module.PostUpdateAura
+	--end
 
 	self.Debuffs = CreateFrame("Frame", self:GetName() .. "Debuffs", self)
 	self.Debuffs.spacing = 6
@@ -157,6 +163,65 @@ function Module:CreateBoss()
 	self.Debuffs.onlyShowPlayer = C["Unitframe"].OnlyShowPlayerDebuff
 	self.Debuffs.PostCreateIcon = Module.PostCreateAura
 	self.Debuffs.PostUpdateIcon = Module.PostUpdateAura
+
+	if C["Boss"].Castbars then
+		self.Castbar = CreateFrame("StatusBar", "BossCastbar", self)
+		self.Castbar:SetStatusBarTexture(UnitframeTexture)
+		self.Castbar:SetClampedToScreen(true)
+		self.Castbar:CreateBorder()
+
+		self.Castbar:ClearAllPoints()
+		if bossPortraitStyle == "NoPortraits" or bossPortraitStyle == "OverlayPortrait" then
+			self.Castbar:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", C["Boss"].CastbarIcon and 24, 6)
+			self.Castbar:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, 6)
+		else
+			self.Castbar:SetPoint("BOTTOMRIGHT", self.Portrait, "TOPRIGHT", 0, 6)
+			self.Castbar:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", C["Boss"].CastbarIcon and 24, 6)
+		end
+		self.Castbar:SetHeight(18)
+
+		self.Castbar.Spark = self.Castbar:CreateTexture(nil, "OVERLAY")
+		self.Castbar.Spark:SetTexture(C["Media"].Textures.Spark128Texture)
+		self.Castbar.Spark:SetSize(128, self.Castbar:GetHeight())
+		self.Castbar.Spark:SetBlendMode("ADD")
+
+		self.Castbar.Time = self.Castbar:CreateFontString(nil, "OVERLAY")
+		self.Castbar.Time:SetFontObject(K.UIFont)
+		self.Castbar.Time:SetFont(select(1, self.Castbar.Time:GetFont()), 11, select(3, self.Castbar.Time:GetFont()))
+		self.Castbar.Time:SetPoint("RIGHT", -3.5, 0)
+		self.Castbar.Time:SetTextColor(0.84, 0.75, 0.65)
+		self.Castbar.Time:SetJustifyH("RIGHT")
+
+		self.Castbar.decimal = "%.2f"
+
+		self.Castbar.OnUpdate = Module.OnCastbarUpdate
+		self.Castbar.PostCastStart = Module.PostCastStart
+		self.Castbar.PostCastStop = Module.PostCastStop
+		self.Castbar.PostCastFail = Module.PostCastFailed
+		self.Castbar.PostCastInterruptible = Module.PostUpdateInterruptible
+
+		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY")
+		self.Castbar.Text:SetFontObject(K.UIFont)
+		self.Castbar.Text:SetFont(select(1, self.Castbar.Text:GetFont()), 11, select(3, self.Castbar.Text:GetFont()))
+		self.Castbar.Text:SetPoint("LEFT", 3.5, 0)
+		self.Castbar.Text:SetPoint("RIGHT", self.Castbar.Time, "LEFT", -3.5, 0)
+		self.Castbar.Text:SetTextColor(0.84, 0.75, 0.65)
+		self.Castbar.Text:SetJustifyH("LEFT")
+		self.Castbar.Text:SetWordWrap(false)
+
+		if C["Boss"].CastbarIcon then
+			self.Castbar.Button = CreateFrame("Frame", nil, self.Castbar)
+			self.Castbar.Button:SetSize(16, 16)
+			self.Castbar.Button:CreateBorder()
+
+			self.Castbar.Icon = self.Castbar.Button:CreateTexture(nil, "ARTWORK")
+			self.Castbar.Icon:SetSize(self.Castbar:GetHeight(), self.Castbar:GetHeight())
+			self.Castbar.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
+			self.Castbar.Icon:SetPoint("RIGHT", self.Castbar, "LEFT", -6, 0)
+
+			self.Castbar.Button:SetAllPoints(self.Castbar.Icon)
+		end
+	end
 
 	if C["Boss"].TargetHighlight then
 		self.TargetHighlight = CreateFrame("Frame", nil, self.Overlay, "BackdropTemplate")
@@ -202,6 +267,14 @@ function Module:CreateBoss()
 		self.ResurrectIndicator:SetPoint("CENTER", self.Health)
 	end
 
+	self.Highlight = self.Health:CreateTexture(nil, "OVERLAY")
+	self.Highlight:SetAllPoints()
+	self.Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
+	self.Highlight:SetTexCoord(0, 1, 0.5, 1)
+	self.Highlight:SetVertexColor(0.6, 0.6, 0.6)
+	self.Highlight:SetBlendMode("ADD")
+	self.Highlight:Hide()
+
 	local altPower = K.CreateFontString(self, 10, "")
 	altPower:SetPoint("RIGHT", self.Power, "LEFT", -6, 0)
 	self:Tag(altPower, "[altpower]")
@@ -212,6 +285,4 @@ function Module:CreateBoss()
 	}
 
 	self.Range = Module.CreateRangeIndicator(self)
-
-	Module:CreateHeader(self)
 end

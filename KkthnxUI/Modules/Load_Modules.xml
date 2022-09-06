@@ -47,9 +47,7 @@
    <Script file="ActionBars\Elements\Petbar.lua" />
    <Script file="ActionBars\Elements\AspectBar.lua" />
    <Script file="ActionBars\Elements\TotemBar.lua" />
-   <Script file="ActionBars\Elements\Extrabar.lua" />
    <Script file="ActionBars\Elements\Vehicle.lua" />
-   <Script file="ActionBars\Elements\ExtraQuestButton.lua" />
    <Script file="ActionBars\Elements\BlizzArt.lua" />
    <Script file="ActionBars\Elements\Fader.lua" />
    <Script file="ActionBars\ButtonRange.lua" />

@@ -39,6 +39,7 @@ local UnitReaction = _G.UnitReaction
 local UnitThreatSituation = _G.UnitThreatSituation
 local hooksecurefunc = _G.hooksecurefunc
 
+local aksCacheData = {}
 local customUnits = {}
 local groupRoles = {}
 local showPowerList = {}
@@ -793,12 +794,33 @@ function Module:CreatePlates()
 	self:Tag(self.healthValue, "[nphp]")
 
 	Module:CreateCastBar(self)
-	Module:CreatePrediction(self)
 
 	self.RaidTargetIndicator = self:CreateTexture(nil, "OVERLAY")
 	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, 20)
 	self.RaidTargetIndicator:SetParent(self.Health)
 	self.RaidTargetIndicator:SetSize(16, 16)
+
+	do
+		local frame = CreateFrame("Frame", nil, self)
+		frame:SetAllPoints()
+
+		local mhpb = frame:CreateTexture(nil, "BORDER", nil, 5)
+		mhpb:SetWidth(1)
+		mhpb:SetTexture(K.GetTexture(C["General"].Texture))
+		mhpb:SetVertexColor(0, 1, 0, 0.5)
+
+		local ohpb = frame:CreateTexture(nil, "BORDER", nil, 5)
+		ohpb:SetWidth(1)
+		ohpb:SetTexture(K.GetTexture(C["General"].Texture))
+		ohpb:SetVertexColor(0, 1, 1, 0.5)
+
+		self.HealPredictionAndAbsorb = {
+			myBar = mhpb,
+			otherBar = ohpb,
+			maxOverflow = 1,
+		}
+		self.predicFrame = frame
+	end
 
 	self.Auras = CreateFrame("Frame", nil, self)
 	self.Auras:SetFrameLevel(self:GetFrameLevel() + 2)
@@ -931,10 +953,9 @@ function Module:RefreshAllPlates()
 end
 
 local DisabledElements = {
-	"Castbar",
-	"HealPredictionAndAbsorb",
 	"Health",
-	"PvPClassificationIndicator",
+	"Castbar",
+	"HealthPrediction",
 	"ThreatIndicator",
 }
 function Module:UpdatePlateByType()
@@ -946,7 +967,6 @@ function Module:UpdatePlateByType()
 	local raidtarget = self.RaidTargetIndicator
 	local questIcon = self.questIcon
 
-	-- name:SetShown(not self.widgetsOnly)
 	name:ClearAllPoints()
 	raidtarget:ClearAllPoints()
 
@@ -1050,14 +1070,6 @@ function Module:PostUpdatePlates(event, unit)
 		self.unitGUID = UnitGUID(unit)
 		self.isPlayer = UnitIsPlayer(unit)
 		self.npcID = K.GetNPCID(self.unitGUID)
-		-- self.widgetsOnly = UnitNameplateShowsWidgetsOnly(unit)
-
-		local blizzPlate = self:GetParent().UnitFrame
-		self.widgetContainer = blizzPlate and blizzPlate.WidgetContainer
-		if self.widgetContainer then
-			self.widgetContainer:SetParent(self)
-			self.widgetContainer:SetScale(1 / C["General"].UIScale)
-		end
 
 		Module.RefreshPlateType(self, unit)
 	elseif event == "NAME_PLATE_UNIT_REMOVED" then

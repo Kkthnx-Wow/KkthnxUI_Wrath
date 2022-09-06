@@ -36,7 +36,7 @@ local function UpdateRaidPower(self, _, unit)
 		return
 	end
 
-	if C["Raid"].ManabarShow then
+	if UnitGroupRolesAssigned(unit) == "HEALER" and UnitGroupRolesAssigned(unit) ~= "NONE" then
 		if not self.Power:IsVisible() then
 			self.Health:ClearAllPoints()
 			self.Health:SetPoint("BOTTOMLEFT", self, 0, 6)
@@ -55,20 +55,17 @@ local function UpdateRaidPower(self, _, unit)
 end
 
 function Module:CreateRaid()
-	self.mystyle = "raid"
+	local RaidframeTexture = K.GetTexture(C["General"].Texture)
+	local HealPredictionTexture = K.GetTexture(C["General"].Texture)
 
-	local raidTexture = K.GetTexture(C["General"].Texture)
+	Module.CreateHeader(self)
 
 	self:CreateBorder()
-
-	local Overlay = CreateFrame("Frame", nil, self)
-	Overlay:SetAllPoints()
-	Overlay:SetFrameLevel(self:GetFrameLevel() + 4)
 
 	local Health = CreateFrame("StatusBar", nil, self)
 	Health:SetFrameLevel(self:GetFrameLevel())
 	Health:SetAllPoints(self)
-	Health:SetStatusBarTexture(raidTexture)
+	Health:SetStatusBarTexture(RaidframeTexture)
 
 	Health.Value = Health:CreateFontString(nil, "OVERLAY")
 	Health.Value:SetPoint("CENTER", Health, 0, -9)
@@ -105,7 +102,7 @@ function Module:CreateRaid()
 		Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -1)
 		Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -1)
 		Power:SetHeight(4)
-		Power:SetStatusBarTexture(raidTexture)
+		Power:SetStatusBarTexture(RaidframeTexture)
 
 		Power.colorPower = true
 		Power.frequentUpdates = false
@@ -123,6 +120,28 @@ function Module:CreateRaid()
 		self:RegisterEvent("UNIT_DISPLAYPOWER", UpdateRaidPower)
 	end
 
+	if C["Raid"].ShowHealPrediction then
+		local frame = CreateFrame("Frame", nil, self)
+		frame:SetAllPoints()
+
+		local mhpb = frame:CreateTexture(nil, "BORDER", nil, 5)
+		mhpb:SetWidth(1)
+		mhpb:SetTexture(K.GetTexture(C["General"].Texture))
+		mhpb:SetVertexColor(0, 1, 0, 0.5)
+
+		local ohpb = frame:CreateTexture(nil, "BORDER", nil, 5)
+		ohpb:SetWidth(1)
+		ohpb:SetTexture(K.GetTexture(C["General"].Texture))
+		ohpb:SetVertexColor(0, 1, 1, 0.5)
+
+		self.HealPredictionAndAbsorb = {
+			myBar = mhpb,
+			otherBar = ohpb,
+			maxOverflow = 1,
+		}
+		self.predicFrame = frame
+	end
+
 	local Name = self:CreateFontString(nil, "OVERLAY")
 	Name:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 3, -15)
 	Name:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", -3, -15)
@@ -130,9 +149,54 @@ function Module:CreateRaid()
 	Name:SetWordWrap(false)
 	self:Tag(Name, "[lfdrole][name]")
 
+	local Overlay = CreateFrame("Frame", nil, self)
+	Overlay:SetAllPoints(Health)
+	Overlay:SetFrameLevel(self:GetFrameLevel() + 4)
+
+	local ReadyCheckIndicator = Overlay:CreateTexture(nil, "OVERLAY", 2)
+	ReadyCheckIndicator:SetSize(22, 22)
+	ReadyCheckIndicator:SetPoint("CENTER")
+
+	local PhaseIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	PhaseIndicator:SetSize(20, 20)
+	PhaseIndicator:SetPoint("CENTER")
+	PhaseIndicator:SetTexture([[Interface\AddOns\KkthnxUI\Media\Textures\PhaseIcons.tga]])
+	PhaseIndicator.PostUpdate = Module.UpdatePhaseIcon
+
+	local SummonIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	SummonIndicator:SetSize(20, 20)
+	SummonIndicator:SetPoint("CENTER", Overlay)
+
+	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	RaidTargetIndicator:SetSize(16, 16)
+	RaidTargetIndicator:SetPoint("TOP", self, 0, 8)
+
+	local ResurrectIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	ResurrectIndicator:SetSize(30, 30)
+	ResurrectIndicator:SetPoint("CENTER", 0, -3)
+
+	local LeaderIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	LeaderIndicator:SetPoint("TOPLEFT", Health, 0, 8)
+	LeaderIndicator:SetSize(12, 12)
+
+	local AssistantIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	AssistantIndicator:SetPoint("TOPLEFT", Health, 0, 8)
+	AssistantIndicator:SetSize(12, 12)
+
+	if C["Raid"].ShowNotHereTimer then
+		local StatusIndicator = self:CreateFontString(nil, "OVERLAY")
+		StatusIndicator:SetPoint("CENTER", Overlay, "BOTTOM", 0, 6)
+		StatusIndicator:SetFontObject(K.UIFont)
+		StatusIndicator:SetFont(select(1, StatusIndicator:GetFont()), 10, select(3, StatusIndicator:GetFont()))
+		StatusIndicator:SetTextColor(1, 0, 0)
+		self:Tag(StatusIndicator, "[afkdnd]")
+
+		self.StatusIndicator = StatusIndicator
+	end
+
 	if C["Raid"].RaidBuffsStyle.Value == "Aura Track" then
 		local AuraTrack = CreateFrame("Frame", nil, Health)
-		AuraTrack.Texture = raidTexture
+		AuraTrack.Texture = RaidframeTexture
 		AuraTrack.Icons = C["Raid"].AuraTrackIcons
 		AuraTrack.SpellTextures = C["Raid"].AuraTrackSpellTextures
 		AuraTrack.Thickness = C["Raid"].AuraTrackThickness
@@ -219,6 +283,46 @@ function Module:CreateRaid()
 		self.RaidDebuffs = RaidDebuffs
 	end
 
+	if C["Raid"].TargetHighlight then
+		local TargetHighlight = CreateFrame("Frame", nil, Overlay, "BackdropTemplate")
+		TargetHighlight:SetFrameLevel(6)
+		TargetHighlight:SetBackdrop({ edgeFile = C["Media"].Borders.GlowBorder, edgeSize = 12 })
+		TargetHighlight:SetPoint("TOPLEFT", self, -5, 5)
+		TargetHighlight:SetPoint("BOTTOMRIGHT", self, 5, -5)
+		TargetHighlight:SetBackdropBorderColor(1, 1, 0)
+		TargetHighlight:Hide()
+
+		local function UpdateRaidTargetGlow()
+			if UnitIsUnit("target", self.unit) then
+				TargetHighlight:Show()
+			else
+				TargetHighlight:Hide()
+			end
+		end
+
+		self.TargetHighlight = TargetHighlight
+
+		self:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateRaidTargetGlow, true)
+		self:RegisterEvent("GROUP_ROSTER_UPDATE", UpdateRaidTargetGlow, true)
+	end
+
+	local DebuffHighlight = Health:CreateTexture(nil, "OVERLAY")
+	DebuffHighlight:SetAllPoints(Health)
+	DebuffHighlight:SetTexture(C["Media"].Textures.BlankTexture)
+	DebuffHighlight:SetVertexColor(0, 0, 0, 0)
+	DebuffHighlight:SetBlendMode("ADD")
+
+	self.DebuffHighlightAlpha = 0.45
+	self.DebuffHighlightFilter = true
+
+	local Highlight = Health:CreateTexture(nil, "OVERLAY")
+	Highlight:SetAllPoints()
+	Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
+	Highlight:SetTexCoord(0, 1, 0.5, 1)
+	Highlight:SetVertexColor(0.6, 0.6, 0.6)
+	Highlight:SetBlendMode("ADD")
+	Highlight:Hide()
+
 	self.ThreatIndicator = {
 		IsObjectType = function() end,
 		Override = UpdateRaidThreat,
@@ -229,10 +333,13 @@ function Module:CreateRaid()
 	self.Health = Health
 	self.Name = Name
 	self.Overlay = Overlay
-
-	Module:CreateHeader(self)
-	Module:CreatePrediction(self)
-	Module:CreateTargetHighlight(self)
-	Module:CreateDebuffHighlight(self)
-	Module:CreateIndicators(self)
+	self.ReadyCheckIndicator = ReadyCheckIndicator
+	self.PhaseIndicator = PhaseIndicator
+	self.SummonIndicator = SummonIndicator
+	self.RaidTargetIndicator = RaidTargetIndicator
+	self.ResurrectIndicator = ResurrectIndicator
+	self.LeaderIndicator = LeaderIndicator
+	self.AssistantIndicator = AssistantIndicator
+	self.DebuffHighlight = DebuffHighlight
+	self.Highlight = Highlight
 end

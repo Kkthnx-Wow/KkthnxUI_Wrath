@@ -10,17 +10,20 @@ function Module:CreatePet()
 
 	local petHeight = C["Unitframe"].PetHealthHeight
 	local petPortraitStyle = C["Unitframe"].PortraitStyle.Value
-	local petTexture = K.GetTexture(C["General"].Texture)
+
+	local UnitframeTexture = K.GetTexture(C["General"].Texture)
 
 	local Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
 	Overlay:SetAllPoints()
 	Overlay:SetFrameLevel(5)
 
+	Module.CreateHeader(self)
+
 	local Health = CreateFrame("StatusBar", nil, self)
 	Health:SetHeight(petHeight)
 	Health:SetPoint("TOPLEFT")
 	Health:SetPoint("TOPRIGHT")
-	Health:SetStatusBarTexture(petTexture)
+	Health:SetStatusBarTexture(UnitframeTexture)
 	Health:CreateBorder()
 
 	Health.colorTapping = true
@@ -52,7 +55,7 @@ function Module:CreatePet()
 	Power:SetHeight(C["Unitframe"].PetPowerHeight)
 	Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -6)
 	Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -6)
-	Power:SetStatusBarTexture(petTexture)
+	Power:SetStatusBarTexture(UnitframeTexture)
 	Power:CreateBorder()
 
 	Power.colorPower = true
@@ -135,6 +138,35 @@ function Module:CreatePet()
 	Debuffs.num = 8
 	Debuffs.iconsPerRow = 4
 
+	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	if petPortraitStyle ~= "NoPortraits" and petPortraitStyle ~= "OverlayPortrait" then
+		RaidTargetIndicator:SetPoint("TOP", self.Portrait, "TOP", 0, 8)
+	else
+		RaidTargetIndicator:SetPoint("TOP", Health, "TOP", 0, 8)
+	end
+	RaidTargetIndicator:SetSize(12, 12)
+
+	if C["Unitframe"].DebuffHighlight then
+		local DebuffHighlight = Health:CreateTexture(nil, "OVERLAY")
+		DebuffHighlight:SetAllPoints(Health)
+		DebuffHighlight:SetTexture(C["Media"].Textures.BlankTexture)
+		DebuffHighlight:SetVertexColor(0, 0, 0, 0)
+		DebuffHighlight:SetBlendMode("ADD")
+
+		self.DebuffHighlight = DebuffHighlight
+
+		self.DebuffHighlightAlpha = 0.45
+		self.DebuffHighlightFilter = true
+	end
+
+	local Highlight = Health:CreateTexture(nil, "OVERLAY")
+	Highlight:SetAllPoints()
+	Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
+	Highlight:SetTexCoord(0, 1, 0.5, 1)
+	Highlight:SetVertexColor(0.6, 0.6, 0.6)
+	Highlight:SetBlendMode("ADD")
+	Highlight:Hide()
+
 	local ThreatIndicator = {
 		IsObjectType = K.Noop,
 		Override = Module.UpdateThreat,
@@ -148,9 +180,8 @@ function Module:CreatePet()
 	self.Name = Name
 	self.Level = Level
 	self.Debuffs = Debuffs
+	self.RaidTargetIndicator = RaidTargetIndicator
+	self.Highlight = Highlight
 	self.ThreatIndicator = ThreatIndicator
 	self.Range = Range
-
-	Module:CreateHeader(self)
-	Module:CreateDebuffHighlight(self)
 end

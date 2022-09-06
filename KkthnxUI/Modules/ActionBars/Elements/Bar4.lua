@@ -12,22 +12,6 @@ local UIParent = _G.UIParent
 
 local cfg = C.Bars.Bar4
 
-local function updateVisibility(event)
-	if InCombatLockdown() then
-		K:RegisterEvent("PLAYER_REGEN_ENABLED", updateVisibility)
-	else
-		_G.InterfaceOptions_UpdateMultiActionBars()
-		K:UnregisterEvent(event, updateVisibility)
-	end
-end
-
-function Module:FixSizebarVisibility()
-	K:RegisterEvent("PET_BATTLE_OVER", updateVisibility)
-	K:RegisterEvent("PET_BATTLE_CLOSE", updateVisibility)
-	K:RegisterEvent("UNIT_EXITED_VEHICLE", updateVisibility)
-	K:RegisterEvent("UNIT_EXITING_VEHICLE", updateVisibility)
-end
-
 function Module:ToggleBarFader(name)
 	local frame = _G["KKUI_Action" .. name]
 	if not frame then
@@ -93,7 +77,5 @@ function Module:CreateBar4()
 		Module.CreateButtonFrameFader(frame, buttonList, cfg.fader)
 	end
 
-	-- Fix visibility when leaving vehicle or petbattle
-	Module:FixSizebarVisibility()
 	Module:UpdateFrameClickThru()
 end

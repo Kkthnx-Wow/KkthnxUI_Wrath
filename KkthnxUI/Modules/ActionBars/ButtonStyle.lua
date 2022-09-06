@@ -370,8 +370,6 @@ function Module:StyleActionButton(button, cfg)
 		autoCastable:SetDrawLayer("OVERLAY", 5)
 	end
 
-	-- Module:RegisterButtonRange(button)
-
 	button.__styled = true
 end
 
@@ -426,8 +424,6 @@ function Module:StyleExtraActionButton(cfg)
 		count:Hide()
 	end
 
-	-- Module:RegisterButtonRange(button)
-
 	button.__styled = true
 end
 
@@ -469,9 +465,6 @@ function Module:StyleAllActionButtons(cfg)
 
 	-- Leave Vehicle
 	Module:StyleActionButton(_G["KKUI_LeaveVehicleButton"], cfg)
-
-	-- Extra action button
-	--Module:StyleExtraActionButton(cfg)
 end
 
 function Module:CreateBarSkin()

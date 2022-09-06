@@ -66,21 +66,27 @@ local DispellColor = {
 }
 
 local DispellPriority = {
-	["Magic"]	= 4,
-	["Curse"]	= 3,
-	["Disease"]	= 2,
-	["Poison"]	= 1,
+	["Magic"] = 4,
+	["Curse"] = 3,
+	["Disease"] = 2,
+	["Poison"] = 1,
 }
 
 local DispellFilter
 do
 	local dispellClasses = {
 		["DRUID"] = {
+			["Magic"] = false,
 			["Curse"] = true,
 			["Poison"] = true,
 		},
-		["PALADIN"] = {
+		["MONK"] = {
 			["Magic"] = true,
+			["Poison"] = true,
+			["Disease"] = true,
+		},
+		["PALADIN"] = {
+			["Magic"] = false,
 			["Poison"] = true,
 			["Disease"] = true,
 		},
@@ -89,15 +95,11 @@ do
 			["Disease"] = true,
 		},
 		["SHAMAN"] = {
-			["Poison"] = true,
-			["Disease"] = true,
-			["Curse"] = IsSpellKnown(51886),
+			["Magic"] = false,
+			["Curse"] = true,
 		},
 		["MAGE"] = {
 			["Curse"] = true,
-		},
-		["WARLOCK"] = {
-			["Magic"] = true,
 		},
 	}
 
@@ -271,8 +273,8 @@ local function Enable(self)
 		return true
 	end
 
-	--CheckSpec()
-	--self:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
+	CheckSpec()
+	self:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
 end
 
 local function Disable(self)
@@ -281,7 +283,7 @@ local function Disable(self)
 		self.RaidDebuffs:Hide()
 	end
 
-	--self:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
+	self:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
 end
 
 oUF:AddElement("RaidDebuffs", Update, Enable, Disable)

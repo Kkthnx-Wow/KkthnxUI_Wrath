@@ -28,16 +28,16 @@ local hooksecurefunc = _G.hooksecurefunc
 local updateAfterCombat
 
 local scripts = {
-	"OnClick",
-	"OnEnter",
-	"OnEvent",
-	"OnHide",
-	"OnLeave",
-	"OnMouseDown",
-	"OnMouseUp",
 	"OnShow",
+	"OnHide",
+	"OnEvent",
+	"OnEnter",
+	"OnLeave",
 	"OnUpdate",
 	"OnValueChanged",
+	"OnClick",
+	"OnMouseDown",
+	"OnMouseUp",
 }
 
 local framesToHide = {
@@ -52,7 +52,6 @@ local framesToDisable = {
 	StatusTrackingBarManager,
 	ActionBarDownButton,
 	ActionBarUpButton,
-	MainMenuBarVehicleLeaveButton,
 	OverrideActionBar,
 	OverrideActionBarExpBar,
 	OverrideActionBarHealthBar,
@@ -85,7 +84,10 @@ local function toggleButtonGrid()
 	else
 		local showgrid = tonumber(GetCVar("alwaysShowActionBars"))
 		buttonShowGrid("ActionButton", showgrid)
+		buttonShowGrid("MultiBarBottomLeftButton", showgrid)
 		buttonShowGrid("MultiBarBottomRightButton", showgrid)
+		buttonShowGrid("MultiBarRightButton", showgrid)
+		buttonShowGrid("MultiBarLeftButton", showgrid)
 		buttonShowGrid("KKUI_ActionBarXButton", showgrid)
 		if updateAfterCombat then
 			K:UnregisterEvent("PLAYER_REGEN_ENABLED", toggleButtonGrid)
@@ -119,12 +121,11 @@ function Module:HideBlizz()
 	SetCVar("multiBarRightVerticalLayout", 0)
 	_G.InterfaceOptionsActionBarsPanelStackRightBars:EnableMouse(false)
 	_G.InterfaceOptionsActionBarsPanelStackRightBars:SetAlpha(0)
-	-- Fix maw block anchor
-	MainMenuBarVehicleLeaveButton:RegisterEvent("PLAYER_ENTERING_WORLD")
-	-- Update button grid
-	toggleButtonGrid()
 	-- Update button grid
 	hooksecurefunc("MultiActionBar_UpdateGridVisibility", toggleButtonGrid)
+	hooksecurefunc("MultiActionBar_HideAllGrids", toggleButtonGrid)
+	K:RegisterEvent("ACTIONBAR_HIDEGRID", toggleButtonGrid)
+	toggleButtonGrid()
 	-- Update token panel
 	K:RegisterEvent("CURRENCY_DISPLAY_UPDATE", updateTokenVisibility)
 end

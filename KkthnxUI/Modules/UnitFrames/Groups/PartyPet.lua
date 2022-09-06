@@ -14,6 +14,8 @@ function Module:CreatePartyPet()
 	self.Overlay:SetAllPoints()
 	self.Overlay:SetFrameLevel(6)
 
+	Module.CreateHeader(self)
+
 	self:CreateBorder()
 
 	self.Health = CreateFrame("StatusBar", nil, self)
@@ -91,13 +93,26 @@ function Module:CreatePartyPet()
 		self:RegisterEvent("GROUP_ROSTER_UPDATE", UpdatePartyPetTargetGlow, true)
 	end
 
+	self.DebuffHighlight = self.Health:CreateTexture(nil, "OVERLAY")
+	self.DebuffHighlight:SetAllPoints(self.Health)
+	self.DebuffHighlight:SetTexture(C["Media"].Textures.BlankTexture)
+	self.DebuffHighlight:SetVertexColor(0, 0, 0, 0)
+	self.DebuffHighlight:SetBlendMode("ADD")
+	self.DebuffHighlightAlpha = 0.45
+	self.DebuffHighlightFilter = true
+
+	self.Highlight = self.Health:CreateTexture(nil, "OVERLAY")
+	self.Highlight:SetAllPoints()
+	self.Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
+	self.Highlight:SetTexCoord(0, 1, 0.5, 1)
+	self.Highlight:SetVertexColor(0.6, 0.6, 0.6)
+	self.Highlight:SetBlendMode("ADD")
+	self.Highlight:Hide()
+
 	self.ThreatIndicator = {
 		IsObjectType = K.Noop,
 		Override = Module.UpdateThreat,
 	}
 
 	self.Range = Module.CreateRangeIndicator(self)
-
-	Module:CreateHeader(self)
-	Module:CreateDebuffHighlight(self)
 end

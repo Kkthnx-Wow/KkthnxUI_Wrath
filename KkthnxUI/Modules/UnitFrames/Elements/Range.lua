@@ -13,6 +13,7 @@ local UnitInRange = _G.UnitInRange
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsUnit = _G.UnitIsUnit
+local UnitPhaseReason = _G.UnitPhaseReason
 
 function Module:CreateRangeIndicator()
 	local Range = {

@@ -12,13 +12,17 @@ function Module:CreateTarget()
 	local targetWidth = C["Unitframe"].TargetHealthWidth
 	local targetHeight = C["Unitframe"].TargetHealthHeight
 	local targetPortraitStyle = C["Unitframe"].PortraitStyle.Value
-	local targetTexture = K.GetTexture(C["General"].Texture)
+
+	local UnitframeTexture = K.GetTexture(C["General"].Texture)
+	local HealPredictionTexture = K.GetTexture(C["General"].Texture)
+
+	Module.CreateHeader(self)
 
 	local Health = CreateFrame("StatusBar", nil, self)
 	Health:SetHeight(targetHeight)
 	Health:SetPoint("TOPLEFT")
 	Health:SetPoint("TOPRIGHT")
-	Health:SetStatusBarTexture(targetTexture)
+	Health:SetStatusBarTexture(UnitframeTexture)
 	Health:CreateBorder()
 
 	local Overlay = CreateFrame("Frame", nil, self) -- We will use this to overlay onto our special borders.
@@ -57,7 +61,7 @@ function Module:CreateTarget()
 	Power:SetHeight(C["Unitframe"].TargetPowerHeight)
 	Power:SetPoint("TOPLEFT", Health, "BOTTOMLEFT", 0, -6)
 	Power:SetPoint("TOPRIGHT", Health, "BOTTOMRIGHT", 0, -6)
-	Power:SetStatusBarTexture(targetTexture)
+	Power:SetStatusBarTexture(UnitframeTexture)
 	Power:CreateBorder()
 
 	Power.colorPower = true
@@ -90,6 +94,41 @@ function Module:CreateTarget()
 			self:Tag(Name, "[name][afkdnd]")
 		else
 			self:Tag(Name, "[color][name][afkdnd]")
+		end
+	end
+
+	if targetPortraitStyle ~= "NoPortraits" then
+		if targetPortraitStyle == "OverlayPortrait" then
+			local Portrait = CreateFrame("PlayerModel", "KKUI_TargetPortrait", self)
+			Portrait:SetFrameStrata(self:GetFrameStrata())
+			Portrait:SetPoint("TOPLEFT", Health, "TOPLEFT", 1, -1)
+			Portrait:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", -1, 1)
+			Portrait:SetAlpha(0.6)
+
+			self.Portrait = Portrait
+		elseif targetPortraitStyle == "ThreeDPortraits" then
+			local Portrait = CreateFrame("PlayerModel", "KKUI_TargetPortrait", Health)
+			Portrait:SetFrameStrata(self:GetFrameStrata())
+			Portrait:SetSize(Health:GetHeight() + Power:GetHeight() + 6, Health:GetHeight() + Power:GetHeight() + 6)
+			Portrait:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, 0)
+			Portrait:CreateBorder()
+
+			self.Portrait = Portrait
+		elseif targetPortraitStyle ~= "ThreeDPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+			local Portrait = Health:CreateTexture("KKUI_TargetPortrait", "BACKGROUND", nil, 1)
+			Portrait:SetTexCoord(0.15, 0.85, 0.15, 0.85)
+			Portrait:SetSize(Health:GetHeight() + Power:GetHeight() + 6, Health:GetHeight() + Power:GetHeight() + 6)
+			Portrait:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, 0)
+
+			Portrait.Border = CreateFrame("Frame", nil, self)
+			Portrait.Border:SetAllPoints(Portrait)
+			Portrait.Border:CreateBorder()
+
+			self.Portrait = Portrait
+
+			if targetPortraitStyle == "ClassPortraits" or targetPortraitStyle == "NewClassPortraits" then
+				Portrait.PostUpdate = Module.UpdateClassPortraits
+			end
 		end
 	end
 
@@ -136,33 +175,149 @@ function Module:CreateTarget()
 		self.Buffs = Buffs
 	end
 
-	local Range = Module.CreateRangeIndicator(self)
+	Module:CreateCastBar(self)
+
+	if C["Unitframe"].ShowHealPrediction then
+		local frame = CreateFrame("Frame", nil, self)
+		frame:SetAllPoints()
+
+		local mhpb = frame:CreateTexture(nil, "BORDER", nil, 5)
+		mhpb:SetWidth(1)
+		mhpb:SetTexture(K.GetTexture(C["General"].Texture))
+		mhpb:SetVertexColor(0, 1, 0, 0.5)
+
+		local ohpb = frame:CreateTexture(nil, "BORDER", nil, 5)
+		ohpb:SetWidth(1)
+		ohpb:SetTexture(K.GetTexture(C["General"].Texture))
+		ohpb:SetVertexColor(0, 1, 1, 0.5)
+
+		self.HealPredictionAndAbsorb = {
+			myBar = mhpb,
+			otherBar = ohpb,
+			maxOverflow = 1,
+		}
+		self.predicFrame = frame
+	end
+
+	-- Level
+	local Level = self:CreateFontString(nil, "OVERLAY")
+	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+		Level:Show()
+		Level:SetPoint("BOTTOMLEFT", self.Portrait, "TOPLEFT", 0, 4)
+		Level:SetPoint("BOTTOMRIGHT", self.Portrait, "TOPRIGHT", 0, 4)
+	else
+		Level:Hide()
+	end
+	Level:SetFontObject(K.UIFont)
+	self:Tag(Level, "[fulllevel]")
+
+	if C["Unitframe"].CombatText then
+		local parentFrame = CreateFrame("Frame", nil, UIParent)
+		local FloatingCombatFeedback = CreateFrame("Frame", "oUF_Target_CombatTextFrame", parentFrame)
+		FloatingCombatFeedback:SetSize(32, 32)
+		K.Mover(FloatingCombatFeedback, "CombatText", "TargetCombatText", { "BOTTOM", self, "TOPRIGHT", 0, 120 })
+
+		for i = 1, 36 do
+			FloatingCombatFeedback[i] = parentFrame:CreateFontString("$parentText", "OVERLAY")
+		end
+
+		FloatingCombatFeedback.font = select(1, KkthnxUIFontOutline:GetFont())
+		FloatingCombatFeedback.fontFlags = "OUTLINE"
+		FloatingCombatFeedback.abbreviateNumbers = true
+
+		self.FloatingCombatFeedback = FloatingCombatFeedback
+
+		-- Default CombatText
+		SetCVar("enableFloatingCombatText", 0)
+		K.HideInterfaceOption(_G.InterfaceOptionsCombatPanelEnableFloatingCombatText)
+	end
+
+	if C["Unitframe"].PvPIndicator then
+		local PvPIndicator = self:CreateTexture(nil, "OVERLAY")
+		PvPIndicator:SetSize(30, 33)
+		if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+			PvPIndicator:SetPoint("LEFT", self.Portrait, "RIGHT", 2, 0)
+		else
+			PvPIndicator:SetPoint("LEFT", Health, "RIGHT", 2, 0)
+		end
+		PvPIndicator.PostUpdate = Module.PostUpdatePvPIndicator
+
+		self.PvPIndicator = PvPIndicator
+	end
+
+	local LeaderIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	LeaderIndicator:SetSize(12, 12)
+	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+		LeaderIndicator:SetPoint("TOPRIGHT", self.Portrait, 0, 8)
+	else
+		LeaderIndicator:SetPoint("TOPRIGHT", Health, 0, 8)
+	end
+
+	local RaidTargetIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+		RaidTargetIndicator:SetPoint("TOP", self.Portrait, "TOP", 0, 8)
+	else
+		RaidTargetIndicator:SetPoint("TOP", Health, "TOP", 0, 8)
+	end
+	RaidTargetIndicator:SetSize(16, 16)
+
+	local ReadyCheckIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+		ReadyCheckIndicator:SetPoint("CENTER", self.Portrait)
+	else
+		ReadyCheckIndicator:SetPoint("CENTER", Health)
+	end
+	ReadyCheckIndicator:SetSize(targetHeight - 4, targetHeight - 4)
+
+	local ResurrectIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	ResurrectIndicator:SetSize(44, 44)
+	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
+		ResurrectIndicator:SetPoint("CENTER", self.Portrait)
+	else
+		ResurrectIndicator:SetPoint("CENTER", Health)
+	end
+
+	local QuestIndicator = Overlay:CreateTexture(nil, "OVERLAY")
+	QuestIndicator:SetSize(20, 20)
+	QuestIndicator:SetPoint("TOPLEFT", Health, "TOPRIGHT", -6, 6)
+
+	if C["Unitframe"].DebuffHighlight then
+		local DebuffHighlight = Health:CreateTexture(nil, "OVERLAY")
+		DebuffHighlight:SetAllPoints(Health)
+		DebuffHighlight:SetTexture(C["Media"].Textures.BlankTexture)
+		DebuffHighlight:SetVertexColor(0, 0, 0, 0)
+		DebuffHighlight:SetBlendMode("ADD")
+
+		self.DebuffHighlight = DebuffHighlight
+
+		self.DebuffHighlightAlpha = 0.45
+		self.DebuffHighlightFilter = true
+	end
+
+	local Highlight = Health:CreateTexture(nil, "OVERLAY")
+	Highlight:SetAllPoints()
+	Highlight:SetTexture("Interface\\PETBATTLES\\PetBattle-SelectedPetGlow")
+	Highlight:SetTexCoord(0, 1, 0.5, 1)
+	Highlight:SetVertexColor(0.6, 0.6, 0.6)
+	Highlight:SetBlendMode("ADD")
+	Highlight:Hide()
+
+	self.ThreatIndicator = {
+		IsObjectType = K.Noop,
+		Override = Module.UpdateThreat,
+	}
+
+	self.Range = Module.CreateRangeIndicator(self)
 
 	self.Overlay = Overlay
 	self.Health = Health
 	self.Power = Power
 	self.Name = Name
-	self.Range = Range
-
-	Module:CreateHeader(self)
-	Module:CreatePortrait(self)
-	Module:CreateCastBar(self)
-	Module:CreateDebuffHighlight(self)
-	Module:CreatePrediction(self)
-	Module:CreateFCT(self)
-	Module:CreateIndicators(self)
-
-	-- Level -- We need to add more of these info core to create, so we do not have to do this
-	local Level = self:CreateFontString(nil, "OVERLAY")
-	Level:SetFontObject(K.UIFont)
-	Level:SetPoint("BOTTOMLEFT", self.Portrait, "TOPLEFT", 0, 4)
-	Level:SetPoint("BOTTOMRIGHT", self.Portrait, "TOPRIGHT", 0, 4)
-	if targetPortraitStyle ~= "NoPortraits" and targetPortraitStyle ~= "OverlayPortrait" then
-		Level:Show()
-	else
-		Level:Hide()
-	end
-	self:Tag(Level, "[fulllevel]")
-
 	self.Level = Level
+	self.LeaderIndicator = LeaderIndicator
+	self.RaidTargetIndicator = RaidTargetIndicator
+	self.ReadyCheckIndicator = ReadyCheckIndicator
+	self.ResurrectIndicator = ResurrectIndicator
+	self.QuestIndicator = QuestIndicator
+	self.Highlight = Highlight
 end
