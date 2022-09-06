@@ -208,18 +208,4 @@ table_insert(C.defaultThemes, function()
 	SetFont(_G.Tooltip_Med, GetKkthnxUIFont, normal) -- 12
 	SetFont(_G.Tooltip_Small, GetKkthnxUIFont, small) -- 10
 	SetFont(_G.ZoneTextString, GetKkthnxUIFont, enormous, "OUTLINE") -- 32
-
-	-- WhoFrame LevelText
-	hooksecurefunc("WhoList_Update", function()
-		local buttons = WhoListScrollFrame.buttons
-		for i = 1, #buttons do
-			local button = buttons[i]
-			local level = button.Level
-			if level and not level.fontStyled then
-				level:SetWidth(30)
-				level:SetJustifyH("LEFT")
-				level.fontStyled = true
-			end
-		end
-	end)
 end)

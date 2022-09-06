@@ -1,15 +1,34 @@
-local K, C = unpack(KkthnxUI)
-
+local K = unpack(KkthnxUI)
 local oUF = K.oUF
-assert(oUF, "KkthnxUI was unable to locate oUF.")
 
 -- Sourced: yClassColors (yleaf)
 -- Edited: KkthnxUI (Kkthnx)
 
-local format, tinsert, strsplit = string.format, table.insert, string.split
+local _G = _G
+local string_format = _G.string.format
+local table_insert = _G.table.insert
+local string_split = _G.string.split
+
+local BNET_CLIENT_WOW = _G.BNET_CLIENT_WOW
+local BNGetFriendInfo = _G.BNGetFriendInfo
+local BNGetGameAccountInfo = _G.BNGetGameAccountInfo
+local FRIENDS_BUTTON_TYPE_BNET = _G.FRIENDS_BUTTON_TYPE_BNET
+local FRIENDS_BUTTON_TYPE_WOW = _G.FRIENDS_BUTTON_TYPE_WOW
+local FRIENDS_WOW_NAME_COLOR_CODE = _G.FRIENDS_WOW_NAME_COLOR_CODE
+local FauxScrollFrame_GetOffset = _G.FauxScrollFrame_GetOffset
+local GUILDMEMBERS_TO_DISPLAY = _G.GUILDMEMBERS_TO_DISPLAY
+local GetQuestDifficultyColor = _G.GetQuestDifficultyColor
+local UIDropDownMenu_GetSelectedID = _G.UIDropDownMenu_GetSelectedID
+local WHOS_TO_DISPLAY = _G.WHOS_TO_DISPLAY
+
+local SCORE_BUTTONS_MAX = _G.SCORE_BUTTONS_MAX or 20
+local FRIENDS_LEVEL_TEMPLATE = _G.FRIENDS_LEVEL_TEMPLATE:gsub("%%d", "%%s")
+FRIENDS_LEVEL_TEMPLATE = FRIENDS_LEVEL_TEMPLATE:gsub("%$d", "%$s")
+local columnTable = {}
+local rankColor = { 1, 0, 0, 1, 1, 0, 0, 1, 0 }
 
 -- Colors
-local function classColor(class, showRGB)
+local function yClassColors(class, showRGB)
 	local color = K.ClassColors[K.ClassList[class] or class]
 	if not color then
 		color = K.ClassColors["PRIEST"]
@@ -26,20 +45,8 @@ local function diffColor(level)
 	return K.RGBToHex(GetQuestDifficultyColor(level))
 end
 
-local rankColor = {
-	1,
-	0,
-	0,
-	1,
-	1,
-	0,
-	0,
-	1,
-	0,
-}
-
 -- Guild
-hooksecurefunc("GuildStatus_Update", function()
+local function updateGuildStatus()
 	local guildIndex
 	local playerArea = GetRealZoneText()
 	local guildOffset = FauxScrollFrame_GetOffset(GuildListScrollFrame)
@@ -48,11 +55,12 @@ hooksecurefunc("GuildStatus_Update", function()
 			guildIndex = guildOffset + i
 			local fullName, _, _, level, class, zone, _, _, online = GetGuildRosterInfo(guildIndex)
 			if fullName and online then
-				local r, g, b = classColor(class, true)
+				local r, g, b = yClassColors(class, true)
 				_G["GuildFrameButton" .. i .. "Name"]:SetTextColor(r, g, b)
 				if zone == playerArea then
 					_G["GuildFrameButton" .. i .. "Zone"]:SetTextColor(0, 1, 0)
 				end
+
 				local color = GetQuestDifficultyColor(level)
 				_G["GuildFrameButton" .. i .. "Level"]:SetTextColor(color.r, color.g, color.b)
 				_G["GuildFrameButton" .. i .. "Class"]:SetTextColor(r, g, b)
@@ -63,7 +71,7 @@ hooksecurefunc("GuildStatus_Update", function()
 			guildIndex = guildOffset + i
 			local fullName, _, rankIndex, _, class, _, _, _, online = GetGuildRosterInfo(guildIndex)
 			if fullName and online then
-				local r, g, b = classColor(class, true)
+				local r, g, b = yClassColors(class, true)
 				_G["GuildFrameGuildStatusButton" .. i .. "Name"]:SetTextColor(r, g, b)
 				local lr, lg, lb = oUF:RGBColorGradient(rankIndex, 10, unpack(rankColor))
 				if lr then
@@ -72,14 +80,10 @@ hooksecurefunc("GuildStatus_Update", function()
 			end
 		end
 	end
-end)
+end
 
--- Friends
-local FRIENDS_LEVEL_TEMPLATE = FRIENDS_LEVEL_TEMPLATE:gsub("%%d", "%%s")
-FRIENDS_LEVEL_TEMPLATE = FRIENDS_LEVEL_TEMPLATE:gsub("%$d", "%$s")
-
-local function friendsFrame()
-	local scrollFrame = FriendsFrameFriendsScrollFrame
+local function updateFriendsFrame()
+	local scrollFrame = _G.FriendsFrameFriendsScrollFrame
 	local buttons = scrollFrame.buttons
 	local playerArea = GetRealZoneText()
 
@@ -90,9 +94,9 @@ local function friendsFrame()
 			if button.buttonType == FRIENDS_BUTTON_TYPE_WOW then
 				local info = C_FriendList.GetFriendInfoByIndex(button.id)
 				if info and info.connected then
-					nameText = classColor(info.className) .. info.name .. "|r, " .. format(FRIENDS_LEVEL_TEMPLATE, diffColor(info.level) .. info.level .. "|r", info.className)
+					nameText = yClassColors(info.className) .. info.name .. "|r, " .. string_format(FRIENDS_LEVEL_TEMPLATE, diffColor(info.level) .. info.level .. "|r", info.className)
 					if info.area == playerArea then
-						infoText = format("|cff00ff00%s|r", info.area)
+						infoText = string_format("|cff00ff00%s|r", info.area)
 					end
 				end
 			elseif button.buttonType == FRIENDS_BUTTON_TYPE_BNET then
@@ -100,9 +104,9 @@ local function friendsFrame()
 				if isOnline and client == BNET_CLIENT_WOW then
 					local _, charName, _, _, _, faction, _, class, _, zoneName = BNGetGameAccountInfo(gameID)
 					if presenceName and charName and class and faction == UnitFactionGroup("player") then
-						nameText = presenceName .. " " .. FRIENDS_WOW_NAME_COLOR_CODE .. "(" .. classColor(class) .. charName .. FRIENDS_WOW_NAME_COLOR_CODE .. ")"
+						nameText = presenceName .. " " .. FRIENDS_WOW_NAME_COLOR_CODE .. "(" .. yClassColors(class) .. charName .. FRIENDS_WOW_NAME_COLOR_CODE .. ")"
 						if zoneName == playerArea then
-							infoText = format("|cff00ff00%s|r", zoneName)
+							infoText = string_format("|cff00ff00%s|r", zoneName)
 						end
 					end
 				end
@@ -117,11 +121,7 @@ local function friendsFrame()
 		end
 	end
 end
-hooksecurefunc(FriendsFrameFriendsScrollFrame, "update", friendsFrame)
-hooksecurefunc("FriendsFrame_UpdateFriends", friendsFrame)
 
--- Whoframe
-local columnTable = {}
 local function updateWhoList()
 	local whoOffset = FauxScrollFrame_GetOffset(WhoListScrollFrame)
 	local playerZone = GetRealZoneText()
@@ -139,39 +139,37 @@ local function updateWhoList()
 			if zone == playerZone then
 				zone = "|cff00ff00" .. zone
 			end
+
 			if guild == playerGuild then
 				guild = "|cff00ff00" .. guild
 			end
+
 			if race == playerRace then
 				race = "|cff00ff00" .. race
 			end
 
 			wipe(columnTable)
-			tinsert(columnTable, zone)
-			tinsert(columnTable, guild)
-			tinsert(columnTable, race)
+			table_insert(columnTable, zone)
+			table_insert(columnTable, guild)
+			table_insert(columnTable, race)
 
-			nameText:SetTextColor(classColor(class, true))
+			nameText:SetTextColor(yClassColors(class, true))
 			levelText:SetText(diffColor(level) .. level)
 			variableText:SetText(columnTable[UIDropDownMenu_GetSelectedID(WhoFrameDropDown)])
 		end
 	end
 end
-hooksecurefunc("WhoList_Update", updateWhoList)
 
--- Battlefield board
-local SCORE_BUTTONS_MAX = SCORE_BUTTONS_MAX or 20
-
-hooksecurefunc("WorldStateScoreFrame_Update", function()
+local function updateStateScoreFrame()
 	local offset = FauxScrollFrame_GetOffset(WorldStateScoreScrollFrame)
 
 	for i = 1, SCORE_BUTTONS_MAX do
 		local index = offset + i
 		local fullName, _, _, _, _, faction, _, _, class = GetBattlefieldScore(index)
 		if fullName then
-			local name, realm = strsplit(" - ", fullName)
-			name = classColor(class) .. name .. "|r"
-			if fullName == DB.MyName then
+			local name, realm = string_split(" - ", fullName)
+			name = yClassColors(class) .. name .. "|r"
+			if fullName == K.Name then
 				name = "> " .. name .. " <"
 			end
 
@@ -180,6 +178,7 @@ hooksecurefunc("WorldStateScoreFrame_Update", function()
 				if faction == 1 then
 					color = "|cff00adf0"
 				end
+
 				realm = color .. realm .. "|r"
 				name = name .. " - " .. realm
 			end
@@ -190,4 +189,10 @@ hooksecurefunc("WorldStateScoreFrame_Update", function()
 			end
 		end
 	end
-end)
+end
+
+hooksecurefunc(FriendsFrameFriendsScrollFrame, "update", updateFriendsFrame)
+hooksecurefunc("FriendsFrame_UpdateFriends", updateFriendsFrame)
+hooksecurefunc("WhoList_Update", updateWhoList)
+hooksecurefunc("GuildStatus_Update", updateGuildStatus)
+hooksecurefunc("WorldStateScoreFrame_Update", updateStateScoreFrame)

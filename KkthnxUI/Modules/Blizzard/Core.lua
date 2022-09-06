@@ -6,5 +6,4 @@ function Module:OnEnable()
 	self:CreateColorPicker()
 	self:CreateMirrorBars()
 	self:CreateRaidUtility()
-	self:CreateTimerTracker()
 end
