@@ -10,19 +10,15 @@ local ALTERNATE_POWER_INDEX = Enum.PowerType.Alternate or 10
 local DEAD = _G.DEAD
 local DND = _G.DND
 local GetCreatureDifficultyColor = _G.GetCreatureDifficultyColor
-local GetNumArenaOpponentSpecs = _G.GetNumArenaOpponentSpecs
 local LEVEL = _G.LEVEL
 local PLAYER_OFFLINE = _G.PLAYER_OFFLINE
-local UnitBattlePetLevel = _G.UnitBattlePetLevel
 local UnitClass = _G.UnitClass
 local UnitClassification = _G.UnitClassification
-local UnitEffectiveLevel = _G.UnitEffectiveLevel
 local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local UnitHasVehicleUI = _G.UnitHasVehicleUI
 local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitIsAFK = _G.UnitIsAFK
-local UnitIsBattlePetCompanion = _G.UnitIsBattlePetCompanion
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsDND = _G.UnitIsDND
 local UnitIsDead = _G.UnitIsDead
@@ -30,12 +26,19 @@ local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitIsGhost = _G.UnitIsGhost
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsTapDenied = _G.UnitIsTapDenied
-local UnitIsWildBattlePet = _G.UnitIsWildBattlePet
 local UnitLevel = _G.UnitLevel
 local UnitPower = _G.UnitPower
 local UnitPowerType = _G.UnitPowerType
 local UnitReaction = _G.UnitReaction
 local UnitStagger = _G.UnitStagger
+
+local FEIGN_DEATH
+local function GetFeignDeathTag()
+	if not FEIGN_DEATH then
+		FEIGN_DEATH = GetSpellInfo(5384)
+	end
+	return FEIGN_DEATH
+end
 
 local function ColorPercent(value)
 	local r, g, b
@@ -70,7 +73,7 @@ local function GetUnitHealthPerc(unit)
 end
 
 oUF.Tags.Methods["hp"] = function(unit)
-	if UnitIsDeadOrGhost(unit) or not UnitIsConnected(unit) then
+	if UnitIsDeadOrGhost(unit) or not UnitIsConnected(unit) or UnitIsFeignDeath(unit) then
 		return oUF.Tags.Methods["DDG"](unit)
 	else
 		local per, cur = GetUnitHealthPerc(unit)
@@ -127,15 +130,17 @@ end
 oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED"
 
 oUF.Tags.Methods["DDG"] = function(unit)
-	if UnitIsDead(unit) then
+	if UnitIsFeignDeath(unit) then
+		return "|cff99ccff" .. GetFeignDeathTag() .. "|r"
+	elseif UnitIsDead(unit) then
 		return "|cffCFCFCF" .. DEAD .. "|r"
 	elseif UnitIsGhost(unit) then
 		return "|cffCFCFCF" .. L["Ghost"] .. "|r"
-	elseif not UnitIsConnected(unit) and GetNumArenaOpponentSpecs() == 0 then
+	elseif not UnitIsConnected(unit) then
 		return "|cffCFCFCF" .. PLAYER_OFFLINE .. "|r"
 	end
 end
-oUF.Tags.Events["DDG"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_NAME_UPDATE UNIT_CONNECTION PLAYER_FLAGS_CHANGED"
+oUF.Tags.Events["DDG"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_NAME_UPDATE UNIT_CONNECTION PLAYER_FLAGS_CHANGED"
 
 -- Level tags
 oUF.Tags.Methods["fulllevel"] = function(unit)
