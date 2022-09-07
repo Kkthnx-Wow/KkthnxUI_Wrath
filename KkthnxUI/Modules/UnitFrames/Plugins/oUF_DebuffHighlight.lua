@@ -2,28 +2,43 @@ local K = unpack(KkthnxUI)
 local oUF = K.oUF
 
 local DispelClasses = {
-	PALADIN = { Poison = true, Disease = true },
-	PRIEST = { Magic = true, Disease = true },
-	MONK = { Disease = true, Poison = true },
-	DRUID = { Curse = true, Poison = true },
-	MAGE = { Curse = true },
-	WARLOCK = {},
-	SHAMAN = {},
+	["DRUID"] = {
+		["Curse"] = true,
+		["Poison"] = true,
+	},
+	["PALADIN"] = {
+		["Magic"] = true,
+		["Poison"] = true,
+		["Disease"] = true,
+	},
+	["PRIEST"] = {
+		["Magic"] = true,
+		["Disease"] = true,
+	},
+	["SHAMAN"] = {
+		["Poison"] = true,
+		["Disease"] = true,
+		["Curse"] = IsSpellKnown(51886),
+	},
+	["MAGE"] = {
+		["Curse"] = true,
+	},
+	["WARLOCK"] = {
+		["Magic"] = true,
+	},
 }
-
-if oUF.isRetail or oUF.isWrath then
-	DispelClasses.SHAMAN.Curse = true
-else
-	local cleanse = not oUF.isWrath or IsSpellKnown(51886)
-	DispelClasses.SHAMAN.Curse = oUF.isWrath and cleanse
-	DispelClasses.SHAMAN.Poison = cleanse
-	DispelClasses.SHAMAN.Disease = cleanse
-
-	DispelClasses.PALADIN.Magic = true
-end
 
 local dispellist = DispelClasses[K.Class] or {}
 local origColors = {}
+
+local DevourMagic = {
+	[19505] = "Rank 1",
+	[19731] = "Rank 2",
+	[19734] = "Rank 3",
+	[19736] = "Rank 4",
+	[27276] = "Rank 5",
+	[27277] = "Rank 6",
+}
 
 local function GetDebuffType(unit, filter)
 	if not UnitCanAssist("player", unit) then
@@ -44,33 +59,10 @@ local function GetDebuffType(unit, filter)
 		i = i + 1
 	end
 end
-
-local function CheckTalentTree(tree)
-	local activeGroup = GetActiveSpecGroup()
-	local activeSpec = activeGroup and GetSpecialization(false, false, activeGroup)
-	if activeSpec then
-		return tree == activeSpec
-	end
-end
-
-local SingeMagic = 89808
-local DevourMagic = {
-	[19505] = "Rank 1",
-	[19731] = "Rank 2",
-	[19734] = "Rank 3",
-	[19736] = "Rank 4",
-	[27276] = "Rank 5",
-	[27277] = "Rank 6",
-}
-
 local function CheckPetSpells()
-	if oUF.isRetail then
-		return IsSpellKnown(SingeMagic, true)
-	else
-		for spellID in next, DevourMagic do
-			if IsSpellKnown(spellID, true) then
-				return true
-			end
+	for spellID in next, DevourMagic do
+		if IsSpellKnown(spellID, true) then
+			return true
 		end
 	end
 end
@@ -83,16 +75,6 @@ local function CheckDispel(_, event, arg1)
 		end
 	elseif event == "CHARACTER_POINTS_CHANGED" and arg1 > 0 then
 		return -- Not interested in gained points from leveling
-	elseif oUF.isRetail then
-		if K.Class == "PALADIN" then
-			dispellist.Magic = CheckTalentTree(1)
-		elseif K.Class == "SHAMAN" then
-			dispellist.Magic = CheckTalentTree(3)
-		elseif K.Class == "DRUID" then
-			dispellist.Magic = CheckTalentTree(4)
-		elseif K.Class == "MONK" then
-			dispellist.Magic = CheckTalentTree(2)
-		end
 	elseif K.Class == "SHAMAN" then
 		dispellist.Curse = IsSpellKnown(51886)
 	end
