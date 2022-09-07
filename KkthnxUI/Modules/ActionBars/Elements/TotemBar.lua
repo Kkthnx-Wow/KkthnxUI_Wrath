@@ -48,7 +48,7 @@ function Bar:CreateTotemBar()
 		return
 	end
 
-	if not C["Actionbar"].TotemBar then
+	if not C["ActionBar"].TotemBar then
 		return
 	end
 
