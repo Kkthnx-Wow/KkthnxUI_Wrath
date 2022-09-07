@@ -203,7 +203,9 @@ function Module:CreateRollFrame()
 	local spark = frame:CreateTexture(nil, "OVERLAY")
 	spark:SetSize(128, FRAME_HEIGHT)
 	spark:SetTexture(C["Media"].Textures.Spark128Texture)
-	spark:SetBlendMode("ADD")
+	spark:SetPoint("CENTER", status:GetStatusBarTexture(), "RIGHT", 0, 0)
+	spark:SetBlendMode("BLEND")
+	spark:SetAlpha(0.8)
 	status.spark = spark
 
 	local need, needtext = CreateRollButton(frame, "Interface\\Buttons\\UI-GroupLoot-Dice-Up", "Interface\\Buttons\\UI-GroupLoot-Dice-Highlight", "Interface\\Buttons\\UI-GroupLoot-Dice-Down", 1, NEED, "LEFT", frame.button, "RIGHT", 5, -1)
@@ -327,7 +329,6 @@ function Module.START_LOOT_ROLL(_, rollID, time)
 	f.status:SetMinMaxValues(0, time)
 	f.status:SetValue(time)
 
-	f:SetPoint("CENTER", WorldFrame, "CENTER")
 	f:Show()
 
 	AlertFrame:UpdateAnchors()

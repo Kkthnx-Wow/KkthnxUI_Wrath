@@ -225,9 +225,9 @@ function Module:CreateCastBar(self)
 		Castbar:CreateBorder()
 	end
 
-	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, 2)
+	Castbar.Spark = Castbar:CreateTexture(nil, "ARTWORK")
 	Castbar.Spark:SetTexture(C["Media"].Textures.Spark128Texture)
-	Castbar.Spark:SetBlendMode("ADD")
+	Castbar.Spark:SetBlendMode("BLEND")
 	Castbar.Spark:SetAlpha(0.9)
 
 	if mystyle == "player" then
