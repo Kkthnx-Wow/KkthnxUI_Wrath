@@ -1,18 +1,29 @@
 local K = unpack(KkthnxUI)
 local oUF = K.oUF
 
-local CanDispel = {
-	DRUID = { Magic = false, Curse = true, Poison = true },
+local DispelClasses = {
+	PALADIN = { Poison = true, Disease = true },
+	PRIEST = { Magic = true, Disease = true },
+	MONK = { Disease = true, Poison = true },
+	DRUID = { Curse = true, Poison = true },
 	MAGE = { Curse = true },
-	MONK = { Magic = false, Poison = true, Disease = true },
-	PALADIN = { Magic = false, Poison = true, Disease = true },
-	PRIEST = { Magic = false, Disease = true },
-	SHAMAN = { Magic = false, Curse = true },
+	WARLOCK = {},
+	SHAMAN = {},
 }
 
-local dispellist = CanDispel[K.Class] or {}
+if oUF.isRetail or oUF.isWrath then
+	DispelClasses.SHAMAN.Curse = true
+else
+	local cleanse = not oUF.isWrath or IsSpellKnown(51886)
+	DispelClasses.SHAMAN.Curse = oUF.isWrath and cleanse
+	DispelClasses.SHAMAN.Poison = cleanse
+	DispelClasses.SHAMAN.Disease = cleanse
+
+	DispelClasses.PALADIN.Magic = true
+end
+
+local dispellist = DispelClasses[K.Class] or {}
 local origColors = {}
-local origBorderColors = {}
 
 local function GetDebuffType(unit, filter)
 	if not UnitCanAssist("player", unit) then
@@ -34,31 +45,56 @@ local function GetDebuffType(unit, filter)
 	end
 end
 
-local function CheckSpec()
-	if K.Class == "DRUID" then
-		if GetSpecialization() == 4 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
+local function CheckTalentTree(tree)
+	local activeGroup = GetActiveSpecGroup()
+	local activeSpec = activeGroup and GetSpecialization(false, false, activeGroup)
+	if activeSpec then
+		return tree == activeSpec
+	end
+end
+
+local SingeMagic = 89808
+local DevourMagic = {
+	[19505] = "Rank 1",
+	[19731] = "Rank 2",
+	[19734] = "Rank 3",
+	[19736] = "Rank 4",
+	[27276] = "Rank 5",
+	[27277] = "Rank 6",
+}
+
+local function CheckPetSpells()
+	if oUF.isRetail then
+		return IsSpellKnown(SingeMagic, true)
+	else
+		for spellID in next, DevourMagic do
+			if IsSpellKnown(spellID, true) then
+				return true
+			end
 		end
-	elseif K.Class == "MONK" then
-		if GetSpecialization() == 2 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
+	end
+end
+
+-- Check for certain talents to see if we can dispel magic or not
+local function CheckDispel(_, event, arg1)
+	if event == "UNIT_PET" then
+		if arg1 == "player" and K.Class == "WARLOCK" then
+			dispellist.Magic = CheckPetSpells()
 		end
-	elseif K.Class == "PALADIN" then
-		if GetSpecialization() == 1 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
+	elseif event == "CHARACTER_POINTS_CHANGED" and arg1 > 0 then
+		return -- Not interested in gained points from leveling
+	elseif oUF.isRetail then
+		if K.Class == "PALADIN" then
+			dispellist.Magic = CheckTalentTree(1)
+		elseif K.Class == "SHAMAN" then
+			dispellist.Magic = CheckTalentTree(3)
+		elseif K.Class == "DRUID" then
+			dispellist.Magic = CheckTalentTree(4)
+		elseif K.Class == "MONK" then
+			dispellist.Magic = CheckTalentTree(2)
 		end
 	elseif K.Class == "SHAMAN" then
-		if GetSpecialization() == 3 then
-			dispellist.Magic = true
-		else
-			dispellist.Magic = false
-		end
+		dispellist.Curse = IsSpellKnown(51886)
 	end
 end
 
@@ -92,14 +128,12 @@ local function Enable(object)
 	end
 
 	-- If we're filtering highlights and we're not of the dispelling type, return
-	if object.DebuffHighlightFilter and not CanDispel[K.Class] then
+	if object.DebuffHighlightFilter and not DispelClasses[K.Class] then
 		return
 	end
 
 	-- Make sure aura scanning is active for this object
 	object:RegisterEvent("UNIT_AURA", Update)
-	object:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
-	CheckSpec()
 
 	if not object.DebuffHighlightUseTexture then
 		local r, g, b, a = object.DebuffHighlight:GetVertexColor()
@@ -112,9 +146,14 @@ end
 local function Disable(object)
 	if object.DebuffHighlight then
 		object:UnregisterEvent("UNIT_AURA", Update)
-		object:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec)
 	end
 end
+
+local frame = CreateFrame("Frame")
+frame:SetScript("OnEvent", CheckDispel)
+frame:RegisterEvent("UNIT_PET", CheckDispel)
+frame:RegisterEvent("PLAYER_TALENT_UPDATE")
+frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
 
 oUF:AddElement("DebuffHighlight", Update, Enable, Disable)
 

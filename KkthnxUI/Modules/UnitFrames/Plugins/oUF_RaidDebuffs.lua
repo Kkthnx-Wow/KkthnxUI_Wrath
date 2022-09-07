@@ -76,17 +76,11 @@ local DispellFilter
 do
 	local dispellClasses = {
 		["DRUID"] = {
-			["Magic"] = false,
 			["Curse"] = true,
 			["Poison"] = true,
 		},
-		["MONK"] = {
-			["Magic"] = true,
-			["Poison"] = true,
-			["Disease"] = true,
-		},
 		["PALADIN"] = {
-			["Magic"] = false,
+			["Magic"] = true,
 			["Poison"] = true,
 			["Disease"] = true,
 		},
@@ -95,43 +89,19 @@ do
 			["Disease"] = true,
 		},
 		["SHAMAN"] = {
-			["Magic"] = false,
-			["Curse"] = true,
+			["Poison"] = true,
+			["Disease"] = true,
+			["Curse"] = IsSpellKnown(51886),
 		},
 		["MAGE"] = {
 			["Curse"] = true,
 		},
+		["WARLOCK"] = {
+			["Magic"] = true,
+		},
 	}
 
 	DispellFilter = dispellClasses[K.Class] or {}
-end
-
-local function CheckSpec()
-	if K.Class == "DRUID" then
-		if GetSpecialization() == 4 then
-			DispellFilter.Magic = true
-		else
-			DispellFilter.Magic = false
-		end
-	elseif K.Class == "MONK" then
-		if GetSpecialization() == 2 then
-			DispellFilter.Magic = true
-		else
-			DispellFilter.Magic = false
-		end
-	elseif K.Class == "PALADIN" then
-		if GetSpecialization() == 1 then
-			DispellFilter.Magic = true
-		else
-			DispellFilter.Magic = false
-		end
-	elseif K.Class == "SHAMAN" then
-		if GetSpecialization() == 3 then
-			DispellFilter.Magic = true
-		else
-			DispellFilter.Magic = false
-		end
-	end
 end
 
 local function UpdateDebuff(self, name, icon, count, debuffType, duration, expiration, _, stackThreshold)
@@ -272,9 +242,6 @@ local function Enable(self)
 
 		return true
 	end
-
-	CheckSpec()
-	self:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
 end
 
 local function Disable(self)
@@ -282,8 +249,6 @@ local function Disable(self)
 		self:UnregisterEvent("UNIT_AURA", Update)
 		self.RaidDebuffs:Hide()
 	end
-
-	self:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec, true)
 end
 
 oUF:AddElement("RaidDebuffs", Update, Enable, Disable)

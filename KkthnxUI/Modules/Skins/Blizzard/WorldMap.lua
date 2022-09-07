@@ -3,64 +3,34 @@ local K, C = unpack(KkthnxUI)
 local _G = _G
 local table_insert = _G.table.insert
 
-table_insert(C.defaultThemes, function()
-	-- if not C["Skins"].WorldMap then
-	-- 	return
-	-- end
-
-	local WorldMapFrame = _G.WorldMapFrame
-
+tinsert(C.defaultThemes, function()
+	-- Hide border frame
 	WorldMapFrame.BorderFrame:Hide()
+
+	-- Hide dropdown menus
 	WorldMapZoneDropDown:Hide()
 	WorldMapContinentDropDown:Hide()
 	WorldMapZoneMinimapDropDown:Hide()
+
+	-- Hide zoom out button
 	WorldMapZoomOutButton:Hide()
+
+	-- Hide right-click to zoom out text
 	WorldMapMagnifyingGlassButton:Hide()
 
-	WorldMapFrame:SetHitRectInsets(-20, -20, 38, 0)
-	WorldMapFrame:SetClampedToScreen(false)
-
-	local NewBorder = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
-	NewBorder:SetPoint("TOPLEFT", 6, -6)
-	NewBorder:SetPoint("BOTTOMRIGHT", -6, 6)
-	NewBorder:CreateBorder(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32 or nil, nil, nil, nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil, false)
-
-	WorldMapFrameCloseButton:SetFrameLevel(10)
-	WorldMapFrameCloseButton:SetSize(34, 34)
+	-- Move close button inside scroll container
 	WorldMapFrameCloseButton:ClearAllPoints()
-	WorldMapFrameCloseButton:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -10, -68)
+	WorldMapFrameCloseButton:SetPoint("TOPRIGHT", WorldMapFrame.ScrollContainer, "TOPRIGHT", -2, 1)
+	WorldMapFrameCloseButton:SetSize(34, 34)
+	WorldMapFrameCloseButton:SetFrameLevel(5000)
 	WorldMapFrameCloseButton:SkinCloseButton()
 
-	C_Timer.After(5, function()
-		if Questie_Toggle then
-			-- Hide original toggle button
-			Questie_Toggle:Hide()
+	-- Function to set world map clickable area
+	WorldMapFrame:SetHitRectInsets(-20, -20, 38, 0)
 
-			-- Create our own button
-			local QuestButton = CreateFrame("Button", nil, WorldMapFrame)
-			QuestButton:SetSize(18, 18)
-			QuestButton:SetPoint("TOPRIGHT", -50, -76)
-			QuestButton:SetFrameLevel(WorldMapFrameCloseButton:GetFrameLevel())
-
-			QuestButton:SetScript("OnClick", function()
-				PlaySound(825)
-				Questie_Toggle:Click()
-			end)
-
-			QuestButton:SetScript("OnEnter", function(self)
-				GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT", -1, 5)
-				GameTooltip:AddLine("Toggle Questie")
-				GameTooltip:Show()
-			end)
-
-			QuestButton:SetScript("OnLeave", K.HideTooltip)
-
-			QuestButton:SkinButton()
-
-			QuestButton.Texture = QuestButton.Texture or QuestButton:CreateTexture(nil, "OVERLAY")
-			QuestButton.Texture:SetSize(18, 18)
-			QuestButton.Texture:SetPoint("CENTER")
-			QuestButton.Texture:SetTexture([[Interface\AddOns\Questie\Icons\available]])
-		end
-	end)
+	-- Create KkthnxUI border around map
+	local border = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
+	border:SetPoint("TOPLEFT", 5, -5)
+	border:SetPoint("BOTTOMRIGHT", -7, 7)
+	border:CreateBorder(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 32 or nil, nil, nil, nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil, false)
 end)
