@@ -294,92 +294,67 @@ function Module:CreateStyle()
 	end)
 end
 
--- This is just weird to do this but I hate the default icons for covs
-local function UpdateCovenantTexture(texture)
-	local CovenantID = C_Covenants.GetActiveCovenantID()
-	local CovenantType = Enum.CovenantType
-	local TexturePath = "Interface\\AddOns\\KkthnxUI\\Media\\Minimap\\"
-
-	if CovenantID ~= CovenantType.None then
-		if CovenantID == CovenantType.Kyrian then
-			texture = TexturePath .. "Kyrian"
-		elseif CovenantID == CovenantType.Venthyr then
-			texture = TexturePath .. "Venthyr"
-		elseif CovenantID == CovenantType.NightFae then
-			texture = TexturePath .. "NightFae"
-		elseif CovenantID == CovenantType.Necrolord then
-			texture = TexturePath .. "Necrolords"
-		end
-	else
-		if CovenantID == CovenantType.None then -- No cov so default to differnt icons?
-			if K.Faction == "Alliance" then
-				texture = TexturePath .. "Alliance"
-			else
-				texture = TexturePath .. "Horde"
-			end
-		end
-	end
-
-	return texture
-end
-
 function Module:ReskinRegions()
 	-- QueueStatus Button
-	if QueueStatusMinimapButton then
-		QueueStatusMinimapButton:ClearAllPoints()
-		QueueStatusMinimapButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 2, -2)
-		QueueStatusMinimapButtonBorder:Hide()
-		QueueStatusMinimapButtonIconTexture:SetTexture(nil)
-		QueueStatusMinimapButton:SetFrameLevel(999)
+	MiniMapBattlefieldFrame:ClearAllPoints()
+	MiniMapBattlefieldFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 2, -2)
+	MiniMapBattlefieldBorder:Hide()
+	MiniMapBattlefieldIcon:SetAlpha(0)
+	BattlegroundShine:SetTexture(nil)
+	MiniMapBattlefieldFrame:SetFrameLevel(999)
 
-		local queueIcon = Minimap:CreateTexture(nil, "OVERLAY")
-		queueIcon:SetPoint("CENTER", QueueStatusMinimapButton)
-		queueIcon:SetSize(50, 50)
-		queueIcon:SetTexture("Interface\\Minimap\\Dungeon_Icon")
+	local queueIcon = Minimap:CreateTexture(nil, "OVERLAY")
+	queueIcon:SetPoint("CENTER", MiniMapBattlefieldFrame)
+	queueIcon:SetSize(50, 50)
+	queueIcon:SetTexture("Interface\\Minimap\\Dungeon_Icon")
+	queueIcon:Hide()
 
-		local queueIconAnimation = queueIcon:CreateAnimationGroup()
-		queueIconAnimation:SetLooping("REPEAT")
-		queueIconAnimation.rotation = queueIconAnimation:CreateAnimation("Rotation")
-		queueIconAnimation.rotation:SetDuration(2)
-		queueIconAnimation.rotation:SetDegrees(360)
+	local queueIconAnimation = queueIcon:CreateAnimationGroup()
+	queueIconAnimation:SetLooping("REPEAT")
+	queueIconAnimation.rotation = queueIconAnimation:CreateAnimation("Rotation")
+	queueIconAnimation.rotation:SetDuration(2)
+	queueIconAnimation.rotation:SetDegrees(360)
 
-		hooksecurefunc("QueueStatusFrame_Update", function()
-			queueIcon:SetShown(QueueStatusMinimapButton:IsShown())
-		end)
-
-		hooksecurefunc("EyeTemplate_StartAnimating", function()
-			queueIconAnimation:Play()
-		end)
-
-		hooksecurefunc("EyeTemplate_StopAnimating", function()
-			queueIconAnimation:Stop()
-		end)
-
-		local queueStatusDisplay = Module.QueueStatusDisplay
-		if queueStatusDisplay then
-			queueStatusDisplay.text:ClearAllPoints()
-			queueStatusDisplay.text:SetPoint("CENTER", queueIcon, 0, -5)
-			queueStatusDisplay.text:SetFontObject(K.UIFont)
-
-			if queueStatusDisplay.title then
-				Module:ClearQueueStatus()
+	hooksecurefunc("BattlefieldFrame_UpdateStatus", function()
+		queueIcon:SetShown(MiniMapBattlefieldFrame:IsShown())
+		queueIconAnimation:Play()
+		for i = 1, MAX_BATTLEFIELD_QUEUES do
+			local status = GetBattlefieldStatus(i)
+			if status == "confirm" then
+				queueIconAnimation:Stop()
+				break
 			end
+		end
+	end)
+
+	local queueStatusDisplay = Module.QueueStatusDisplay
+	if queueStatusDisplay then
+		queueStatusDisplay.text:ClearAllPoints()
+		queueStatusDisplay.text:SetPoint("CENTER", queueIcon, 0, -5)
+		queueStatusDisplay.text:SetFontObject(K.UIFont)
+
+		if queueStatusDisplay.title then
+			Module:ClearQueueStatus()
 		end
 	end
 
-	-- -- Difficulty Flags
-	-- local difficultyFlags = {
-	-- 	"MiniMapInstanceDifficulty",
-	-- 	"GuildInstanceDifficulty",
-	-- 	"MiniMapChallengeMode",
-	-- }
+	if MiniMapLFGFrame then
+		MiniMapLFGFrame:ClearAllPoints()
+		MiniMapLFGFrame:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT", -2, -2)
+		MiniMapLFGFrameBorder:Hide()
+	end
 
-	-- for _, v in pairs(difficultyFlags) do
-	-- 	local difficultyFlag = _G[v]
-	-- 	difficultyFlag:ClearAllPoints()
-	-- 	difficultyFlag:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
-	-- 	difficultyFlag:SetScale(0.9)
-	-- end
+	-- Difficulty Flags
+	local difficultyFlags = {
+		"MiniMapInstanceDifficulty",
+	}
+
+	for _, v in pairs(difficultyFlags) do
+		local difficultyFlag = _G[v]
+		difficultyFlag:ClearAllPoints()
+		difficultyFlag:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0)
+		difficultyFlag:SetScale(0.9)
+	end
 
 	-- Mail icon
 	if MiniMapMailFrame then
@@ -635,17 +610,6 @@ function Module:Minimap_OnMouseUp(btn)
 	end
 end
 
-function Module:SetupHybridMinimap()
-	HybridMinimap.CircleMask:SetTexture("Interface\\BUTTONS\\WHITE8X8")
-end
-
-function Module:HybridMinimapOnLoad(addon)
-	if addon == "Blizzard_HybridMinimap" then
-		Module:SetupHybridMinimap()
-		K:UnregisterEvent(self, Module.HybridMinimapOnLoad)
-	end
-end
-
 function Module:UpdateBlipTexture()
 	Minimap:SetBlipTexture(C["Minimap"].BlipTexture.Value)
 end
@@ -775,8 +739,6 @@ function Module:OnEnable()
 	end
 
 	MinimapCluster:EnableMouse(false)
-	-- Minimap:SetArchBlobRingScalar(0)
-	-- Minimap:SetQuestBlobRingScalar(0)
 
 	-- Add Elements
 	self:CreatePing()
@@ -784,7 +746,4 @@ function Module:OnEnable()
 	self:CreateSoundVolume()
 	self:CreateStyle()
 	self:ReskinRegions()
-
-	-- HybridMinimap
-	K:RegisterEvent("ADDON_LOADED", Module.HybridMinimapOnLoad)
 end

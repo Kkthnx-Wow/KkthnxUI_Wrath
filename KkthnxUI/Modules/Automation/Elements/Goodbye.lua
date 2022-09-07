@@ -53,5 +53,4 @@ function Module:CreateAutoGoodbye()
 	end
 
 	K:RegisterEvent("LFG_COMPLETION_REWARD", Module.SetupAutoGoodbye)
-	-- K:RegisterEvent("CHALLENGE_MODE_COMPLETED", Module.SetupAutoGoodbye)
 end
