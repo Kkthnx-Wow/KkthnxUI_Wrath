@@ -7,7 +7,7 @@ local string_format = _G.string.format
 
 local CreateFrame = _G.CreateFrame
 
-function Module.PostUpdateAddPower(element, cur, max)
+function Module.PostUpdateAddPower(element, _, cur, max)
 	if element.Text and max > 0 then
 		local perc = cur / max * 100
 		if perc == 100 then
@@ -17,7 +17,6 @@ function Module.PostUpdateAddPower(element, cur, max)
 			perc = string_format("%d%%", perc)
 			element:SetAlpha(1)
 		end
-
 		element.Text:SetText(perc)
 	end
 end
@@ -251,6 +250,10 @@ function Module:CreatePlayer()
 	end
 
 	if C["Unitframe"].AdditionalPower then
+		if K.Class ~= "DRUID" then
+			return
+		end
+
 		local AdditionalPower = CreateFrame("StatusBar", self:GetName() .. "AdditionalPower", Health)
 		AdditionalPower.frequentUpdates = true
 		AdditionalPower:SetWidth(12)

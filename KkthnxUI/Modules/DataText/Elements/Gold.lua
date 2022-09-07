@@ -8,7 +8,7 @@ local unpack = _G.unpack
 
 local CLASS_ICON_TCOORDS = _G.CLASS_ICON_TCOORDS
 local CURRENCY = _G.CURRENCY
-local C_CurrencyInfo_GetBackpackCurrencyInfo = _G.C_CurrencyInfo.GetBackpackCurrencyInfo
+local GetBackpackCurrencyInfo = GetBackpackCurrencyInfo
 local C_CurrencyInfo_GetCurrencyInfo = _G.C_CurrencyInfo.GetCurrencyInfo
 local C_Timer_NewTicker = _G.C_Timer.NewTicker
 local C_WowTokenPublic_GetCurrentMarketPrice = _G.C_WowTokenPublic.GetCurrentMarketPrice
@@ -31,7 +31,11 @@ local oldMoney = 0
 local crossRealms = GetAutoCompleteRealms()
 local GoldDataText
 local RebuildCharList
-local RightClickText
+
+local replacedTextures = {
+	[136998] = "Interface\\PVPFrame\\PVP-Currency-Alliance",
+	[137000] = "Interface\\PVPFrame\\PVP-Currency-Horde",
+}
 
 if not crossRealms or #crossRealms == 0 then
 	crossRealms = { [1] = K.Realm }
@@ -213,12 +217,7 @@ local function OnEnter(self)
 	GameTooltip:AddDoubleLine("|TInterface\\ICONS\\WoW_Token01:12:12:0:0:50:50:4:46:4:46|t " .. "Token:", K.FormatMoney(C_WowTokenPublic_GetCurrentMarketPrice() or 0), 0.5, 0.7, 1, 1, 1, 1)
 
 	for i = 1, GetNumWatchedTokens() do
-		local currencyInfo = C_CurrencyInfo_GetBackpackCurrencyInfo(i)
-		if not currencyInfo then
-			break
-		end
-
-		local name, count, icon, currencyID = currencyInfo.name, currencyInfo.quantity, currencyInfo.iconFileID, currencyInfo.currencyTypesID
+		local name, count, icon, currencyID = GetBackpackCurrencyInfo(i)
 		if name and i == 1 then
 			GameTooltip:AddLine(" ")
 			GameTooltip:AddLine(CURRENCY .. ":", 0.5, 0.7, 1)
@@ -226,6 +225,7 @@ local function OnEnter(self)
 
 		if name and count then
 			local total = C_CurrencyInfo_GetCurrencyInfo(currencyID).maxQuantity
+			icon = replacedTextures[icon] or icon -- replace classic honor icons
 			local iconTexture = " |T" .. icon .. ":12:12:0:0:50:50:4:46:4:46|t"
 			if total > 0 then
 				GameTooltip:AddDoubleLine(name, count .. "/" .. total .. iconTexture, 1, 1, 1, 1, 1, 1)
