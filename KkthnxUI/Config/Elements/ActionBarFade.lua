@@ -37,11 +37,6 @@ C.Bars = {
 		fader = BAR_FADER,
 	},
 
-	BarExtra = {
-		size = 52,
-		fader = nil,
-	},
-
 	BarVehicle = {
 		size = 40,
 		fader = nil,

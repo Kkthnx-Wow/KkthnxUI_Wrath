@@ -372,9 +372,9 @@ local function SkinCloseButton(f, point, texture)
 	end
 end
 
-local function SkinCheckBox(f)
+local function SkinCheckBox(f, bSubLevel, bLayer, bSize, bTexture, bOffset, bRed, bGreen, bBlue, bAlpha, bgTexture, bgSubLevel, bgLayer, bgPoint, bgRed, bgGreen, bgBlue, bgAlpha)
 	f:StripTextures()
-	f:CreateBorder()
+	f:CreateBorder(bSubLevel, bLayer, bSize, bTexture, bOffset, bRed, bGreen, bBlue, bAlpha, bgTexture, bgSubLevel, bgLayer, bgPoint, bgRed, bgGreen, bgBlue, bgAlpha)
 
 	if f.SetCheckedTexture then
 		f:SetCheckedTexture("Interface\\AddOns\\KkthnxUI\\Media\\Textures\\UI-CheckBox-Check")
