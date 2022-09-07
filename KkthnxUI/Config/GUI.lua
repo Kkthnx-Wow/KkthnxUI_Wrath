@@ -853,7 +853,9 @@ local Unitframe = function(self)
 	Window:CreateSwitch("Unitframe", "PetCombatText", L["Pet's Healing/Damage"])
 
 	Window:CreateSection(PLAYER)
-	Window:CreateSwitch("Unitframe", "AdditionalPower", L["Show Additional Mana Power (|CFFFF7D0ADruid|r, |CFFFFFFFFPriest|r, |CFF0070DEShaman|r)"])
+	if K.Class == "DRUID" then
+		Window:CreateSwitch("Unitframe", "AdditionalPower", L["Show Additional Mana Power (|CFFFF7D0ADruid|r)"])
+	end
 	Window:CreateSwitch("Unitframe", "CastbarLatency", L["Show Castbar Latency"])
 	Window:CreateSwitch("Unitframe", "GlobalCooldown", "Show Global Cooldown Spark")
 	Window:CreateSwitch("Unitframe", "PlayerBuffs", L["Show Player Frame Buffs"])
