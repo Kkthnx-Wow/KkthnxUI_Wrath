@@ -60,8 +60,8 @@ local function Update(self, event, unit, ...)
 
 	if event == "ARENA_OPPONENT_UPDATE" or event == "OnShow" then
 		local unitEvent = ...
-		print("event", event)
-		print("unitEvent", unitEvent)
+		-- print("event", event)
+		-- print("unitEvent", unitEvent)
 		if unitEvent ~= "seen" and event ~= "OnShow" then
 			return
 		end

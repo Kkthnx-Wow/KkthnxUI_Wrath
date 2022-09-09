@@ -11,7 +11,6 @@ local string_match = _G.string.match
 local table_wipe = _G.table.wipe
 local unpack = _G.unpack
 
-local C_AzeriteEmpoweredItem_IsAzeriteEmpoweredItemByID = _G.C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItemByID
 local C_NewItems_IsNewItem = _G.C_NewItems.IsNewItem
 local C_NewItems_RemoveNewItem = _G.C_NewItems.RemoveNewItem
 local C_Timer_After = _G.C_Timer.After
@@ -26,8 +25,6 @@ local GetItemInfo = _G.GetItemInfo
 local InCombatLockdown = _G.InCombatLockdown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
-local IsCosmeticItem = _G.IsCosmeticItem
-local IsReagentBankUnlocked = _G.IsReagentBankUnlocked
 local LE_ITEM_QUALITY_POOR = _G.LE_ITEM_QUALITY_POOR
 local PickupContainerItem = _G.PickupContainerItem
 local PlaySound = _G.PlaySound
@@ -264,16 +261,12 @@ local function CloseOrRestoreBags(self, btn)
 	if btn == "RightButton" then
 		local bag = self.__owner.main
 		local bank = self.__owner.bank
-		local reagent = self.__owner.reagent
 		KkthnxUIDB.Variables[K.Realm][K.Name]["TempAnchor"][bag:GetName()] = nil
 		KkthnxUIDB.Variables[K.Realm][K.Name]["TempAnchor"][bank:GetName()] = nil
-		KkthnxUIDB.Variables[K.Realm][K.Name]["TempAnchor"][reagent:GetName()] = nil
 		bag:ClearAllPoints()
 		bag:SetPoint(unpack(bag.__anchor))
 		bank:ClearAllPoints()
 		bank:SetPoint(unpack(bank.__anchor))
-		reagent:ClearAllPoints()
-		reagent:SetPoint(unpack(reagent.__anchor))
 		PlaySound(SOUNDKIT.IG_MINIMAP_OPEN)
 	else
 		CloseAllBags()
@@ -300,39 +293,6 @@ function Module:CreateCloseButton(f)
 	return closeButton
 end
 
-function Module:CreateReagentButton(f)
-	local reagentButton = CreateFrame("Button", nil, self)
-	reagentButton:SetSize(18, 18)
-	reagentButton:CreateBorder()
-	reagentButton:StyleButton()
-
-	reagentButton.Icon = reagentButton:CreateTexture(nil, "ARTWORK")
-	reagentButton.Icon:SetAllPoints()
-	reagentButton.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	reagentButton.Icon:SetTexture("Interface\\ICONS\\INV_Enchant_DustArcane")
-
-	reagentButton:RegisterForClicks("AnyUp")
-	reagentButton:SetScript("OnClick", function(_, btn)
-		if not IsReagentBankUnlocked() then
-			_G.StaticPopup_Show("CONFIRM_BUY_REAGENTBANK_TAB")
-		else
-			PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
-			_G.ReagentBankFrame:Show()
-			_G.BankFrame.selectedTab = 2
-			f.reagent:Show()
-			f.bank:Hide()
-
-			if btn == "RightButton" then
-				_G.DepositReagentBank()
-			end
-		end
-	end)
-	reagentButton.title = _G.REAGENT_BANK
-	K.AddTooltip(reagentButton, "ANCHOR_TOP")
-
-	return reagentButton
-end
-
 function Module:CreateBankButton(f)
 	local BankButton = CreateFrame("Button", nil, self)
 	BankButton:SetSize(18, 18)
@@ -346,9 +306,7 @@ function Module:CreateBankButton(f)
 
 	BankButton:SetScript("OnClick", function()
 		PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
-		_G.ReagentBankFrame:Hide()
 		_G.BankFrame.selectedTab = 1
-		f.reagent:Hide()
 		f.bank:Show()
 	end)
 
@@ -356,46 +314,6 @@ function Module:CreateBankButton(f)
 	K.AddTooltip(BankButton, "ANCHOR_TOP")
 
 	return BankButton
-end
-
-local function updateDepositButtonStatus(bu)
-	if C["Inventory"].AutoDeposit then
-		bu.KKUI_Border:SetVertexColor(1, 0.8, 0)
-	else
-		bu.KKUI_Border:SetVertexColor(1, 1, 1)
-	end
-end
-
-function Module:AutoDeposit()
-	if C["Inventory"].AutoDeposit and not IsShiftKeyDown() then
-		DepositReagentBank()
-	end
-end
-
-function Module:CreateDepositButton()
-	local DepositButton = CreateFrame("Button", nil, self)
-	DepositButton:SetSize(18, 18)
-	DepositButton:CreateBorder()
-	DepositButton:StyleButton()
-
-	DepositButton.Icon = DepositButton:CreateTexture(nil, "ARTWORK")
-	DepositButton.Icon:SetAllPoints()
-	DepositButton.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
-	DepositButton.Icon:SetTexture("Interface\\ICONS\\misc_arrowdown")
-
-	DepositButton:SetScript("OnClick", function(_, btn)
-		if btn == "RightButton" then
-			C["Inventory"].AutoDeposit = not C["Inventory"].AutoDeposit
-			updateDepositButtonStatus(DepositButton)
-		else
-			DepositReagentBank()
-		end
-	end)
-
-	DepositButton.title = _G.REAGENTBANK_DEPOSIT
-	K.AddTooltip(DepositButton, "ANCHOR_TOP", K.InfoColor .. L["AutoDepositTip"])
-
-	return DepositButton
 end
 
 local function ToggleBackpacks(self)
@@ -480,8 +398,6 @@ function Module:CreateSortButton(name)
 	sortButton:SetScript("OnClick", function()
 		if name == "Bank" then
 			SortBankBags()
-		elseif name == "Reagent" then
-			_G.SortReagentBankBags()
 		else
 			if C["Inventory"].ReverseSort then
 				if InCombatLockdown() then
@@ -1053,12 +969,6 @@ function Module:OnEnable()
 		f.bank:SetFilter(filters.onlyBank, true)
 		f.bank:Hide()
 
-		f.reagent = MyContainer:New("Reagent", { Bags = "bankreagent", BagType = "Bank" })
-		f.reagent:SetFilter(filters.onlyReagent, true)
-		f.reagent.__anchor = { "BOTTOMLEFT", f.bank }
-		f.reagent:SetPoint(unpack(f.reagent.__anchor))
-		f.reagent:Hide()
-
 		for bagType, groups in pairs(Module.ContainerGroups) do
 			for _, container in ipairs(groups) do
 				local parent = Backpack.contByName[bagType]
@@ -1084,8 +994,6 @@ function Module:OnEnable()
 		BankFrame.selectedTab = 1
 		BankFrame:Hide()
 		self:GetContainer("Bank"):Hide()
-		self:GetContainer("Reagent"):Hide()
-		ReagentBankFrame:Hide()
 	end
 
 	local MyButton = Backpack:GetItemButtonClass()
@@ -1453,9 +1361,9 @@ function Module:OnEnable()
 
 		local buttons = {}
 		buttons[1] = Module.CreateCloseButton(self, f)
-		buttons[2] = Module.CreateSortButton(self, name)
 		if name == "Bag" then
 			Module.CreateBagBar(self, settings, NUM_BAG_SLOTS)
+			buttons[2] = Module.CreateSortButton(self, name)
 			buttons[3] = Module.CreateBagToggle(self)
 			buttons[4] = Module.CreateKeyToggle(self)
 			buttons[5] = Module.CreateSplitButton(self)
@@ -1464,8 +1372,8 @@ function Module:OnEnable()
 			buttons[8] = Module.CreateDeleteButton(self)
 		elseif name == "Bank" then
 			Module.CreateBagBar(self, settings, NUM_BANKBAGSLOTS)
-			buttons[3] = Module.CreateBagToggle(self)
-			buttons[4] = Module.CreateReagentButton(self, f)
+			buttons[2] = Module.CreateBagToggle(self)
+			buttons[3] = Module.CreateSortButton(self, name)
 		end
 
 		for i = 1, #buttons do
@@ -1569,7 +1477,6 @@ function Module:OnEnable()
 
 	K:RegisterEvent("TRADE_SHOW", Module.OpenBags)
 	K:RegisterEvent("TRADE_CLOSED", Module.CloseBags)
-	K:RegisterEvent("BANKFRAME_OPENED", Module.AutoDeposit)
 
 	-- Update infobar slots
 	--local INFO = K:GetModule("Infobar")

@@ -22,18 +22,19 @@ function Module:CreateRecycleBin()
 	end
 
 	local blackList = {
-		["BattlefieldMinimap"] = true,
-		["FeedbackUIButton"] = true,
 		["GameTimeFrame"] = true,
-		["GarrisonLandingPageMinimapButton"] = true,
-		["MiniMapBattlefieldFrame"] = true,
 		["MiniMapLFGFrame"] = true,
+		["BattlefieldMinimap"] = true,
 		["MinimapBackdrop"] = true,
-		["MinimapZoneTextButton"] = true,
+		["TimeManagerClockButton"] = true,
+		["FeedbackUIButton"] = true,
+		["HelpOpenTicketButton"] = true,
+		["MiniMapBattlefieldFrame"] = true,
 		["QueueStatusMinimapButton"] = true,
+		["GarrisonLandingPageMinimapButton"] = true,
+		["MinimapZoneTextButton"] = true,
 		["RecycleBinFrame"] = true,
 		["RecycleBinToggleButton"] = true,
-		["TimeManagerClockButton"] = true,
 	}
 
 	local bu = CreateFrame("Button", "RecycleBinToggleButton", Minimap)
@@ -85,6 +86,8 @@ function Module:CreateRecycleBin()
 	local ignoredButtons = {
 		["GatherMatePin"] = true,
 		["HandyNotes.-Pin"] = true,
+		["Guidelime"] = true,
+		["QuestieFrame"] = true,
 	}
 
 	local function isButtonIgnored(name)

@@ -8,9 +8,9 @@ local C_BattleNet_GetGameAccountInfoByGUID = _G.C_BattleNet.GetGameAccountInfoBy
 local C_FriendList_IsFriend = _G.C_FriendList.IsFriend
 local IsGuildMember = _G.IsGuildMember
 local IsInGroup = _G.IsInGroup
-local LFGInvitePopup = _G.LFGInvitePopup
+-- local LFGInvitePopup = _G.LFGInvitePopup
 local MiniMapLFGFrame = _G.MiniMapLFGFrame
-local StaticPopupSpecial_Hide = _G.StaticPopupSpecial_Hide
+-- local StaticPopupSpecial_Hide = _G.StaticPopupSpecial_Hide
 local StaticPopup_Hide = _G.StaticPopup_Hide
 
 local hideStatic
@@ -26,7 +26,7 @@ function Module.AutoInvite(event, _, _, _, _, _, _, inviterGUID)
 			AcceptGroup()
 		end
 	elseif event == "GROUP_ROSTER_UPDATE" and hideStatic then
-		StaticPopupSpecial_Hide(LFGInvitePopup) -- New LFD Popup When Invited In Custom Created Group
+		-- StaticPopupSpecial_Hide(LFGInvitePopup) -- New LFD Popup When Invited In Custom Created Group
 		StaticPopup_Hide("PARTY_INVITE")
 		hideStatic = nil
 	end
