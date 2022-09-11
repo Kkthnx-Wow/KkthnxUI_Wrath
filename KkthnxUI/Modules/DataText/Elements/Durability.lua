@@ -4,7 +4,6 @@ local Module = K:GetModule("Infobar")
 local _G = _G
 local math_floor = _G.math.floor
 local string_gsub = _G.string.gsub
-local string_format = _G.string.format
 local table_sort = _G.table.sort
 
 local GetInventoryItemLink = _G.GetInventoryItemLink
@@ -13,7 +12,6 @@ local GetInventoryItemTexture = _G.GetInventoryItemTexture
 
 local DurabilityDataText
 local repairCostString = string_gsub(REPAIR_COST, HEADER_COLON, ":")
-local lowDurabilityCap = 0.25
 
 local localSlots = {
 	[1] = { 1, INVTYPE_HEAD, 1000 },
@@ -54,14 +52,6 @@ local function UpdateAllSlots()
 	table_sort(localSlots, sortSlots)
 
 	return numSlots
-end
-
-local function isLowDurability()
-	for i = 1, 10 do
-		if localSlots[i][3] < lowDurabilityCap then
-			return true
-		end
-	end
 end
 
 local function getDurabilityColor(cur, max)
@@ -126,7 +116,8 @@ local function OnLeave()
 end
 
 local function NewSetLevelFunction()
-	CharacterLevelText:SetFormattedText(K.Name .. " " .. PLAYER_LEVEL, UnitLevel("player"), UnitRace("player"), K.MyClassColor .. UnitClass("player") .. "|r")
+	local class = UnitClass("player")
+	CharacterLevelText:SetFormattedText(K.Name .. " " .. K.Level .. " " .. K.MyClassColor .. class .. "|r")
 end
 
 function Module:CreateDurabilityDataText()

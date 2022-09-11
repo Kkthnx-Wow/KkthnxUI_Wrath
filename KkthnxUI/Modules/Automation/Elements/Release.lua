@@ -3,9 +3,9 @@ local Module = K:GetModule("Automation")
 
 local _G = _G
 
-local IsInInstance = _G.IsInInstance
 local C_DeathInfo_GetSelfResurrectOptions = _G.C_DeathInfo.GetSelfResurrectOptions
 local C_Map_GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
+local IsInInstance = _G.IsInInstance
 
 local function PLAYER_DEAD()
 	-- If player has ability to self-resurrect (soulstone, reincarnation, etc), do nothing and quit
@@ -22,13 +22,7 @@ local function PLAYER_DEAD()
 
 	-- Resurrect if playuer is in a PvP location
 	local areaID = C_Map_GetBestMapForUnit("player") or 0
-	if
-		areaID == 123 -- Wintergrasp
-		or areaID == 244 -- Tol Barad (PvP)
-		or areaID == 588 -- Ashran
-		or areaID == 622 -- Stormshield
-		or areaID == 624 -- Warspear
-	then
+	if areaID == 123 then -- Wintergrasp
 		RepopMe()
 		return
 	end

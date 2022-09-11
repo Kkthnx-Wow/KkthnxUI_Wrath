@@ -285,6 +285,10 @@ K:RegisterEvent("PLAYER_LOGIN", function()
 	end
 
 	K.Modules = modules
+
+	if K.InitCallback then
+		K:InitCallback()
+	end
 end)
 
 -- Event return values were wrong: https://wow.gamepedia.com/PLAYER_LEVEL_UP

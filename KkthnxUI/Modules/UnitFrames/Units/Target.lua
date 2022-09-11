@@ -104,6 +104,7 @@ function Module:CreateTarget()
 			Portrait:SetPoint("TOPLEFT", Health, "TOPLEFT", 1, -1)
 			Portrait:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT", -1, 1)
 			Portrait:SetAlpha(0.6)
+			--Portrait:SetParent()
 
 			self.Portrait = Portrait
 		elseif targetPortraitStyle == "ThreeDPortraits" then

@@ -8,13 +8,10 @@ local unpack = _G.unpack
 
 local CLASS_ICON_TCOORDS = _G.CLASS_ICON_TCOORDS
 local CURRENCY = _G.CURRENCY
-local GetBackpackCurrencyInfo = GetBackpackCurrencyInfo
 local C_CurrencyInfo_GetCurrencyInfo = _G.C_CurrencyInfo.GetCurrencyInfo
-local C_Timer_NewTicker = _G.C_Timer.NewTicker
-local C_WowTokenPublic_GetCurrentMarketPrice = _G.C_WowTokenPublic.GetCurrentMarketPrice
-local C_WowTokenPublic_UpdateMarketPrice = _G.C_WowTokenPublic.UpdateMarketPrice
 local GameTooltip = _G.GameTooltip
 local GetAutoCompleteRealms = _G.GetAutoCompleteRealms
+local GetBackpackCurrencyInfo = _G.GetBackpackCurrencyInfo
 local GetMoney = _G.GetMoney
 local GetNumWatchedTokens = _G.GetNumWatchedTokens
 local IsControlKeyDown = _G.IsControlKeyDown
@@ -24,7 +21,6 @@ local TOTAL = _G.TOTAL
 local YES = _G.YES
 
 local slotString = "Bags" .. ": %s%d"
-local ticker
 local profit = 0
 local spent = 0
 local oldMoney = 0
@@ -103,11 +99,6 @@ local function OnEvent(_, event, arg1)
 		if arg1 < 0 or arg1 > 4 then
 			return
 		end
-	end
-
-	if not ticker then
-		C_WowTokenPublic_UpdateMarketPrice()
-		ticker = C_Timer_NewTicker(60, C_WowTokenPublic_UpdateMarketPrice)
 	end
 
 	local newMoney = GetMoney()
@@ -212,9 +203,6 @@ local function OnEnter(self)
 	end
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddDoubleLine(TOTAL .. ":", K.FormatMoney(totalGold), 0.63, 0.82, 1, 1, 1, 1)
-
-	GameTooltip:AddLine(" ")
-	GameTooltip:AddDoubleLine("|TInterface\\ICONS\\WoW_Token01:12:12:0:0:50:50:4:46:4:46|t " .. "Token:", K.FormatMoney(C_WowTokenPublic_GetCurrentMarketPrice() or 0), 0.5, 0.7, 1, 1, 1, 1)
 
 	for i = 1, GetNumWatchedTokens() do
 		local name, count, icon, currencyID = GetBackpackCurrencyInfo(i)

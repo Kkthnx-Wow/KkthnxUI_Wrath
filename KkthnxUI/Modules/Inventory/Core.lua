@@ -432,19 +432,19 @@ end
 function Module:GetEmptySlot(bagType, bagGroup)
 	if bagType == "Bag" then
 		for bagID = 0, NUM_BAG_SLOTS do
-			local slotID = module:GetContainerEmptySlot(bagID, bagGroup)
+			local slotID = Module:GetContainerEmptySlot(bagID, bagGroup)
 			if slotID then
 				return bagID, slotID
 			end
 		end
 	elseif bagType == "Bank" then
-		local slotID = module:GetContainerEmptySlot(-1, bagGroup)
+		local slotID = Module:GetContainerEmptySlot(-1, bagGroup)
 		if slotID then
 			return -1, slotID
 		end
 
 		for bagID = NUM_BAG_SLOTS + 1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do
-			local slotID = module:GetContainerEmptySlot(bagID, bagGroup)
+			local slotID = Module:GetContainerEmptySlot(bagID, bagGroup)
 			if slotID then
 				return bagID, slotID
 			end
