@@ -980,7 +980,6 @@ function Module:OnEnable()
 
 	local initBagType
 	function Backpack:OnBankOpened()
-		BankFrame:Show()
 		self:GetContainer("Bank"):Show()
 
 		if not initBagType then
@@ -991,8 +990,6 @@ function Module:OnEnable()
 	end
 
 	function Backpack:OnBankClosed()
-		BankFrame.selectedTab = 1
-		BankFrame:Hide()
 		self:GetContainer("Bank"):Hide()
 	end
 
@@ -1015,9 +1012,6 @@ function Module:OnEnable()
 
 		self.IconOverlay:SetPoint("TOPLEFT", 1, -1)
 		self.IconOverlay:SetPoint("BOTTOMRIGHT", -1, 1)
-
-		-- self.IconOverlay2:SetPoint("TOPLEFT", 1, -1)
-		-- self.IconOverlay2:SetPoint("BOTTOMRIGHT", -1, 1)
 
 		self:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, K.MediaFolder .. "Skins\\UI-Slot-Background", nil, nil, nil, 0.7, 0.7, 0.7)
 		self:StyleButton()
@@ -1096,18 +1090,6 @@ function Module:OnEnable()
 		return item.link and item.quality > 1 and Module:IsItemHasLevel(item)
 	end
 
-	local function GetIconOverlayAtlas(item)
-		if not item.link then
-			return
-		end
-
-		-- if C_AzeriteEmpoweredItem_IsAzeriteEmpoweredItemByID(item.link) then
-		-- 	return "AzeriteIconFrame"
-		-- elseif IsCosmeticItem(item.link) then
-		-- 	return "CosmeticIconFrame"
-		-- end
-	end
-
 	local function UpdateCanIMogIt(self, item)
 		if not self.canIMogIt then
 			return
@@ -1158,19 +1140,6 @@ function Module:OnEnable()
 		self.IconOverlay:SetVertexColor(1, 1, 1)
 		self.IconOverlay:Hide()
 		-- self.IconOverlay2:Hide()
-
-		local atlas, secondAtlas = GetIconOverlayAtlas(item)
-		if atlas then
-			self.IconOverlay:SetAtlas(atlas)
-			self.IconOverlay:Show()
-
-			if secondAtlas then
-				local color = K.QualityColors[item.quality or 1]
-				self.IconOverlay:SetVertexColor(color.r, color.g, color.b)
-				-- self.IconOverlay2:SetAtlas(secondAtlas)
-				-- self.IconOverlay2:Show()
-			end
-		end
 
 		if KkthnxUIDB.Variables[K.Realm][K.Name].CustomItems[item.id] and not C["Inventory"].ItemFilter then
 			self.Favourite:Show()
