@@ -179,7 +179,7 @@ function Module:SkinChat()
 	end
 
 	local name = self:GetName()
-	local font, fontSize, fontStyle = _G[K.UIFont]:GetFont()
+	local font, fontSize, fontStyle = self:GetFont()
 
 	self:SetMaxResize(K.ScreenWidth, K.ScreenHeight)
 	self:SetMinResize(100, 50)

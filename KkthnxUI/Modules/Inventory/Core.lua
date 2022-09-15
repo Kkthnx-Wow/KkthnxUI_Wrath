@@ -1139,7 +1139,6 @@ function Module:OnEnable()
 
 		self.IconOverlay:SetVertexColor(1, 1, 1)
 		self.IconOverlay:Hide()
-		-- self.IconOverlay2:Hide()
 
 		if KkthnxUIDB.Variables[K.Realm][K.Name].CustomItems[item.id] and not C["Inventory"].ItemFilter then
 			self.Favourite:Show()
