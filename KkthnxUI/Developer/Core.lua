@@ -1,11 +1,7 @@
-local K, C, L = unpack(KkthnxUI)
+local K = unpack(KkthnxUI)
 
 K.Devs = {
-	["Ashanarra-Oribos"] = true,
-	["Informant-Oribos"] = true,
-	["Kkthnx-Arena 52"] = true,
-	["Kkthnx-Oribos"] = true,
-	["Swipers-Oribos"] = true,
+	["Kkthnx-Sulfuras"] = true,
 }
 
 local function isDeveloper()

@@ -100,11 +100,11 @@ local function createLabel(parent, text, tip)
 end
 
 local function AW_CreateEditbox(parent, text, x, y, tip, width, height)
-	local height = height or 24
-	local width = width or 90
+	local h = height or 24
+	local w = width or 90
 
 	local eb = CreateFrame("EditBox", nil, parent)
-	eb:SetSize(width, height)
+	eb:SetSize(w, h)
 	eb:SetPoint("TOPLEFT", x, y)
 	eb:SetAutoFocus(false)
 	eb:SetTextInsets(5, 5, 0, 0)
@@ -142,26 +142,30 @@ local function AW_CreateCheckBox(parent, text, x, y, tip)
 
 	cb:SetHighlightTexture(C["Media"].Textures.BlankTexture)
 	local hl = cb:GetHighlightTexture()
-	hl:SetPoint("TOPLEFT", bg, "TOPLEFT", 2, -2)
-	hl:SetPoint("BOTTOMRIGHT", bg, "BOTTOMRIGHT", -2, 2)
-	hl:SetVertexColor(0, 1, 0, 0.25)
+	if hl then
+		hl:SetPoint("TOPLEFT", bg, "TOPLEFT", 2, -2)
+		hl:SetPoint("BOTTOMRIGHT", bg, "BOTTOMRIGHT", -2, 2)
+		hl:SetVertexColor(0, 1, 0, 0.25)
+	end
 
 	local ch = cb:GetCheckedTexture()
-	ch:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Textures\\UI-CheckBox-Check")
-	ch:SetTexCoord(0, 1, 0, 1)
-	ch:SetDesaturated(true)
-	ch:SetVertexColor(1, 1, 0)
+	if ch then
+		ch:SetTexture("Interface\\AddOns\\KkthnxUI\\Media\\Textures\\UI-CheckBox-Check")
+		ch:SetTexCoord(0, 1, 0, 1)
+		ch:SetDesaturated(true)
+		ch:SetVertexColor(1, 1, 0)
+	end
 
 	cb.Type = "CheckBox"
 	return cb
 end
 
 local function AW_CreateDropdown(parent, text, x, y, data, tip, width, height)
-	local width = width or 90
-	local height = height or 24
+	local w = width or 90
+	local h = height or 24
 
 	local dd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-	dd:SetSize(width, height)
+	dd:SetSize(w, h)
 	dd:SetPoint("TOPLEFT", x, y)
 	createLabel(dd, text, tip)
 	dd:CreateBorder()

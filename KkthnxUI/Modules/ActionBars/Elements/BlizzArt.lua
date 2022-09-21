@@ -13,7 +13,6 @@ local GetCVar = _G.GetCVar
 local InCombatLockdown = _G.InCombatLockdown
 local MainMenuBar = _G.MainMenuBar
 local MainMenuBarArtFrame = _G.MainMenuBarArtFrame
-local MainMenuBarVehicleLeaveButton = _G.MainMenuBarVehicleLeaveButton
 local MicroButtonAndBagsBar = _G.MicroButtonAndBagsBar
 local OverrideActionBar = _G.OverrideActionBar
 local OverrideActionBarExpBar = _G.OverrideActionBarExpBar
