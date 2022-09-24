@@ -324,11 +324,7 @@ function Module:CreatePlayer()
 		local bar = CreateFrame("Frame", nil, self)
 		local width = C["Unitframe"].PlayerCastbarWidth - C["Unitframe"].PlayerCastbarHeight - 5
 		bar:SetSize(width, 13)
-		if C["Unitframe"].PlayerCastbar then
-			-- bar:SetPoint("TOP", self.Castbar.mover, "BOTTOM", 0, -6)
-		else
-			bar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 200)
-		end
+		bar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 200)
 
 		local two = CreateFrame("StatusBar", nil, bar)
 		two:Hide()

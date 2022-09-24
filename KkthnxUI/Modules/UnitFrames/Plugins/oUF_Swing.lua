@@ -4,18 +4,20 @@ local oUF = K.oUF
 -- oUF_Swing, by p3lim
 -- KkthnxUI MOD
 
-local _G = _G
-local select = _G.select
-
-local GetInventoryItemID = _G.GetInventoryItemID
-local GetTime = _G.GetTime
-local UnitAttackSpeed = _G.UnitAttackSpeed
-local UnitRangedDamage = _G.UnitRangedDamage
+local select = select
+local GetTime = GetTime
+local GetInventoryItemID = GetInventoryItemID
+local UnitAttackSpeed = UnitAttackSpeed
+local UnitRangedDamage = UnitRangedDamage
+local UnitCastingInfo = UnitCastingInfo
 
 local meleeing, rangeing, lasthit
 local MainhandID = GetInventoryItemID("player", 16)
 local OffhandID = GetInventoryItemID("player", 17)
 local RangedID = GetInventoryItemID("player", 18)
+local playerGUID = UnitGUID("player")
+local AUTO_CAST_TIME = 0
+-- local delayTime = 0
 
 local function SwingStopped(element)
 	local bar = element.__owner
@@ -26,11 +28,9 @@ local function SwingStopped(element)
 	if swing:IsShown() then
 		return
 	end
-
 	if swingMH:IsShown() then
 		return
 	end
-
 	if swingOH:IsShown() then
 		return
 	end
@@ -45,7 +45,7 @@ end
 local function UpdateBarValue(self, value)
 	self:SetValue(value)
 
-	if self.Text then
+	if self.Text and self.Text:IsShown() then
 		if self.__owner.OverrideText then
 			self.__owner.OverrideText(self, value)
 		else
@@ -81,8 +81,7 @@ do
 			end
 		end
 
-		local spell = UnitCastingInfo("player")
-		if slam == spell then
+		if UnitCastingInfo("player") == slam then
 			-- slamelapsed: time to add for one slam
 			slamelapsed = slamelapsed + elapsed
 			-- slamtime: needed for meleeing hack (see some lines above)
@@ -95,6 +94,9 @@ do
 				slamelapsed = 0
 			end
 
+			local currentValue = now - self.min
+			--local swingTime = self.max - self.min - AUTO_CAST_TIME
+
 			if now > self.max then
 				if meleeing then
 					if lasthit then
@@ -104,13 +106,18 @@ do
 						slamtime = 0
 					end
 				else
+					delayTime = 0
 					self:Hide()
 					self:SetScript("OnUpdate", nil)
 					meleeing = false
 					rangeing = false
 				end
 			else
-				UpdateBarValue(self, now - self.min)
+				UpdateBarValue(self, currentValue)
+			end
+
+			if self.__owner.bg then
+				self.__owner.bg:SetShown(rangeing)
 			end
 		end
 	end
@@ -215,12 +222,13 @@ local function RangedChange(self, _, unit)
 
 	local bar = self.Swing
 	local swing = bar.Twohand
+
 	local NewRangedID = GetInventoryItemID("player", 18)
 	local now = GetTime()
 	local speed = UnitRangedDamage("player")
 
 	if RangedID ~= NewRangedID then
-		swing.speed = UnitRangedDamage(unit)
+		swing.speed = speed
 		swing.min = now
 		swing.max = swing.min + swing.speed
 		swing:Show()
@@ -254,12 +262,15 @@ local function Ranged(self, _, unit, _, spellID)
 	rangeing = true
 	bar:Show()
 
-	swing.speed = UnitRangedDamage(unit)
+	swing.speed = UnitRangedDamage(unit) * 0.82
 	swing.min = GetTime()
 	swing.max = swing.min + swing.speed
 	swing:Show()
 	UpdateBarMinMaxValues(swing)
 	swing:SetScript("OnUpdate", OnDurationUpdate)
+	if bar.bg then
+		bar.bg:SetWidth(AUTO_CAST_TIME / (swing.max - swing.min) * bar:GetWidth())
+	end
 
 	swingMH:Hide()
 	swingMH:SetScript("OnUpdate", nil)
@@ -268,7 +279,7 @@ local function Ranged(self, _, unit, _, spellID)
 end
 
 local function Melee(self, _, _, sourceGUID)
-	if sourceGUID ~= K.GUID then
+	if sourceGUID ~= playerGUID then
 		return
 	end
 
@@ -335,7 +346,7 @@ end
 local function ParryHaste(self, ...)
 	local destGUID, _, _, _, missType = select(7, ...)
 
-	if destGUID ~= K.GUID then
+	if destGUID ~= playerGUID then
 		return
 	end
 
