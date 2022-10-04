@@ -5,36 +5,24 @@ local _G = _G
 local date = _G.date
 local mod = _G.mod
 local pairs = _G.pairs
-local string_find = _G.string.find
 local string_format = _G.string.format
-local time = _G.time
 local tonumber = _G.tonumber
 
 local CALENDAR_FULLDATE_MONTH_NAMES = _G.CALENDAR_FULLDATE_MONTH_NAMES
 local CALENDAR_WEEKDAY_NAMES = _G.CALENDAR_WEEKDAY_NAMES
-local C_AreaPoiInfo_GetAreaPOISecondsLeft = _G.C_AreaPoiInfo.GetAreaPOISecondsLeft
-local C_Calendar_GetDayEvent = _G.C_Calendar.GetDayEvent
-local C_Calendar_GetNumDayEvents = _G.C_Calendar.GetNumDayEvents
 local C_Calendar_GetNumPendingInvites = _G.C_Calendar.GetNumPendingInvites
-local C_Calendar_OpenCalendar = _G.C_Calendar.OpenCalendar
-local C_Calendar_SetAbsMonth = _G.C_Calendar.SetAbsMonth
 local C_DateAndTime_GetCurrentCalendarTime = _G.C_DateAndTime.GetCurrentCalendarTime
-local C_Map_GetMapInfo = _G.C_Map.GetMapInfo
 local C_QuestLog_IsQuestFlaggedCompleted = _G.C_QuestLog.IsQuestFlaggedCompleted
-local C_TaskQuest_GetQuestInfoByQuestID = _G.C_TaskQuest.GetQuestInfoByQuestID
 local FULLDATE = _G.FULLDATE
 local GameTime_GetGameTime = _G.GameTime_GetGameTime
 local GameTime_GetLocalTime = _G.GameTime_GetLocalTime
 local GameTooltip = _G.GameTooltip
-local GetCVar = _G.GetCVar
 local GetCVarBool = _G.GetCVarBool
 local GetGameTime = _G.GetGameTime
 local GetNumSavedInstances = _G.GetNumSavedInstances
 local GetSavedInstanceInfo = _G.GetSavedInstanceInfo
-local PLAYER_DIFFICULTY_TIMEWALKER = _G.PLAYER_DIFFICULTY_TIMEWALKER
 local QUESTS_LABEL = _G.QUESTS_LABEL
 local QUEST_COMPLETE = _G.QUEST_COMPLETE
-local QUEUE_TIME_UNAVAILABLE = _G.QUEUE_TIME_UNAVAILABLE
 local RequestRaidInfo = _G.RequestRaidInfo
 local SecondsToTime = _G.SecondsToTime
 local TIMEMANAGER_TICKER_12HOUR = _G.TIMEMANAGER_TICKER_12HOUR
@@ -123,7 +111,7 @@ function Module:TimeOnEnter()
 				r, g, b = 192 / 255, 192 / 255, 192 / 255
 			end
 
-			GameTooltip:AddDoubleLine(name .. " - " .. maxPlayers .. " " .. PLAYER .. " (" .. diffName .. ") (" .. encounterProgress .. "/" .. numEncounters .. ")", SecondsToTime(reset, true, nil, 3), 1, 1, 1, r, g, b)
+			GameTooltip:AddDoubleLine(name .. " - " .. maxPlayers .. " " .. _G.PLAYER .. " (" .. diffName .. ") (" .. encounterProgress .. "/" .. numEncounters .. ")", SecondsToTime(reset, true, nil, 3), 1, 1, 1, r, g, b)
 		end
 	end
 

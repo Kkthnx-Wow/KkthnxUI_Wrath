@@ -47,7 +47,7 @@ Supported class powers:
 local _, ns = ...
 local oUF = ns.oUF
 
-local _, PlayerClass = UnitClass('player')
+local _, PlayerClass = UnitClass("player")
 
 -- sourced from FrameXML/Constants.lua
 local SPELL_POWER_ENERGY = Enum.PowerType.Energy or 3
@@ -66,7 +66,7 @@ local function UpdateColor(element, powerType)
 		bar:SetStatusBarColor(r, g, b)
 
 		local bg = bar.bg
-		if(bg) then
+		if bg then
 			local mu = bg.multiplier or 1
 			bg:SetVertexColor(r * mu, g * mu, b * mu)
 		end
@@ -80,8 +80,7 @@ local function Update(self, event, unit, powerType)
 		powerType = "COMBO_POINTS" -- sometimes powerType return ENERGY for the first combo point
 	end
 
-	if(not (unit and (UnitIsUnit(unit, 'player') and (not powerType or powerType == ClassPowerType)
-		or unit == 'vehicle' and powerType == 'COMBO_POINTS'))) then
+	if not (unit and (UnitIsUnit(unit, "player") and (not powerType or powerType == ClassPowerType) or unit == "vehicle" and powerType == "COMBO_POINTS")) then
 		return
 	end
 
@@ -92,15 +91,15 @@ local function Update(self, event, unit, powerType)
 
 	* self  - the ClassPower element
 	]]
-	if(element.PreUpdate) then
+	if element.PreUpdate then
 		element:PreUpdate()
 	end
 
 	local cur, max, mod, oldMax
-	if(event ~= 'ClassPowerDisable') then
-		local powerID = ClassPowerID
+	if event ~= "ClassPowerDisable" then
+		local powerID = unit == "vehicle" and SPELL_POWER_COMBO_POINTS or ClassPowerID
 		--cur = UnitPower(unit, powerID, true)
-		cur = GetComboPoints(unit, "target")	-- has to use GetComboPoints in classic
+		cur = GetComboPoints(unit, "target") -- has to use GetComboPoints in classic
 		max = UnitPowerMax(unit, powerID)
 		mod = UnitPowerDisplayMod(powerID)
 
@@ -109,7 +108,7 @@ local function Update(self, event, unit, powerType)
 
 		local numActive = cur + 0.9
 		for i = 1, max do
-			if(i > numActive) then
+			if i > numActive then
 				element[i]:Hide()
 				element[i]:SetValue(0)
 			else
@@ -119,8 +118,8 @@ local function Update(self, event, unit, powerType)
 		end
 
 		oldMax = element.__max
-		if(max ~= oldMax) then
-			if(max < oldMax) then
+		if max ~= oldMax then
+			if max < oldMax then
 				for i = max + 1, oldMax do
 					element[i]:Hide()
 					element[i]:SetValue(0)
@@ -139,7 +138,7 @@ local function Update(self, event, unit, powerType)
 	* hasMaxChanged - indicates whether the maximum amount has changed since the last update (boolean)
 	* powerType     - the active power type (string)
 	--]]
-	if(element.PostUpdate) then
+	if element.PostUpdate then
 		return element:PostUpdate(cur, max, oldMax ~= max, powerType)
 	end
 end
@@ -153,47 +152,66 @@ local function Path(self, ...)
 	* unit  - the unit accompanying the event (string)
 	* ...   - the arguments accompanying the event
 	--]]
-	return (self.ClassPower.Override or Update) (self, ...)
+	return (self.ClassPower.Override or Update)(self, ...)
+end
+
+-- Pet owns the vehicle in the specifc quest
+-- https://www.wowhead.com/wotlk/quest=13414/aces-high
+local function updateUnitFrame(frame, event, unit, powerType)
+	if not frame then
+		return
+	end
+	if frame:IsEnabled() and frame:IsElementEnabled("ClassPower") then
+		Path(frame, event, unit, powerType)
+	end
+end
+
+local function WatchVehicleCombos(event, unit, powerType)
+	if unit == "vehicle" and powerType == "COMBO_POINTS" then
+		updateUnitFrame(_G.oUF_Player, event, unit, powerType)
+		updateUnitFrame(_G.oUF_PlayerPlate, event, unit, powerType)
+		updateUnitFrame(_G.oUF_TargetPlate, event, unit, powerType)
+	end
 end
 
 local function Visibility(self, event, unit)
 	local element = self.ClassPower
 	local shouldEnable
 
-	if(UnitHasVehicleUI('player')) then
-		shouldEnable = true -- PlayerVehicleHasComboPoints()
-		unit = 'vehicle'
-	elseif(ClassPowerID) then
+	if UnitHasVehicleUI("player") then
+		unit = "vehicle"
+		shouldEnable = UnitPowerMax(unit, SPELL_POWER_COMBO_POINTS) == 5 -- PlayerVehicleHasComboPoints()
+	elseif ClassPowerID then
 		-- use 'player' instead of unit because 'SPELLS_CHANGED' is a unitless event
-		if(not RequirePower or RequirePower == UnitPowerType('player')) then
-			if(not RequireSpell or IsPlayerSpell(RequireSpell)) then
-				self:UnregisterEvent('SPELLS_CHANGED', Visibility)
+		if not RequirePower or RequirePower == UnitPowerType("player") then
+			if not RequireSpell or IsPlayerSpell(RequireSpell) then
+				self:UnregisterEvent("SPELLS_CHANGED", Visibility)
 				shouldEnable = true
-				unit = 'player'
+				unit = "player"
 			else
-				self:RegisterEvent('SPELLS_CHANGED', Visibility, true)
+				self:RegisterEvent("SPELLS_CHANGED", Visibility, true)
 			end
 		end
 	end
 
-	local isEnabled = element.isEnabled
-	local powerType = ClassPowerType
+	local isEnabled = element.__isEnabled
+	local powerType = unit == "vehicle" and "COMBO_POINTS" or ClassPowerType
 
-	if(shouldEnable) then
+	if shouldEnable then
 		--[[ Override: ClassPower:UpdateColor(powerType)
 		Used to completely override the internal function for updating the widgets' colors.
 
 		* self      - the ClassPower element
 		* powerType - the active power type (string)
 		--]]
-		(element.UpdateColor or UpdateColor) (element, powerType)
+		(element.UpdateColor or UpdateColor)(element, powerType)
 	end
 
-	if(shouldEnable and not isEnabled) then
+	if shouldEnable and not isEnabled then
 		ClassPowerEnable(self)
-	elseif(not shouldEnable and (isEnabled or isEnabled == nil)) then
+	elseif not shouldEnable and (isEnabled or isEnabled == nil) then
 		ClassPowerDisable(self)
-	elseif(shouldEnable and isEnabled) then
+	elseif shouldEnable and isEnabled then
 		Path(self, event, unit, powerType)
 	end
 end
@@ -206,47 +224,51 @@ local function VisibilityPath(self, ...)
 	* event - the event triggering the update (string)
 	* unit  - the unit accompanying the event (string)
 	--]]
-	return (self.ClassPower.OverrideVisibility or Visibility) (self, ...)
+	return (self.ClassPower.OverrideVisibility or Visibility)(self, ...)
 end
 
 local function ForceUpdate(element)
-	return VisibilityPath(element.__owner, 'ForceUpdate', element.__owner.unit)
+	return VisibilityPath(element.__owner, "ForceUpdate", element.__owner.unit)
 end
 
 do
 	function ClassPowerEnable(self)
-		self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
-		self:RegisterEvent('PLAYER_TARGET_CHANGED', Path, true)
-		self:RegisterEvent('UNIT_MAXPOWER', Path)
+		local K = unpack(KkthnxUI)
+		self:RegisterEvent("UNIT_POWER_FREQUENT", Path)
+		self:RegisterEvent("PLAYER_TARGET_CHANGED", Path, true)
+		self:RegisterEvent("UNIT_MAXPOWER", Path)
 
-		self.ClassPower.isEnabled = true
+		self.ClassPower.__isEnabled = true
 
-		if(UnitHasVehicleUI('player')) then
-			Path(self, 'ClassPowerEnable', 'vehicle', 'COMBO_POINTS')
+		if UnitHasVehicleUI("player") then
+			Path(self, "ClassPowerEnable", "vehicle", "COMBO_POINTS")
+			K:RegisterEvent("UNIT_POWER_FREQUENT", WatchVehicleCombos)
 		else
-			Path(self, 'ClassPowerEnable', 'player', ClassPowerType)
+			Path(self, "ClassPowerEnable", "player", ClassPowerType)
 		end
 	end
 
 	function ClassPowerDisable(self)
-		self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
-		self:UnregisterEvent('PLAYER_TARGET_CHANGED', Path)
-		self:UnregisterEvent('UNIT_MAXPOWER', Path)
+		local K = unpack(KkthnxUI)
+		self:UnregisterEvent("UNIT_POWER_FREQUENT", Path)
+		self:UnregisterEvent("PLAYER_TARGET_CHANGED", Path)
+		self:UnregisterEvent("UNIT_MAXPOWER", Path)
 
 		local element = self.ClassPower
 		for i = 1, #element do
 			element[i]:Hide()
 		end
 
-		self.ClassPower.isEnabled = false
-		Path(self, 'ClassPowerDisable', 'player', ClassPowerType)
+		self.ClassPower.__isEnabled = false
+		Path(self, "ClassPowerDisable", "player", ClassPowerType)
+		K:UnregisterEvent("UNIT_POWER_FREQUENT", WatchVehicleCombos)
 	end
 
-	if(PlayerClass == 'ROGUE' or PlayerClass == 'DRUID') then
+	if PlayerClass == "ROGUE" or PlayerClass == "DRUID" then
 		ClassPowerID = SPELL_POWER_COMBO_POINTS
-		ClassPowerType = 'COMBO_POINTS'
+		ClassPowerType = "COMBO_POINTS"
 
-		if(PlayerClass == 'DRUID') then
+		if PlayerClass == "DRUID" then
 			RequirePower = SPELL_POWER_ENERGY
 			RequireSpell = 768 -- Cat Form
 		end
@@ -255,13 +277,13 @@ end
 
 local function Enable(self, unit)
 	local element = self.ClassPower
-	if(element and UnitIsUnit(unit, 'player')) then
+	if element and UnitIsUnit(unit, "player") then
 		element.__owner = self
 		element.__max = #element
 		element.ForceUpdate = ForceUpdate
 
-		if(RequirePower) then
-			self:RegisterEvent('UNIT_DISPLAYPOWER', VisibilityPath)
+		if RequirePower then
+			self:RegisterEvent("UNIT_DISPLAYPOWER", VisibilityPath)
 		end
 
 		element.ClassPowerEnable = ClassPowerEnable
@@ -269,8 +291,8 @@ local function Enable(self, unit)
 
 		for i = 1, #element do
 			local bar = element[i]
-			if(bar:IsObjectType('StatusBar')) then
-				if(not bar:GetStatusBarTexture()) then
+			if bar:IsObjectType("StatusBar") then
+				if not bar:GetStatusBarTexture() then
 					bar:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
 				end
 
@@ -283,12 +305,12 @@ local function Enable(self, unit)
 end
 
 local function Disable(self)
-	if(self.ClassPower) then
+	if self.ClassPower then
 		ClassPowerDisable(self)
 
-		self:UnregisterEvent('UNIT_DISPLAYPOWER', VisibilityPath)
-		self:UnregisterEvent('SPELLS_CHANGED', Visibility)
+		self:UnregisterEvent("UNIT_DISPLAYPOWER", VisibilityPath)
+		self:UnregisterEvent("SPELLS_CHANGED", Visibility)
 	end
 end
 
-oUF:AddElement('ClassPower', VisibilityPath, Enable, Disable)
+oUF:AddElement("ClassPower", VisibilityPath, Enable, Disable)
