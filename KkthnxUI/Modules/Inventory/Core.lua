@@ -164,10 +164,10 @@ function Module:CreateInfoFrame()
 	search.Backdrop:SetPoint("BOTTOMRIGHT", 0, 0)
 	search.textFilters = BagSmartFilter
 
-	-- local currencyTag = self:SpawnPlugin("TagDisplay", "[currencies]", infoFrame)
-	-- currencyTag:SetFontObject(K.UIFontOutline)
-	-- currencyTag:SetFont(select(1, currencyTag:GetFont()), 13, select(3, currencyTag:GetFont()))
-	-- currencyTag:SetPoint("TOP", self, "BOTTOM", 0, -6)
+	local currencyTag = self:SpawnPlugin("TagDisplay", "[currencies]", infoFrame)
+	currencyTag:SetFontObject(K.UIFontOutline)
+	currencyTag:SetFont(select(1, currencyTag:GetFont()), 13, select(3, currencyTag:GetFont()))
+	currencyTag:SetPoint("TOP", self, "BOTTOM", 0, -6)
 
 	infoFrame.title = SEARCH
 	K.AddTooltip(infoFrame, "ANCHOR_TOPLEFT", K.InfoColorTint .. "|nClick to search your bag items.|nYou can type in item names or item equip locations.|n|n'boe' for items that bind on equip and 'quest' for quest items.")
