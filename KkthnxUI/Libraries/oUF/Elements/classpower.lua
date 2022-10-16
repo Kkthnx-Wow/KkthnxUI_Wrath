@@ -233,7 +233,6 @@ end
 
 do
 	function ClassPowerEnable(self)
-		local K = unpack(KkthnxUI)
 		self:RegisterEvent("UNIT_POWER_FREQUENT", Path)
 		self:RegisterEvent("PLAYER_TARGET_CHANGED", Path, true)
 		self:RegisterEvent("UNIT_MAXPOWER", Path)
@@ -242,14 +241,14 @@ do
 
 		if UnitHasVehicleUI("player") then
 			Path(self, "ClassPowerEnable", "vehicle", "COMBO_POINTS")
-			K:RegisterEvent("UNIT_POWER_FREQUENT", WatchVehicleCombos)
+
+			KkthnxUI[1]:RegisterEvent("UNIT_POWER_FREQUENT", WatchVehicleCombos)
 		else
 			Path(self, "ClassPowerEnable", "player", ClassPowerType)
 		end
 	end
 
 	function ClassPowerDisable(self)
-		local K = unpack(KkthnxUI)
 		self:UnregisterEvent("UNIT_POWER_FREQUENT", Path)
 		self:UnregisterEvent("PLAYER_TARGET_CHANGED", Path)
 		self:UnregisterEvent("UNIT_MAXPOWER", Path)
@@ -261,7 +260,8 @@ do
 
 		self.ClassPower.__isEnabled = false
 		Path(self, "ClassPowerDisable", "player", ClassPowerType)
-		K:UnregisterEvent("UNIT_POWER_FREQUENT", WatchVehicleCombos)
+
+		KkthnxUI[1]:UnregisterEvent("UNIT_POWER_FREQUENT", WatchVehicleCombos)
 	end
 
 	if PlayerClass == "ROGUE" or PlayerClass == "DRUID" then

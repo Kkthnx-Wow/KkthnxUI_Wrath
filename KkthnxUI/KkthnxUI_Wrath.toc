@@ -9,8 +9,6 @@
 ## X-Curse-Project-ID: 95528
 ## X-Wago-ID: lQNlqP6e
 
-# General taint fixes
-Taintless.xml
 # Global Fonts
 FontStyles.xml
 # KkthnxUI

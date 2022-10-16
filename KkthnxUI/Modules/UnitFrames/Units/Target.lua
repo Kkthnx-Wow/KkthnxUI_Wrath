@@ -176,7 +176,9 @@ function Module:CreateTarget()
 		self.Buffs = Buffs
 	end
 
-	Module:CreateCastBar(self)
+	if C["Unitframe"].TargetCastbar then
+		Module:CreateCastBar(self)
+	end
 
 	if C["Unitframe"].ShowHealPrediction then
 		local frame = CreateFrame("Frame", nil, self)

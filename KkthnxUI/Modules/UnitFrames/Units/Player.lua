@@ -178,7 +178,9 @@ function Module:CreatePlayer()
 		self.Buffs = Buffs
 	end
 
-	Module:CreateCastBar(self)
+	if C["Unitframe"].PlayerCastbar then
+		Module:CreateCastBar(self)
+	end
 
 	if C["Unitframe"].ShowHealPrediction then
 		local frame = CreateFrame("Frame", nil, self)
