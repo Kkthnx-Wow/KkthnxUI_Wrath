@@ -1,17 +1,8 @@
 local K, C = unpack(KkthnxUI)
 local S = K:GetModule("Skins")
 
-local _G = getfenv(0)
-local pairs, tinsert, select = pairs, tinsert, select
-local GetNumQuestLogEntries, GetQuestLogTitle, GetNumQuestWatches = GetNumQuestLogEntries, GetQuestLogTitle, GetNumQuestWatches
-local IsShiftKeyDown, RemoveQuestWatch, ShowUIPanel, GetCVarBool = IsShiftKeyDown, RemoveQuestWatch, ShowUIPanel, GetCVarBool
-local GetQuestIndexForWatch, GetNumQuestLeaderBoards, GetQuestLogLeaderBoard = GetQuestIndexForWatch, GetNumQuestLeaderBoards, GetQuestLogLeaderBoard
-local FauxScrollFrame_GetOffset = FauxScrollFrame_GetOffset
-
-local cr, cg, cb = K.r, K.g, K.b
-local MAX_QUESTLOG_QUESTS = MAX_QUESTLOG_QUESTS or 20
-local MAX_WATCHABLE_QUESTS = MAX_WATCHABLE_QUESTS or 5
-local headerString = QUESTS_LABEL .. " %s/%s"
+local _G = _G
+local GetNumQuestLogEntries, GetQuestLogTitle = _G.GetNumQuestLogEntries, _G.GetQuestLogTitle
 
 local frame
 
@@ -19,17 +10,21 @@ function S:ExtQuestLogFrame()
 	local toggleMap = CreateFrame("Button", nil, QuestLogFrame)
 	toggleMap:SetPoint("TOP", 10, -35)
 	toggleMap:SetSize(48, 32)
+
 	local text = K.CreateFontString(toggleMap, 14, SHOW_MAP)
 	text:ClearAllPoints()
 	text:SetPoint("LEFT", toggleMap, "RIGHT")
+
 	local tex = toggleMap:CreateTexture(nil, "ARTWORK")
 	tex:SetAllPoints()
 	tex:SetTexture(316593)
 	tex:SetTexCoord(0.125, 0.875, 0, 0.5)
+
 	toggleMap:SetScript("OnClick", ToggleWorldMap)
 	toggleMap:SetScript("OnMouseUp", function()
 		tex:SetTexCoord(0.125, 0.875, 0, 0.5)
 	end)
+
 	toggleMap:SetScript("OnMouseDown", function()
 		tex:SetTexCoord(0.125, 0.875, 0.5, 1)
 	end)
@@ -103,7 +98,7 @@ function S:QuestLogLevel()
 end
 
 local function updateMinimizeButton(self)
-	--WatchFrameCollapseExpandButton.__texture:DoCollapse(self.collapsed)
+	-- WatchFrameCollapseExpandButton.__texture:DoCollapse(self.collapsed)
 	WatchFrame.header:SetShown(not self.collapsed)
 end
 
@@ -111,7 +106,7 @@ local function reskinMinimizeButton(button)
 	-- B.ReskinCollapse(button)
 	-- button:GetNormalTexture():SetAlpha(0)
 	-- button:GetPushedTexture():SetAlpha(0)
-	--button.__texture:DoCollapse(false)
+	-- button.__texture:DoCollapse(false)
 end
 
 local function reskinQuestIcon(button)
@@ -129,8 +124,6 @@ local function reskinQuestIcon(button)
 		button:GetHighlightTexture():SetColorTexture(1, 1, 1, 0.25)
 		local icon = _G[button:GetName() .. "IconTexture"]
 		if icon then
-			--button.bg = B.ReskinIcon(icon, true)
-			--icon:SetInside()
 		end
 
 		button.styled = true
@@ -172,14 +165,7 @@ function S:QuestTracker()
 	header:SetPoint("TOPLEFT")
 	WatchFrame.header = header
 
-	local bg = header:CreateTexture(nil, "ARTWORK")
-	bg:SetTexture("Interface\\LFGFrame\\UI-LFG-SEPARATOR")
-	bg:SetTexCoord(0, 0.66, 0, 0.31)
-	bg:SetVertexColor(cr, cg, cb, 0.8)
-	bg:SetPoint("TOPLEFT", -25, 5)
-	bg:SetSize(250, 30)
-
-	-- if not C.db["Skins"]["QuestTracker"] then
+	-- if not C["Skins"].QuestTracker then
 	-- 	return
 	-- end
 

@@ -227,7 +227,7 @@ function Module:CreateCastBar(self)
 
 	Castbar.Spark = Castbar:CreateTexture(nil, "ARTWORK")
 	Castbar.Spark:SetTexture(C["Media"].Textures.Spark128Texture)
-	Castbar.Spark:SetBlendMode("BLEND")
+	Castbar.Spark:SetBlendMode("ADD")
 	Castbar.Spark:SetAlpha(0.9)
 
 	if mystyle == "player" then
@@ -344,6 +344,27 @@ function Module:CreateCastBar(self)
 	Castbar.PostCastInterruptible = Module.PostUpdateInterruptible
 
 	self.Castbar = Castbar
+end
+
+function Module:CreateSparkleCastBar(self)
+	-- if not C["Unitframe"].PetCastbar then
+	-- 	return
+	-- end
+
+	local bar = CreateFrame("StatusBar", "oUF_SparkleCastbar" .. self.mystyle, self)
+	bar:SetAllPoints(self.Power)
+	bar:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
+	bar:SetStatusBarColor(1, 1, 1, 0.25)
+
+	local spark = bar:CreateTexture(nil, "OVERLAY")
+	spark:SetTexture(C["Media"].Textures.Spark16Texture)
+	spark:SetBlendMode("ADD")
+	spark:SetAlpha(0.9)
+	spark:SetPoint("TOPLEFT", bar:GetStatusBarTexture(), "TOPRIGHT", -8, -10)
+	spark:SetPoint("BOTTOMRIGHT", bar:GetStatusBarTexture(), "BOTTOMRIGHT", 8, 10)
+	bar.Spark = spark
+
+	self.Castbar = bar
 end
 
 function Module.auraIconSize(w, n, s)

@@ -184,4 +184,6 @@ function Module:CreatePet()
 	self.Highlight = Highlight
 	self.ThreatIndicator = ThreatIndicator
 	self.Range = Range
+
+	Module:CreateSparkleCastBar(self)
 end
