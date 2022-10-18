@@ -234,23 +234,6 @@ function Module:CreatePlayer()
 		self.Level = Level
 	end
 
-	if C["Unitframe"].Stagger then
-		if K.Class == "MONK" then
-			local Stagger = CreateFrame("StatusBar", self:GetName() .. "Stagger", self)
-			Stagger:SetPoint("BOTTOMLEFT", Health, "TOPLEFT", 0, 6)
-			Stagger:SetSize(playerWidth, 14)
-			Stagger:SetStatusBarTexture(UnitframeTexture)
-			Stagger:CreateBorder()
-
-			Stagger.Value = Stagger:CreateFontString(nil, "OVERLAY")
-			Stagger.Value:SetFontObject(K.UIFont)
-			Stagger.Value:SetPoint("CENTER", Stagger, "CENTER", 0, 0)
-			self:Tag(Stagger.Value, "[monkstagger]")
-
-			self.Stagger = Stagger
-		end
-	end
-
 	if C["Unitframe"].AdditionalPower then
 		if K.Class ~= "DRUID" then
 			return

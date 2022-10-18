@@ -13,11 +13,10 @@ local UnitInRange = _G.UnitInRange
 local UnitIsConnected = _G.UnitIsConnected
 local UnitIsPlayer = _G.UnitIsPlayer
 local UnitIsUnit = _G.UnitIsUnit
-local UnitPhaseReason = _G.UnitPhaseReason
 
 function Module:CreateRangeIndicator()
 	local Range = {
-		insideAlpha = 1,
+		insideAlpha = 1.0,
 		outsideAlpha = 0.35,
 	}
 	Range.Override = Module.UpdateRange

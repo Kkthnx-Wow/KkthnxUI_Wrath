@@ -841,7 +841,6 @@ local Unitframe = function(self)
 	Window:CreateSwitch("Unitframe", "ResurrectSound", L["Sound Played When You Are Resurrected"])
 	Window:CreateSwitch("Unitframe", "ShowHealPrediction", L["Show HealPrediction Statusbars"])
 	Window:CreateSwitch("Unitframe", "Smooth", L["Smooth Bars"])
-	Window:CreateSwitch("Unitframe", "Stagger", L["Show |CFF00FF96Monk|r Stagger Bar"])
 
 	Window:CreateSlider("Unitframe", "AllTextScale", "(TEST) Scale All Unitframe Texts", 0.8, 1.5, 0.05, nil, updateUFTextScale) -- WIP
 

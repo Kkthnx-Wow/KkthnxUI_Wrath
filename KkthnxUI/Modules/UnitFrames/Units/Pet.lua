@@ -172,8 +172,6 @@ function Module:CreatePet()
 		Override = Module.UpdateThreat,
 	}
 
-	local Range = Module.CreateRangeIndicator(self)
-
 	self.Overlay = Overlay
 	self.Health = Health
 	self.Power = Power
@@ -183,7 +181,7 @@ function Module:CreatePet()
 	self.RaidTargetIndicator = RaidTargetIndicator
 	self.Highlight = Highlight
 	self.ThreatIndicator = ThreatIndicator
-	self.Range = Range
 
+	Module.CreateRangeIndicator(self)
 	Module:CreateSparkleCastBar(self)
 end

@@ -166,9 +166,9 @@ function Module:UpdateSpellCaster(...)
 end
 
 function Module:CreateTooltipID()
-	-- if C.db["Tooltip"]["HideAllID"] then
-	-- 	return
-	-- end
+	if not C["Tooltip"].ShowIDs then
+		return
+	end
 
 	-- Update all
 	hooksecurefunc(GameTooltip, "SetHyperlink", Module.SetHyperLinkID)

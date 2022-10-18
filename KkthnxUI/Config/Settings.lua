@@ -533,7 +533,6 @@ C["Unitframe"] = {
 	["ShowHealPrediction"] = true,
 	["ShowPlayerLevel"] = true,
 	["Smooth"] = false,
-	["Stagger"] = true,
 	["Swingbar"] = false,
 	["SwingbarTimer"] = false,
 

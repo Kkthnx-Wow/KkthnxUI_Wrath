@@ -1131,19 +1131,6 @@ function Module:CreatePlayerPlate()
 
 	Module:CreateClassPower(self)
 
-	if K.Class == "MONK" then
-		self.Stagger = CreateFrame("StatusBar", self:GetName() .. "Stagger", self)
-		self.Stagger:SetPoint("TOPLEFT", self.Health, 0, 8)
-		self.Stagger:SetSize(self:GetWidth(), self:GetHeight())
-		self.Stagger:SetStatusBarTexture(K.GetTexture(C["General"].Texture))
-		self.Stagger:CreateShadow(true)
-
-		self.Stagger.Value = self.Stagger:CreateFontString(nil, "OVERLAY")
-		self.Stagger.Value:SetFontObject(K.UIFont)
-		self.Stagger.Value:SetPoint("CENTER", self.Stagger, "CENTER", 0, 0)
-		self:Tag(self.Stagger.Value, "[monkstagger]")
-	end
-
 	if C["Nameplate"].ClassAuras then
 		K:GetModule("Auras"):CreateLumos(self)
 	end

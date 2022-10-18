@@ -30,7 +30,6 @@ local UnitLevel = _G.UnitLevel
 local UnitPower = _G.UnitPower
 local UnitPowerType = _G.UnitPowerType
 local UnitReaction = _G.UnitReaction
-local UnitStagger = _G.UnitStagger
 
 local FEIGN_DEATH
 local function GetFeignDeathTag()
@@ -298,22 +297,6 @@ oUF.Tags.Methods["altpower"] = function(unit)
 	return cur > 0 and cur
 end
 oUF.Tags.Events["altpower"] = "UNIT_POWER_UPDATE UNIT_MAXPOWER"
-
--- Monk stagger
-oUF.Tags.Methods["monkstagger"] = function(unit)
-	if unit ~= "player" or K.Class ~= "MONK" then
-		return
-	end
-
-	local cur = UnitStagger(unit) or 0
-	local perc = cur / UnitHealthMax(unit)
-	if cur == 0 then
-		return
-	end
-
-	return K.ShortValue(cur) .. " - " .. K.MyClassColor .. K.Round(perc * 100) .. "%"
-end
-oUF.Tags.Events["monkstagger"] = "UNIT_MAXHEALTH UNIT_AURA"
 
 oUF.Tags.Methods["lfdrole"] = function(unit)
 	local role = UnitGroupRolesAssigned(unit)

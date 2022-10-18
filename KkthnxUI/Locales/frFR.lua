@@ -629,7 +629,6 @@ L["Show Player Power Prediction"] = "Afficher la prediction d'utilisation de res
 L["Show PvP Indicator on Player / Target"] = "Afficher l'indication JcJ sur le joueur/cible"
 L["Show Target Frame Buffs"] = "Afficher les buffs de la cible"
 L["Show Target Frame Debuffs"] = "Afficher les débuffs de la cible"
-L["Show |CFF00FF96Monk|r Stagger Bar"] = "Afficher la barre de report du |CFF00FF96Moine|r"
 L["Smooth Bars"] = "Barres fluides"
 L["Sound Played When You Are Resurrected"] = "Son joué lors de la résurrection"
 L["Target Castbar Height"] = "Hauteur de la barre d'incantation de la cible"
