@@ -14,7 +14,6 @@ local type = _G.type
 local pairs = _G.pairs
 local wipe = _G.wipe
 
-local GetSpecialization = _G.GetSpecialization
 local GetSpellInfo = _G.GetSpellInfo
 local UnitAura = _G.UnitAura
 local UnitCanAttack = _G.UnitCanAttack

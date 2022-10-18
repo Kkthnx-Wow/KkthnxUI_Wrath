@@ -35,11 +35,9 @@ end
 
 local EnglishClassName = {
 	DEATHKNIGHT = K.AddClassIconToColor("DEATHKNIGHT", "|CFFC41F3B") .. "Death Knight",
-	DEMONHUNTER = K.AddClassIconToColor("DEMONHUNTER", "|CFFA330C9") .. "Demon Hunter",
 	DRUID = K.AddClassIconToColor("DRUID", "|CFFFF7D0A") .. "Druid",
 	HUNTER = K.AddClassIconToColor("HUNTER", "|CFFA9D271") .. "Hunter",
 	MAGE = K.AddClassIconToColor("MAGE", "|CFF40C7EB") .. "Mage",
-	MONK = K.AddClassIconToColor("MONK", "|CFF00FF96") .. "Monk",
 	PALADIN = K.AddClassIconToColor("PALADIN", "|CFFF58CBA") .. "Paladin",
 	PRIEST = K.AddClassIconToColor("PRIEST", "|CFFFFFFFF") .. "Priest",
 	ROGUE = K.AddClassIconToColor("ROGUE", "|CFFFFF569") .. "Rogue",

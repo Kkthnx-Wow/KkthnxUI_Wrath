@@ -2,16 +2,11 @@ local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Miscellaneous")
 
 local math_min = _G.math.min
-local mod = _G.mod
 local string_format = _G.string.format
 local pairs = _G.pairs
 local select = _G.select
-local math_floor = _G.math.floor
 
 local FACTION_BAR_COLORS = _G.FACTION_BAR_COLORS
-local GetFactionInfo = _G.GetFactionInfo
-local GetFriendshipReputation = _G.GetFriendshipReputation
-local GetNumFactions = _G.GetNumFactions
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo
 local GetXPExhaustion = _G.GetXPExhaustion
 local IsLevelAtEffectiveMaxLevel = _G.IsLevelAtEffectiveMaxLevel
@@ -20,8 +15,6 @@ local IsTrialAccount = _G.IsTrialAccount
 local IsVeteranTrialAccount = _G.IsVeteranTrialAccount
 local IsXPUserDisabled = _G.IsXPUserDisabled
 local LEVEL = _G.LEVEL
-local NUM_FACTIONS_DISPLAYED = _G.NUM_FACTIONS_DISPLAYED
-local REPUTATION_PROGRESS_FORMAT = _G.REPUTATION_PROGRESS_FORMAT
 local UnitXP = _G.UnitXP
 local UnitXPMax = _G.UnitXPMax
 
@@ -88,7 +81,7 @@ function Module:ExpBar_Update()
 		self.text:Show()
 	elseif GetWatchedFactionInfo() then
 		local label, rewardPending
-		local name, reaction, minValue, maxValue, curValue, factionID = GetWatchedFactionInfo()
+		local name, reaction, minValue, maxValue, curValue = GetWatchedFactionInfo()
 
 		if not label then
 			label = _G["FACTION_STANDING_LABEL" .. reaction] or UNKNOWN

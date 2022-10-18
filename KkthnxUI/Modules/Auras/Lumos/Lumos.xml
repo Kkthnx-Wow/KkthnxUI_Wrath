@@ -11,6 +11,5 @@
 	<Script file="Mage.lua" />
 	<Script file="Rogue.lua" />
 	<Script file="Paladin.lua" />
-	<Script file="Warlock.lua" />
-	<Script file="Monk.lua" /> -->
+	<Script file="Warlock.lua" /> -->
 </Ui>

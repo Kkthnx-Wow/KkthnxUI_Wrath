@@ -8,7 +8,6 @@ local bit_band = _G.bit.band
 local math_random = _G.math.random
 local table_wipe = _G.table.wipe
 
-local BossBanner_BeginAnims = _G.BossBanner_BeginAnims
 local COMBATLOG_OBJECT_TYPE_PLAYER = _G.COMBATLOG_OBJECT_TYPE_PLAYER
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
 local DoEmote = _G.DoEmote
@@ -17,9 +16,7 @@ local GetBattlefieldScore = _G.GetBattlefieldScore
 local GetNumBattlefieldScores = _G.GetNumBattlefieldScores
 local PlaySoundFile = _G.PlaySoundFile
 local RAID_CLASS_COLORS = _G.RAID_CLASS_COLORS
-local TopBannerManager_Show = _G.TopBannerManager_Show
 local UnitGUID = _G.UnitGUID
-local hooksecurefunc = _G.hooksecurefunc
 
 local pvpEmoteList = {
 	"ANGRY",
@@ -82,6 +79,10 @@ local function SetupOpponentsTable()
 	table_wipe(BG_Opponents)
 	for index = 1, GetNumBattlefieldScores() do
 		local name, _, _, _, _, faction, _, _, classToken = GetBattlefieldScore(index)
+		if not name then
+			return
+		end
+
 		if (K.Faction == "Horde" and faction == 1) or (K.Faction == "Alliance" and faction == 0) then
 			BG_Opponents[name] = classToken
 		end
@@ -90,6 +91,10 @@ end
 
 local function SetupKillingBlow()
 	local _, subevent, sourceGUID, _, Caster, _, _, _, TargetName, TargetFlags = CombatLogGetCurrentEventInfo()
+	if not TargetName then
+		return
+	end
+
 	if subevent == "PARTY_KILL" and sourceGUID == UnitGUID("player") then
 		local mask = bit_band(TargetFlags, COMBATLOG_OBJECT_TYPE_PLAYER)
 		if Caster == K.Name and (BG_Opponents[TargetName] or mask > 0) then
