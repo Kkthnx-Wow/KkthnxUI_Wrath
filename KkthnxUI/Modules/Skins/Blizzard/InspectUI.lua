@@ -4,32 +4,43 @@ local _, C = unpack(KkthnxUI)
 local _G = _G
 
 C.themes["Blizzard_InspectUI"] = function()
-	for _, slot in ipairs({ _G.InspectPaperDollItemsFrame:GetChildren() }) do
-		local icon = _G[slot:GetName() .. "IconTexture"]
-
-		slot:StripTextures()
-		slot:CreateBorder()
-		slot:StyleButton()
-
-		icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-		icon:SetAllPoints()
+	if not C["Skins"].BlizzardFrames then
+		return
 	end
 
-	hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
-		local unit = button.hasItem and _G.InspectFrame.unit
-		if not unit then
-			return
-		end
+	-- Inspect
+	local slots = {
+		"Head",
+		"Neck",
+		"Shoulder",
+		"Shirt",
+		"Chest",
+		"Waist",
+		"Legs",
+		"Feet",
+		"Wrist",
+		"Hands",
+		"Finger0",
+		"Finger1",
+		"Trinket0",
+		"Trinket1",
+		"Back",
+		"MainHand",
+		"SecondaryHand",
+		"Tabard",
+		"Ranged",
+	}
 
-		local itemID = GetInventoryItemID(unit, button:GetID())
-		if itemID then
-			local quality = select(3, GetItemInfo(itemID))
-			if quality and quality > 1 then
-				button.KKUI_Border:SetVertexColor(GetItemQualityColor(quality))
-				return
-			end
-		end
+	for i = 1, #slots do
+		local slot = _G["Inspect" .. slots[i] .. "Slot"]
 
-		button.KKUI_Border:SetVertexColor(1, 1, 1)
-	end)
+		slot:StripTextures()
+		slot:SetNormalTexture("")
+		slot.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
+		slot.bg = CreateFrame("Frame", nil, slot)
+		slot.bg:SetAllPoints(slot.icon)
+		slot.bg:SetFrameLevel(slot:GetFrameLevel())
+		slot.bg:CreateBorder()
+	end
 end

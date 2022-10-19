@@ -211,7 +211,7 @@ local function createStats()
 	local id = stats[math_random(#stats)]
 	local _, name = GetAchievementInfo(id)
 	local result = GetStatistic(id)
-	print("|n[id: " .. id .. "]" .. "|n[name: " .. name .. "]" .. "|n[result: " .. result .. "]")
+	-- print("|n[id: " .. id .. "]" .. "|n[name: " .. name .. "]" .. "|n[result: " .. result .. "]") -- Debug
 	if result == "--" then
 		result = NONE
 	end

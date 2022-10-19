@@ -13,13 +13,15 @@ local frames = {
 
 	-- Blizz Frames
 	["AddonList"] = false,
+	["ArenaFrame"] = false,
 	["AudioOptionsFrame"] = false,
+	["BattlefieldFrame"] = true,
 	["ChannelFrame"] = false,
 	["ChatConfigFrame"] = false,
 	["DressUpFrame"] = false,
 	["FriendsFrame"] = false,
+	["GameMenuFrame"] = false,
 	["GossipFrame"] = false,
-	["GuildInviteFrame"] = false,
 	["GuildRegistrarFrame"] = false,
 	["HelpFrame"] = false,
 	["InterfaceOptionsFrame"] = false,
@@ -29,25 +31,33 @@ local frames = {
 	["MerchantFrame"] = false,
 	["ModelPreviewFrame"] = false,
 	["OpenMailFrame"] = false,
-	["PVEFrame"] = false,
-	["PaperDollFrame"] = true,
-	["PetStableFrame"] = false,
 	["PetitionFrame"] = false,
+	["PetStableFrame"] = false,
+	["PVPFrame"] = true,
 	["QuestFrame"] = false,
+	["QuestLogDetailFrame"] = false,
 	["RaidParentFrame"] = false,
-	["ReputationFrame"] = true,
 	["SendMailFrame"] = true,
 	["SpellBookFrame"] = false,
-	["SplashFrame"] = false,
 	["StackSplitFrame"] = false,
 	["TabardFrame"] = false,
 	["TaxiFrame"] = false,
-	["TokenFrame"] = true,
 	["TradeFrame"] = false,
 	["TutorialFrame"] = false,
 	["VideoOptionsFrame"] = false,
-	["WorldMapFrame"] = false,
 }
+
+local function CharacterFrameMoveCheck()
+	if IsAddOnLoaded("RXPGuides") then
+		return
+	end
+
+	frames["PetPaperDollFrameCompanionFrame"] = "CharacterFrame"
+	frames["PetPaperDollFramePetFrame"] = "CharacterFrame"
+	frames["ReputationFrame"] = true
+	frames["SkillFrame"] = true
+	frames["TokenFrame"] = true
+end
 
 -- Frame Existing Check
 local function IsFrameExists()
@@ -61,25 +71,23 @@ end
 
 -- Frames provided by load on demand addons, hooked when the addon is loaded.
 local lodFrames = {
-	-- AddonName = {list of frames, same syntax as above}
-	-- stylua: ignore
-	Blizzard_AchievementUI = {["AchievementFrame"] = false, ["AchievementFrameHeader"] = true, ["AchievementFrameCategoriesContainer"] = "AchievementFrame", ["AchievementFrame.searchResults"] = false},
+	-- AddonName = { list of frames, same syntax as above }
+	Blizzard_AchievementUI = { ["AchievementFrame"] = false, ["AchievementFrameHeader"] = true, ["AchievementFrameCategoriesContainer"] = "AchievementFrame", ["AchievementFrame.searchResults"] = false },
 	Blizzard_AdventureMap = { ["AdventureMapQuestChoiceDialog"] = false },
 	Blizzard_AlliedRacesUI = { ["AlliedRacesFrame"] = false },
 	Blizzard_ArchaeologyUI = { ["ArchaeologyFrame"] = false },
 	Blizzard_ArtifactUI = { ["ArtifactFrame"] = false, ["ArtifactRelicForgeFrame"] = false },
-	Blizzard_AuctionHouseUI = { ["AuctionHouseFrame"] = false },
+	Blizzard_AuctionUI = { ["AuctionFrame"] = false },
 	Blizzard_AzeriteEssenceUI = { ["AzeriteEssenceUI"] = false },
 	Blizzard_AzeriteRespecUI = { ["AzeriteRespecFrame"] = false },
 	Blizzard_AzeriteUI = { ["AzeriteEmpoweredItemUI"] = false },
-	Blizzard_BindingUI = { ["KeyBindingFrame"] = false, ["QuickKeybindFrame"] = false },
+	Blizzard_BarbershopUI = { ["BarberShopFrame"] = false },
+	Blizzard_BindingUI = { ["KeyBindingFrame"] = false },
 	Blizzard_BlackMarketUI = { ["BlackMarketFrame"] = false },
-	Blizzard_Calendar = { ["CalendarFrame"] = false, ["CalendarCreateEventFrame"] = true, ["CalendarEventPickerFrame"] = false },
+	Blizzard_Calendar = { ["CalendarFrame"] = false, ["CalendarCreateEventFrame"] = true },
 	Blizzard_ChallengesUI = { ["ChallengesKeystoneFrame"] = false },
-	Blizzard_Collections = { ["WardrobeFrame"] = false, ["WardrobeOutfitEditFrame"] = false }, -- FIXME: blizz bug in collection mover
-	Blizzard_CovenantSanctum = { ["CovenantSanctumFrame"] = false },
-	-- stylua: ignore
-	Blizzard_Communities = {["CommunitiesFrame"] = false, ["CommunitiesSettingsDialog"] = false, ["CommunitiesGuildLogFrame"] = false, ["CommunitiesTicketManagerDialog"] = false, ["CommunitiesAvatarPickerDialog"] = false, ["CommunitiesFrame.NotificationSettingsDialog"] = false, ["ClubFinderCommunityAndGuildFinderFrame.RequestToJoinFrame"] = false},
+	Blizzard_Collections = { ["WardrobeFrame"] = false, ["WardrobeOutfitEditFrame"] = false },
+	Blizzard_Communities = { ["CommunitiesFrame"] = false, ["CommunitiesSettingsDialog"] = false, ["CommunitiesGuildLogFrame"] = false, ["CommunitiesTicketManagerDialog"] = false, ["CommunitiesAvatarPickerDialog"] = false, ["CommunitiesFrame.NotificationSettingsDialog"] = false },
 	Blizzard_FlightMap = { ["FlightMapFrame"] = false },
 	Blizzard_GMSurveyUI = { ["GMSurveyFrame"] = false },
 	Blizzard_GuildBankUI = { ["GuildBankFrame"] = false, ["GuildBankEmblemFrame"] = true },
@@ -91,18 +99,17 @@ local lodFrames = {
 	Blizzard_IslandsQueueUI = { ["IslandsQueueFrame"] = false },
 	Blizzard_ItemSocketingUI = { ["ItemSocketingFrame"] = false },
 	Blizzard_ItemUpgradeUI = { ["ItemUpgradeFrame"] = false },
+	Blizzard_LookingForGroupUI = { ["LFGParentFrame"] = false },
 	Blizzard_LookingForGuildUI = { ["LookingForGuildFrame"] = false },
 	Blizzard_MacroUI = { ["MacroFrame"] = false },
 	Blizzard_ObliterumUI = { ["ObliterumForgeFrame"] = false },
 	Blizzard_OrderHallUI = { ["OrderHallTalentFrame"] = false },
 	Blizzard_ScrappingMachineUI = { ["ScrappingMachineFrame"] = false },
-	Blizzard_TalentUI = { ["PlayerTalentFrame"] = false, ["PVPTalentPrestigeLevelDialog"] = false },
+	Blizzard_TalentUI = { ["PlayerTalentFrame"] = false },
 	Blizzard_TimeManager = { ["TimeManagerFrame"] = false },
-	Blizzard_TokenUI = { ["TokenFrame"] = true },
 	Blizzard_TradeSkillUI = { ["TradeSkillFrame"] = false },
 	Blizzard_TrainerUI = { ["ClassTrainerFrame"] = false },
 	Blizzard_VoidStorageUI = { ["VoidStorageFrame"] = false, ["VoidStorageBorderFrameMouseBlockFrame"] = "VoidStorageFrame" },
-	Blizzard_WeeklyRewards = { ["WeeklyRewardsFrame"] = false },
 }
 
 local function MouseDownHandler(frame, button)
@@ -161,9 +168,10 @@ local function HookFrame(name, moveParent)
 			end
 
 			if not parent then
-				print("Parent frame not found: " .. name)
+				K.Print("Parent frame not found: " .. name)
 				return
 			end
+
 			parentFrame[frame] = parent
 		end
 
@@ -175,8 +183,10 @@ local function HookFrame(name, moveParent)
 		frame:EnableMouse(true)
 		frame:SetMovable(true)
 		frame:SetClampedToScreen(false)
+
 		HookScript(frame, "OnMouseDown", MouseDownHandler)
 		HookScript(frame, "OnMouseUp", MouseUpHandler)
+
 		hooked[name] = true
 	end
 end
@@ -188,19 +198,12 @@ local function HookFrames(list)
 end
 
 local function InitSetup()
-	if not C["General"].MoveBlizzardFrames then
-		return
-	end
-
-	HookFrames(frames)
+	CharacterFrameMoveCheck()
 	IsFrameExists()
+	HookFrames(frames)
 end
 
 local function AddonLoaded(_, name)
-	if not C["General"].MoveBlizzardFrames then
-		return
-	end
-
 	local frameList = lodFrames[name]
 	if frameList then
 		HookFrames(frameList)

@@ -64,8 +64,11 @@ function M:CreateColorBorder()
 
 	local frame = CreateFrame("Frame", nil, self)
 	frame:SetAllPoints()
-	--self.colorBG = B.CreateSD(frame, 4, true)
-	--self.colorBG:SetFrameLevel(5)
+
+	self.colorBG = CreateFrame("Frame", nil, frame)
+	self.colorBG:StripTextures(4)
+	self.colorBG:SetFrameLevel(frame:GetFrameLevel())
+	self.colorBG:CreateBorder()
 end
 
 function M:CreateItemString(frame, strType)
@@ -95,10 +98,11 @@ end
 
 function M:ItemBorderSetColor(slotFrame, r, g, b)
 	if slotFrame.colorBG then
-		--slotFrame.colorBG:SetBackdropBorderColor(r, g, b)
+		slotFrame.colorBG.KKUI_Border:SetVertexColor(r, g, b)
 	end
+
 	if slotFrame.bg then
-		--slotFrame.bg:SetBackdropBorderColor(r, g, b)
+		slotFrame.bg.KKUI_Border:SetVertexColor(r, g, b)
 	end
 end
 
@@ -120,7 +124,7 @@ function M:ItemLevel_UpdateGemInfo(link, unit, index, slotFrame)
 				local gem = info.gems and info.gems[gemStep]
 				if gem then
 					texture:SetTexture(gem)
-					--bg:SetBackdropBorderColor(0, 0, 0)
+					bg.KKUI_Border:SetVertexColor(1, 1, 1)
 					bg:Show()
 
 					gemStep = gemStep + 1
@@ -178,7 +182,7 @@ function M:ItemLevel_SetupLevel(frame, strType, unit)
 			texture:SetTexture(nil)
 			texture.bg:Hide()
 		end
-		M:ItemBorderSetColor(slotFrame, 0, 0, 0)
+		M:ItemBorderSetColor(slotFrame, 1, 1, 1)
 
 		local itemTexture = GetInventoryItemTexture(unit, index)
 		if itemTexture then
@@ -228,9 +232,9 @@ local function AnchorInspectRotate()
 	InspectModelFrameRotateRightButton:ClearAllPoints()
 	InspectModelFrameRotateRightButton:SetPoint("BOTTOMLEFT", InspectFrameTab1, "TOPLEFT", 0, 2)
 
-	M.InspectILvl = K.CreateFontString(InspectPaperDollFrame, 12, "", "OUTLINE")
+	M.InspectILvl = K.CreateFontString(InspectPaperDollFrame, 12, "", "")
 	M.InspectILvl:ClearAllPoints()
-	M.InspectILvl:SetPoint("TOP", InspectLevelText, "BOTTOM", 0, -4)
+	M.InspectILvl:SetPoint("TOP", InspectLevelText, "BOTTOM", 0, -8)
 
 	anchored = true
 end

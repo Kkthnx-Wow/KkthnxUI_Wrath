@@ -35,10 +35,15 @@ local function UpdatePageBySpells()
 	end
 end
 
+local morePagesSpec = {
+	["WARRIOR"] = true,
+	["ROGUE"] = true,
+}
+
 function Module:SetupCustomBar(anchor)
 	local num = 12
 	local name = "KKUI_ActionBarX"
-	local page = K.Class == "WARRIOR" and 10 or 8
+	local page = morePagesSpec[K.Class] and 10 or 8
 
 	local frame = CreateFrame("Frame", name, UIParent, "SecureHandlerStateTemplate")
 	frame.mover = K.Mover(frame, L[name], "CustomBar", anchor)

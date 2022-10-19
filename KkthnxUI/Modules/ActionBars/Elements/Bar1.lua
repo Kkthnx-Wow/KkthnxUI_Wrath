@@ -153,6 +153,30 @@ function Module:CreateBar1()
 	]]
 	)
 	RegisterStateDriver(frame, "page", actionPage)
+
+	-- Fix button texture
+	local function FixActionBarTexture()
+		for _, button in next, buttonList do
+			local action = button.action
+			if action < 120 then
+				break
+			end
+
+			local icon = button.icon
+			local texture = GetActionTexture(action)
+			if texture then
+				icon:SetTexture(texture)
+				icon:Show()
+			else
+				icon:Hide()
+			end
+
+			Module.UpdateButtonStatus(button)
+		end
+	end
+	K:RegisterEvent("SPELL_UPDATE_ICON", FixActionBarTexture)
+	K:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR", FixActionBarTexture)
+	K:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR", FixActionBarTexture)
 end
 
 function Module:OnEnable()

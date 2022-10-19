@@ -172,7 +172,7 @@ function Bar:CreateAspectBar()
 	else
 		aspectFrame:SetSize(width, height)
 	end
-	aspectFrame.mover = K.Mover(aspectFrame, "AspectBar", "AspectBar", { "BOTTOMLEFT", 415, 25 })
+	aspectFrame.mover = K.Mover(aspectFrame, "AspectBar", "AspectBar", { "BOTTOM", 0, 164 })
 
 	Bar:ToggleAspectBar()
 end

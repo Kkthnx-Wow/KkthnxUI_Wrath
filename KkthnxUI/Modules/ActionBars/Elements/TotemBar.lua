@@ -55,7 +55,7 @@ function Bar:CreateTotemBar()
 	local margin = 6
 	local frame = CreateFrame("Frame", nil, UIParent)
 	frame:SetSize(iconSize * 6 + margin * 5, iconSize)
-	frame.Mover = K.Mover(frame, "TotemBar", "TotemBar", { "BOTTOM", UIParent, 0, 275 })
+	frame.Mover = K.Mover(frame, "TotemBar", "TotemBar", { "BOTTOM", 0, 164 })
 	--frame:ClearAllPoints()
 	frame:SetPoint("TOPLEFT", frame.Mover, -5, -6)
 	--K.Mover(frame, "TotemBar", "TotemBar", { "BOTTOM", UIParent, 0, 275 })
