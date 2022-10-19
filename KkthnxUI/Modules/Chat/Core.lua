@@ -29,6 +29,8 @@ local IsInGroup = _G.IsInGroup
 local IsInGuild = _G.IsInGuild
 local IsInRaid = _G.IsInRaid
 local IsShiftKeyDown = _G.IsShiftKeyDown
+local LE_PARTY_CATEGORY_HOME = _G.LE_PARTY_CATEGORY_HOME
+local LE_PARTY_CATEGORY_INSTANCE = _G.LE_PARTY_CATEGORY_INSTANCE
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
 local SetCVar = _G.SetCVar
 local UnitName = _G.UnitName
@@ -265,35 +267,36 @@ local cycles = {
 			return true
 		end,
 	},
-
 	{
 		chatType = "PARTY",
 		IsActive = function()
-			return IsInGroup()
+			return IsInGroup(LE_PARTY_CATEGORY_HOME)
 		end,
 	},
-
 	{
 		chatType = "RAID",
 		IsActive = function()
-			return IsInRaid()
+			return IsInRaid(LE_PARTY_CATEGORY_HOME)
 		end,
 	},
-
+	{
+		chatType = "INSTANCE_CHAT",
+		IsActive = function()
+			return IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
+		end,
+	},
 	{
 		chatType = "GUILD",
 		IsActive = function()
 			return IsInGuild()
 		end,
 	},
-
 	{
 		chatType = "OFFICER",
 		IsActive = function()
 			return C_GuildInfo_IsGuildOfficer()
 		end,
 	},
-
 	{
 		chatType = "CHANNEL",
 		IsActive = function(_, editbox)
@@ -303,7 +306,6 @@ local cycles = {
 			end
 		end,
 	},
-
 	{
 		chatType = "SAY",
 		IsActive = function()

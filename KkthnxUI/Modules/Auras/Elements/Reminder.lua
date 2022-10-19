@@ -29,6 +29,7 @@ function Module:Reminder_ConvertToName(cfg)
 			cache[name] = true
 		end
 	end
+
 	for name in pairs(cache) do
 		cfg.spells[name] = true
 	end
@@ -111,15 +112,14 @@ function Module:Reminder_Create(cfg)
 	frame.Icon:SetAllPoints()
 	frame.Icon:SetTexCoord(K.TexCoords[1], K.TexCoords[2], K.TexCoords[3], K.TexCoords[4])
 
-	local texture = cfg.texture
-	if not texture then
-		for spellID in pairs(cfg.spells) do
-			texture = GetSpellTexture(spellID)
+	if cfg.texture then
+		frame.Icon:SetTexture(cfg.texture)
+	else
+		for spell in pairs(cfg.spells) do
+			frame.Icon:SetTexture(GetSpellTexture(spell))
 			break
 		end
 	end
-	frame.Icon:SetTexture(texture)
-
 	frame:CreateBorder()
 
 	frame.text = frame:CreateFontString(nil, "OVERLAY")

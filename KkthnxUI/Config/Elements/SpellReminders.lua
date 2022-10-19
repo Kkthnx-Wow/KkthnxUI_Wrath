@@ -8,8 +8,10 @@ C.SpellReminderBuffs = {
 				[1459] = true,
 				[8096] = true, -- 智力卷轴
 				[23028] = true, -- 奥术光辉
-				[46302] = true, -- 基鲁的胜利之歌
+				[61316] = true, -- 达拉然光辉
+				--[46302] = true, -- 基鲁的胜利之歌
 			},
+			texture = GetSpellTexture(1459),
 			depend = 1459,
 			combat = true,
 			instance = true,
@@ -34,6 +36,7 @@ C.SpellReminderBuffs = {
 				[1243] = true,
 				[8099] = true, -- 耐力卷轴
 				[21562] = true, -- 坚韧祷言
+				--[46302] = true, -- 基鲁的胜利之歌
 			},
 			depend = 1243,
 			combat = true,
@@ -42,9 +45,11 @@ C.SpellReminderBuffs = {
 		},
 		{
 			spells = { -- 心灵之火
-				[588] = true,
+				[48168] = true,
 			},
-			depend = 588,
+			depend = 48168,
+			combat = true,
+			instance = true,
 			pvp = true,
 		},
 	},
@@ -69,10 +74,11 @@ C.SpellReminderBuffs = {
 	},
 	WARRIOR = {
 		{
-			spells = { -- 战斗怒吼
-				[6673] = true,
+			spells = {
+				[6673] = true, -- 战斗怒吼
+				[19740] = true, -- 力量祝福
 			},
-			depends = { 6673, 5242, 6192, 11549, 11550, 11551, 25289, 2048 },
+			depends = { 6673, 5242, 6192, 11549, 11550, 11551, 25289, 2048, 47436 },
 			gemini = {
 				[GetSpellInfo(469)] = true, -- 命令怒吼
 			},
@@ -129,13 +135,23 @@ C.SpellReminderBuffs = {
 	},
 	DEATHKNIGHT = {
 		{
-			spells = { -- 寒冬号角
-				[57330] = true,
+			spells = {
+				[57330] = true, -- 寒冬号角
+				[25527] = true, -- 大地之力图腾
 			},
 			depend = 57330,
 			combat = true,
 			instance = true,
 			pvp = true,
+		},
+	},
+	PALADIN = {
+		{
+			spells = { -- 正义之怒
+				[25780] = true,
+			},
+			depend = 20925,
+			instance = true,
 		},
 	},
 }
