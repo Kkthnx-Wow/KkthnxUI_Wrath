@@ -321,12 +321,13 @@ C["Minimap"] = {
 	},
 	["BlipTexture"] = {
 		["Options"] = {
-			["Default"] = "Interface\\MiniMap\\ObjectIconsAtlas",
 			["Blank"] = BlipMedia .. "Blip-Blank",
 			["Blizzard Big R"] = BlipMedia .. "Blip-BlizzardBigR",
 			["Blizzard Big"] = BlipMedia .. "Blip-BlizzardBig",
 			["Charmed"] = BlipMedia .. "Blip-Charmed",
+			["Default"] = "Interface\\MiniMap\\ObjectIconsAtlas",
 			["Glass Spheres"] = BlipMedia .. "Blip-GlassSpheres",
+			["Hunter Z Small"] = BlipMedia .. "Blip-HunterZSmall",
 			["Nandini New"] = BlipMedia .. "Blip-Nandini-New",
 			["Nandini"] = BlipMedia .. "Blip-Nandini",
 			["SolidSpheres"] = BlipMedia .. "Blip-SolidSpheres",
