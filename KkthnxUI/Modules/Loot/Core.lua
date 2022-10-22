@@ -11,17 +11,19 @@ local CreateFrame = _G.CreateFrame
 local CursorOnUpdate = _G.CursorOnUpdate
 local CursorUpdate = _G.CursorUpdate
 local GameTooltip = _G.GameTooltip
-local GetCursorPosition = _G.GetCursorPosition
 local GetCVar = _G.GetCVar
 local GetCVarBool = _G.GetCVarBool
+local GetCursorPosition = _G.GetCursorPosition
 local GetLootSlotInfo = _G.GetLootSlotInfo
 local GetLootSlotLink = _G.GetLootSlotLink
 local GetNumLootItems = _G.GetNumLootItems
+local ITEM_QUALITY_COLORS = _G.ITEM_QUALITY_COLORS
 local IsFishingLoot = _G.IsFishingLoot
 local IsModifiedClick = _G.IsModifiedClick
-local ITEM_QUALITY_COLORS = _G.ITEM_QUALITY_COLORS
 local LOOT = _G.LOOT
 local LootSlotHasItem = _G.LootSlotHasItem
+local MasterLooterFrame_Show = _G.MasterLooterFrame_Show
+local MasterLooterFrame_UpdatePlayers = _G.MasterLooterFrame_UpdatePlayers
 local ResetCursor = _G.ResetCursor
 local StaticPopup_Hide = _G.StaticPopup_Hide
 local TEXTURE_ITEM_QUEST_BANG = _G.TEXTURE_ITEM_QUEST_BANG
@@ -302,6 +304,16 @@ function Module.LOOT_OPENED(_, autoloot)
 	lootFrame:SetWidth(max(w, t))
 end
 
+function Module:OPEN_MASTER_LOOT_LIST()
+	MasterLooterFrame_Show(_G.LootFrame.selectedLootButton)
+end
+
+function Module:UPDATE_MASTER_LOOT_LIST()
+	if _G.LootFrame.selectedLootButton then
+		MasterLooterFrame_UpdatePlayers()
+	end
+end
+
 function Module:OnEnable()
 	if not C["Loot"].Enable then
 		return
@@ -327,14 +339,20 @@ function Module:OnEnable()
 	lootFrame.title:SetFontObject(K.UIFontOutline)
 	lootFrame.title:SetPoint("BOTTOMLEFT", lootFrame, "TOPLEFT", 0, 4)
 	lootFrame.slots = {}
-	lootFrame:SetScript("OnHide", function()
+	lootFrame:SetScript("OnHide", function() -- mimic LootFrame_OnHide, mostly
 		StaticPopup_Hide("CONFIRM_LOOT_DISTRIBUTION")
 		CloseLoot()
+
+		if _G.MasterLooterFrame then
+			_G.MasterLooterFrame:Hide()
+		end
 	end)
 
 	K:RegisterEvent("LOOT_OPENED", self.LOOT_OPENED)
 	K:RegisterEvent("LOOT_SLOT_CLEARED", self.LOOT_SLOT_CLEARED)
 	K:RegisterEvent("LOOT_CLOSED", self.LOOT_CLOSED)
+	K:RegisterEvent("OPEN_MASTER_LOOT_LIST", self.OPEN_MASTER_LOOT_LIST)
+	K:RegisterEvent("UPDATE_MASTER_LOOT_LIST", self.UPDATE_MASTER_LOOT_LIST)
 
 	if GetCVar("lootUnderMouse") == "0" then
 		K.Mover(lootFrameHolder, "LootFrame", "LootFrame", { "TOPLEFT", 36, -195 })
@@ -342,6 +360,9 @@ function Module:OnEnable()
 
 	LootFrame:UnregisterAllEvents()
 	table_insert(UISpecialFrames, "KKUI_LootFrame")
+
+	-- fix blizzard setpoint connection bs
+	hooksecurefunc(_G.MasterLooterFrame, "Hide", _G.MasterLooterFrame.ClearAllPoints)
 
 	self:CreateAutoConfirm()
 	self:CreateAutoGreed()

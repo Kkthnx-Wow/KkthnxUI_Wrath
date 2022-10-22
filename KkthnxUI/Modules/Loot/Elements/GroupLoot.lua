@@ -73,8 +73,8 @@ local function SetTip(frame)
 	GameTooltip:Show()
 end
 
-local function SetItemTip(frame)
-	if not frame.link then
+local function SetItemTip(frame, event)
+	if not frame.rollID or (event == "MODIFIER_STATE_CHANGED" and not frame:IsMouseOver()) then
 		return
 	end
 
@@ -125,7 +125,7 @@ local function StatusUpdate(frame, elapsed)
 		return
 	end
 
-	if frame.elapsed and frame.elapsed > 0.5 then
+	if frame.elapsed and frame.elapsed > 0.1 then
 		frame:SetValue(GetLootRollTimeLeft(frame.parent.rollID))
 		frame.elapsed = 0
 	else
@@ -151,6 +151,7 @@ local function CreateRollButton(parent, ntex, ptex, htex, rolltype, tiptext, ...
 	f:SetScript("OnLeave", HideTip)
 	f:SetScript("OnClick", ClickRoll)
 	f:SetMotionScriptsWhileDisabled(true)
+	f:SetHitRectInsets(3, 3, 3, 3)
 
 	local txt = f:CreateFontString(nil, nil)
 	txt:SetFontObject(K.UIFontOutline)
@@ -230,6 +231,8 @@ function Module:CreateRollFrame()
 	frame.fsloot = loot
 
 	frame.rolls = {}
+
+	-- tinsert(Module.RollBars, frame)
 
 	return frame
 end
