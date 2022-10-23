@@ -168,7 +168,7 @@ local function createSlot(id)
 	return frame
 end
 
-function Module.LOOT_SLOT_CLEARED(_, slot)
+function Module:LOOT_SLOT_CLEARED(_, slot)
 	if not lootFrame:IsShown() then
 		return
 	end
@@ -180,7 +180,7 @@ function Module.LOOT_SLOT_CLEARED(_, slot)
 	anchorSlots(lootFrame)
 end
 
-function Module.LOOT_CLOSED()
+function Module:LOOT_CLOSED()
 	StaticPopup_Hide("LOOT_BIND")
 	lootFrame:Hide()
 
@@ -189,7 +189,7 @@ function Module.LOOT_CLOSED()
 	end
 end
 
-function Module.LOOT_OPENED(_, autoloot)
+function Module:LOOT_OPENED(_, autoloot)
 	lootFrame:Show()
 
 	if not lootFrame:IsShown() then
@@ -225,7 +225,7 @@ function Module.LOOT_OPENED(_, autoloot)
 		for i = 1, items do
 			local slot = lootFrame.slots[i] or createSlot(i)
 			local textureID, item, quantity, _, quality, _, isQuestItem, questId, isActive = GetLootSlotInfo(i)
-			local color = ITEM_QUALITY_COLORS[quality]
+			local color = ITEM_QUALITY_COLORS[quality or 0]
 
 			if coinTextureIDs[textureID] then
 				item = item:gsub("\n", ", ")
@@ -247,10 +247,8 @@ function Module.LOOT_OPENED(_, autoloot)
 
 			slot.quality = quality
 			slot.name:SetText(item)
-			if color then
-				slot.name:SetTextColor(color.r, color.g, color.b)
-				slot.iconFrame.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
-			end
+			slot.name:SetTextColor(color.r, color.g, color.b)
+			slot.iconFrame.KKUI_Border:SetVertexColor(color.r, color.g, color.b)
 			slot.icon:SetTexture(textureID)
 
 			if quality then
@@ -282,9 +280,7 @@ function Module.LOOT_OPENED(_, autoloot)
 		local color = ITEM_QUALITY_COLORS[0]
 
 		slot.name:SetText(L["Empty Slot"])
-		if color then
-			slot.name:SetTextColor(color.r, color.g, color.b)
-		end
+		slot.name:SetTextColor(color.r, color.g, color.b)
 		slot.icon:SetTexture([[Interface\Icons\INV_Misc_Herb_AncientLichen]])
 
 		w = max(w, slot.name:GetStringWidth())
