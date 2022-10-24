@@ -91,15 +91,10 @@ function module:UpdateMapID()
 end
 
 function module:SetupCoords()
-	local coordsFrame = CreateFrame("FRAME", nil, WorldMapFrame.ScrollContainer)
+	local coordsFrame = CreateFrame("FRAME", nil, WorldMapFrame.BorderFrame)
 	coordsFrame:SetSize(WorldMapFrame:GetWidth(), 17)
-	coordsFrame:SetPoint("BOTTOMLEFT", 17)
+	coordsFrame:SetPoint("BOTTOMLEFT", 11, 9)
 	coordsFrame:SetPoint("BOTTOMRIGHT", 0)
-
-	coordsFrame.Texture = coordsFrame:CreateTexture(nil, "BACKGROUND")
-	coordsFrame.Texture:SetAllPoints()
-	coordsFrame.Texture:SetTexture(C["Media"].Textures.BlankTexture)
-	coordsFrame.Texture:SetVertexColor(0.04, 0.04, 0.04, 0.5)
 
 	playerCoords = K.CreateFontString(coordsFrame, 13, "", "", false, "BOTTOMRIGHT", -132, 1)
 	cursorCoords = K.CreateFontString(coordsFrame, 13, "", "", false, "BOTTOMLEFT", 152, 1)
@@ -292,14 +287,15 @@ function module:MapData_ResetTexturePool(texture)
 end
 
 function module:RemoveMapFog()
-	local bu = CreateFrame("CheckButton", nil, WorldMapFrame, "OptionsCheckButtonTemplate")
+	local bu = CreateFrame("CheckButton", nil, WorldMapFrame.BorderFrame, "OptionsCheckButtonTemplate")
 	bu:SetHitRectInsets(-5, -5, -5, -5)
-	bu:SetPoint("TOPRIGHT", -290, -78)
-	bu:SetSize(16, 16)
-	bu:SkinCheckBox(nil, nil, C["General"].BorderStyle.Value ~= "KkthnxUI_Pixel" and 24 or nil, nil, -8, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	bu:SetPoint("TOPRIGHT", -260, 0)
+	bu:SetSize(24, 24)
 	bu:SetChecked(KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap)
-	bu:SetFrameLevel(WorldMapFrameCloseButton:GetFrameLevel() + 2)
-	bu.text = K.CreateFontString(bu, 13, "Map Reveal", "", false, "LEFT", 25, 0)
+
+	bu.text = bu:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	bu.text:SetPoint("LEFT", 24, 0)
+	bu.text:SetText("Map Reveal")
 
 	for pin in WorldMapFrame:EnumeratePinsByTemplate("MapExplorationPinTemplate") do
 		hooksecurefunc(pin, "RefreshOverlays", module.MapData_RefreshOverlays)
@@ -315,7 +311,7 @@ function module:RemoveMapFog()
 	end)
 end
 
-function module:SetupWorldMap()
+function module:OnEnable()
 	-- if C.db["Map"]["DisableMap"] then
 	-- 	return
 	-- end
@@ -370,9 +366,4 @@ function module:SetupWorldMap()
 	self:SetupCoords()
 	self:MapFader()
 	self:RemoveMapFog()
-end
-
-function module:OnEnable()
-	self:SetupWorldMap()
-	--self:SetupMinimap()
 end
