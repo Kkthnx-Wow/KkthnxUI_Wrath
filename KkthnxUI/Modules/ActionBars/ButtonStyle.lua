@@ -233,13 +233,6 @@ function Module:UpdateHotKey()
 	end
 end
 
-function Module:HookHotKey(button)
-	Module.UpdateHotKey(button)
-	if button.UpdateHotkeys then
-		hooksecurefunc(button, "UpdateHotkeys", Module.UpdateHotKey)
-	end
-end
-
 function Module:UpdateEquipItemColor()
 	if not self.KKUI_Border then
 		return
@@ -254,13 +247,6 @@ function Module:UpdateEquipItemColor()
 			self.KKUI_Border:SetVertexColor(1, 1, 1)
 		end
 	end
-end
-
-function Module:EquipItemColor(button)
-	if not button.Update then
-		return
-	end
-	hooksecurefunc(button, "Update", Module.UpdateEquipItemColor)
 end
 
 function Module:StyleActionButton(button, cfg)
@@ -318,7 +304,6 @@ function Module:StyleActionButton(button, cfg)
 	-- Backdrop
 	button:CreateBorder(nil, nil, nil, nil, nil, nil, nil, nil, nil, K.MediaFolder .. "Skins\\UI-Slot-Background", nil, nil, nil, 0.7, 0.7, 0.7)
 	button:StyleButton()
-	Module:EquipItemColor(button)
 
 	-- Textures
 	SetupTexture(icon, cfg.icon, "SetTexture", icon)
@@ -351,7 +336,7 @@ function Module:StyleActionButton(button, cfg)
 
 	if hotkey then
 		hotkey:SetParent(overlay)
-		Module:HookHotKey(button)
+		Module.UpdateHotKey(button)
 		SetupFontString(hotkey, cfg.hotkey)
 	end
 
@@ -430,7 +415,7 @@ end
 function Module:UpdateStanceHotKey()
 	for i = 1, NUM_STANCE_SLOTS do
 		_G["StanceButton" .. i .. "HotKey"]:SetText(GetBindingKey("SHAPESHIFTBUTTON" .. i))
-		Module:HookHotKey(_G["StanceButton" .. i])
+		Module.UpdateHotKey(_G["StanceButton" .. i])
 	end
 end
 
@@ -544,7 +529,10 @@ function Module:CreateBarSkin()
 	Module:StyleAllActionButtons(cfg)
 
 	-- Update hotkeys
+	hooksecurefunc("ActionButton_UpdateHotkeys", Module.UpdateHotKey)
 	hooksecurefunc("PetActionButton_SetHotkeys", Module.UpdateHotKey)
 	Module:UpdateStanceHotKey()
 	K:RegisterEvent("UPDATE_BINDINGS", Module.UpdateStanceHotKey)
+	-- Equip item
+	hooksecurefunc("ActionButton_Update", Module.UpdateEquipItemColor)
 end
