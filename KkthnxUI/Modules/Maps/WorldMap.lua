@@ -1,23 +1,20 @@
 local K, C = unpack(KkthnxUI)
-local module = K:NewModule("WorldMap")
+local Module = K:NewModule("WorldMap")
 
-local select, wipe, strmatch, gmatch, tinsert, pairs = select, wipe, strmatch, gmatch, tinsert, pairs
-local tonumber, format, ceil, mod = tonumber, format, ceil, mod
-local WorldMapFrame = WorldMapFrame
+local select, tinsert = select, tinsert
 local CreateVector2D = CreateVector2D
 local UnitPosition = UnitPosition
-local C_Map_GetMapArtID = C_Map.GetMapArtID
-local C_Map_GetMapArtLayers = C_Map.GetMapArtLayers
 local C_Map_GetBestMapForUnit = C_Map.GetBestMapForUnit
 local C_Map_GetWorldPosFromMapPos = C_Map.GetWorldPosFromMapPos
-local C_MapExplorationInfo_GetExploredMapTextures = C_MapExplorationInfo.GetExploredMapTextures
-local TexturePool_HideAndClearAnchors = TexturePool_HideAndClearAnchors
 
 local mapRects = {}
 local tempVec2D = CreateVector2D(0, 0)
-local currentMapID, playerCoords, cursorCoords
+local currentMapID
+local playerCoords
+local cursorCoords
+local setMapScale = 0.8
 
-function module:GetPlayerMapPos(mapID)
+function Module:GetPlayerMapPos(mapID)
 	if not mapID then
 		return
 	end
@@ -40,7 +37,7 @@ function module:GetPlayerMapPos(mapID)
 	return tempVec2D.y / mapRect[2].y, tempVec2D.x / mapRect[2].x
 end
 
-function module:GetCursorCoords()
+function Module:GetCursorCoords()
 	if not WorldMapFrame.ScrollContainer:IsMouseOver() then
 		return
 	end
@@ -57,10 +54,10 @@ local function CoordsFormat(owner, none)
 	return owner .. K.MyClassColor .. text
 end
 
-function module:UpdateCoords(elapsed)
+function Module:UpdateCoords(elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	if self.elapsed > 0.1 then
-		local cursorX, cursorY = module:GetCursorCoords()
+		local cursorX, cursorY = Module:GetCursorCoords()
 		if cursorX and cursorY then
 			cursorCoords:SetFormattedText(CoordsFormat("Cursor"), 100 * cursorX, 100 * cursorY)
 		else
@@ -70,7 +67,7 @@ function module:UpdateCoords(elapsed)
 		if not currentMapID then
 			playerCoords:SetText(CoordsFormat(PLAYER, true))
 		else
-			local x, y = module:GetPlayerMapPos(currentMapID)
+			local x, y = Module:GetPlayerMapPos(currentMapID)
 			if not x or (x == 0 and y == 0) then
 				playerCoords:SetText(CoordsFormat(PLAYER, true))
 			else
@@ -82,7 +79,7 @@ function module:UpdateCoords(elapsed)
 	end
 end
 
-function module:UpdateMapID()
+function Module:UpdateMapID()
 	if self:GetMapID() == C_Map_GetBestMapForUnit("player") then
 		currentMapID = self:GetMapID()
 	else
@@ -90,7 +87,7 @@ function module:UpdateMapID()
 	end
 end
 
-function module:SetupCoords()
+function Module:SetupCoords()
 	local coordsFrame = CreateFrame("FRAME", nil, WorldMapFrame.BorderFrame)
 	coordsFrame:SetSize(WorldMapFrame:GetWidth(), 17)
 	coordsFrame:SetPoint("BOTTOMLEFT", 11, 9)
@@ -99,15 +96,14 @@ function module:SetupCoords()
 	playerCoords = K.CreateFontString(coordsFrame, 13, "", "", false, "BOTTOMRIGHT", -132, 1)
 	cursorCoords = K.CreateFontString(coordsFrame, 13, "", "", false, "BOTTOMLEFT", 152, 1)
 
-	hooksecurefunc(WorldMapFrame, "OnFrameSizeChanged", module.UpdateMapID)
-	hooksecurefunc(WorldMapFrame, "OnMapChanged", module.UpdateMapID)
+	hooksecurefunc(WorldMapFrame, "OnFrameSizeChanged", Module.UpdateMapID)
+	hooksecurefunc(WorldMapFrame, "OnMapChanged", Module.UpdateMapID)
 
 	local CoordsUpdater = CreateFrame("Frame", nil, WorldMapFrame)
-	CoordsUpdater:SetScript("OnUpdate", module.UpdateCoords)
+	CoordsUpdater:SetScript("OnUpdate", Module.UpdateCoords)
 end
 
-local setMapScale = 0.7
-function module:UpdateMapScale()
+function Module:UpdateMapScale()
 	if self.isMaximized and self:GetScale() ~= 1 then
 		self:SetScale(1)
 	elseif not self.isMaximized and self:GetScale() ~= setMapScale then
@@ -115,8 +111,8 @@ function module:UpdateMapScale()
 	end
 end
 
-function module:UpdateMapAnchor()
-	module.UpdateMapScale(self)
+function Module:UpdateMapAnchor()
+	Module.UpdateMapScale(self)
 	if not self.isMaximized then
 		K.RestoreMoverFrame(self)
 	end
@@ -126,7 +122,7 @@ local function isMouseOverMap()
 	return not WorldMapFrame:IsMouseOver()
 end
 
-function module:MapFader()
+function Module:MapFader()
 	if C["WorldMap"].FadeWhenMoving then
 		PlayerMovementFrameFader.AddDeferredFrame(WorldMapFrame, 0.5, 1, 0.5, isMouseOverMap)
 	else
@@ -134,9 +130,8 @@ function module:MapFader()
 	end
 end
 
-function module:MapPartyDots()
+function Module:MapPartyDots()
 	local WorldMapUnitPin, WorldMapUnitPinSizes
-	--local partyTexture = "WhiteCircle-RaidBlips"
 	local partyTexture = "Interface\\OptionsFrame\\VoiceChat-Record"
 
 	local function setPinTexture(self)
@@ -161,160 +156,11 @@ function module:MapPartyDots()
 	WorldMapUnitPin:SynchronizePinSizes()
 end
 
-local shownMapCache, exploredCache, fileDataIDs = {}, {}, {}
-
-local function GetStringFromInfo(info)
-	return format("W%dH%dX%dY%d", info.textureWidth, info.textureHeight, info.offsetX, info.offsetY)
-end
-
-local function GetShapesFromString(str)
-	local w, h, x, y = strmatch(str, "W(%d*)H(%d*)X(%d*)Y(%d*)")
-	return tonumber(w), tonumber(h), tonumber(x), tonumber(y)
-end
-
-local function RefreshFileIDsByString(str)
-	wipe(fileDataIDs)
-
-	for fileID in gmatch(str, "%d+") do
-		tinsert(fileDataIDs, fileID)
-	end
-end
-
-function module:MapData_RefreshOverlays(fullUpdate)
-	wipe(shownMapCache)
-	wipe(exploredCache)
-
-	local mapID = WorldMapFrame.mapID
-	if not mapID then
+function Module:OnEnable()
+	if not C["WorldMap"].SmallWorldMap then
 		return
 	end
 
-	local mapArtID = C_Map_GetMapArtID(mapID)
-	local mapData = mapArtID and C.WorldMapPlusData[mapArtID]
-	if not mapData then
-		return
-	end
-
-	local exploredMapTextures = C_MapExplorationInfo_GetExploredMapTextures(mapID)
-	if exploredMapTextures then
-		for _, exploredTextureInfo in pairs(exploredMapTextures) do
-			exploredCache[GetStringFromInfo(exploredTextureInfo)] = true
-		end
-	end
-
-	if not self.layerIndex then
-		self.layerIndex = WorldMapFrame.ScrollContainer:GetCurrentLayerIndex()
-	end
-	local layers = C_Map_GetMapArtLayers(mapID)
-	local layerInfo = layers and layers[self.layerIndex]
-	if not layerInfo then
-		return
-	end
-
-	local TILE_SIZE_WIDTH = layerInfo.tileWidth
-	local TILE_SIZE_HEIGHT = layerInfo.tileHeight
-
-	-- Blizzard_SharedMapDataProviders\MapExplorationDataProvider: MapExplorationPinMixin:RefreshOverlays
-	for i, exploredInfoString in pairs(mapData) do
-		if not exploredCache[i] then
-			local width, height, offsetX, offsetY = GetShapesFromString(i)
-			RefreshFileIDsByString(exploredInfoString)
-			local numTexturesWide = ceil(width / TILE_SIZE_WIDTH)
-			local numTexturesTall = ceil(height / TILE_SIZE_HEIGHT)
-			local texturePixelWidth, textureFileWidth, texturePixelHeight, textureFileHeight
-
-			for j = 1, numTexturesTall do
-				if j < numTexturesTall then
-					texturePixelHeight = TILE_SIZE_HEIGHT
-					textureFileHeight = TILE_SIZE_HEIGHT
-				else
-					texturePixelHeight = mod(height, TILE_SIZE_HEIGHT)
-					if texturePixelHeight == 0 then
-						texturePixelHeight = TILE_SIZE_HEIGHT
-					end
-					textureFileHeight = 16
-					while textureFileHeight < texturePixelHeight do
-						textureFileHeight = textureFileHeight * 2
-					end
-				end
-				for k = 1, numTexturesWide do
-					local texture = self.overlayTexturePool:Acquire()
-					if k < numTexturesWide then
-						texturePixelWidth = TILE_SIZE_WIDTH
-						textureFileWidth = TILE_SIZE_WIDTH
-					else
-						texturePixelWidth = width % TILE_SIZE_WIDTH
-						if texturePixelWidth == 0 then
-							texturePixelWidth = TILE_SIZE_WIDTH
-						end
-						textureFileWidth = 16
-						while textureFileWidth < texturePixelWidth do
-							textureFileWidth = textureFileWidth * 2
-						end
-					end
-					texture:SetWidth(texturePixelWidth)
-					texture:SetHeight(texturePixelHeight)
-					texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight)
-					texture:SetPoint("TOPLEFT", offsetX + (TILE_SIZE_WIDTH * (k - 1)), -(offsetY + (TILE_SIZE_HEIGHT * (j - 1))))
-					texture:SetTexture(fileDataIDs[((j - 1) * numTexturesWide) + k], nil, nil, "TRILINEAR")
-
-					if KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap then
-						texture:SetVertexColor(0.7, 0.7, 0.7)
-						if C["WorldMap"].MapRevealGlow then
-							texture:SetVertexColor(0.7, 0.7, 0.7)
-						else
-							texture:SetVertexColor(1, 1, 1)
-						end
-						texture:SetDrawLayer("ARTWORK", -1)
-						texture:Show()
-						if fullUpdate then
-							self.textureLoadGroup:AddTexture(texture)
-						end
-					else
-						texture:Hide()
-					end
-					tinsert(shownMapCache, texture)
-				end
-			end
-		end
-	end
-end
-
-function module:MapData_ResetTexturePool(texture)
-	texture:SetVertexColor(1, 1, 1)
-	texture:SetAlpha(1)
-	return TexturePool_HideAndClearAnchors(self, texture)
-end
-
-function module:RemoveMapFog()
-	local bu = CreateFrame("CheckButton", nil, WorldMapFrame.BorderFrame, "OptionsCheckButtonTemplate")
-	bu:SetHitRectInsets(-5, -5, -5, -5)
-	bu:SetPoint("TOPRIGHT", -260, 0)
-	bu:SetSize(24, 24)
-	bu:SetChecked(KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap)
-
-	bu.text = bu:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	bu.text:SetPoint("LEFT", 24, 0)
-	bu.text:SetText("Map Reveal")
-
-	for pin in WorldMapFrame:EnumeratePinsByTemplate("MapExplorationPinTemplate") do
-		hooksecurefunc(pin, "RefreshOverlays", module.MapData_RefreshOverlays)
-		pin.overlayTexturePool.resetterFunc = module.MapData_ResetTexturePool
-	end
-
-	bu:SetScript("OnClick", function(self)
-		KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap = self:GetChecked()
-
-		for i = 1, #shownMapCache do
-			shownMapCache[i]:SetShown(KkthnxUIDB.Variables[K.Realm][K.Name].RevealWorldMap)
-		end
-	end)
-end
-
-function module:OnEnable()
-	-- if C.db["Map"]["DisableMap"] then
-	-- 	return
-	-- end
 	if IsAddOnLoaded("Mapster") then
 		return
 	end
@@ -362,8 +208,8 @@ function module:OnEnable()
 	end
 	tinsert(UISpecialFrames, "WorldMapFrame")
 
+	self:CreateWorldMapReveal()
+	self:MapFader()
 	self:MapPartyDots()
 	self:SetupCoords()
-	self:MapFader()
-	self:RemoveMapFog()
 end
