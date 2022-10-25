@@ -9,6 +9,7 @@ local unpack = _G.unpack
 local CAPSLOCK_KEY_TEXT = _G.CAPSLOCK_KEY_TEXT
 local ExtraActionButton1 = _G.ExtraActionButton1
 local GetBindingKey = _G.GetBindingKey
+local KEY_BACKSPACE = _G.KEY_BACKSPACE
 local KEY_BUTTON3 = _G.KEY_BUTTON3
 local KEY_BUTTON4 = _G.KEY_BUTTON4
 local KEY_MOUSEWHEELDOWN = _G.KEY_MOUSEWHEELDOWN
@@ -212,11 +213,7 @@ local replaces = {
 	{ KEY_PAGEDOWN, "PD" },
 	{ KEY_PAGEUP, "PU" },
 	{ KEY_SPACE, "Sp" },
-	{ "PLUS", "%+" },
-	{ "MINUS", "%-" },
-	{ "MULTIPLY", "%*" },
-	{ "DIVIDE", "%/" },
-	{ "BACKSPACE", "BS" },
+	{ KEY_BACKSPACE, "BS" },
 }
 
 function Module:UpdateHotKey()
