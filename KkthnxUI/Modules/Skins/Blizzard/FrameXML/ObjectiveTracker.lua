@@ -32,6 +32,10 @@ function S:ExtQuestLogFrame()
 	-- Move ClassicCodex
 	if CodexQuest then
 		local buttonShow = CodexQuest.buttonShow
+		if not buttonShow then
+			return
+		end
+
 		buttonShow:SetWidth(55)
 		buttonShow:SetText(K.InfoColor .. SHOW)
 
@@ -59,6 +63,10 @@ function S:QuestLogLevel()
 
 	for i = 1, QUESTS_DISPLAYED, 1 do
 		questLogTitle = buttons[i]
+		if not questLogTitle then -- precaution for other addons
+			break
+		end
+
 		questIndex = i + scrollOffset
 		questTitleTag = questLogTitle.tag
 		questNumGroupMates = questLogTitle.groupMates
@@ -171,4 +179,30 @@ function S:QuestTracker()
 
 	S:ExtQuestLogFrame()
 	hooksecurefunc("QuestLog_Update", S.QuestLogLevel)
+	hooksecurefunc(QuestLogListScrollFrame, "update", S.QuestLogLevel)
+
+	-- Extend the wrap text on WatchFrame, needs review
+	hooksecurefunc("WatchFrame_SetLine", function(line)
+		if not line.text then
+			return
+		end
+
+		local height = line:GetHeight()
+		if height > 28 and height < 34 then
+			line:SetHeight(34)
+			line.text:SetHeight(34)
+		end
+	end)
+
+	-- Allow to send quest name
+	hooksecurefunc("WatchFrameLinkButtonTemplate_OnClick", function(self)
+		if IsModifiedClick("CHATLINK") and ChatEdit_GetActiveWindow() then
+			if self.type == "QUEST" then
+				local name, level = GetQuestLogTitle(GetQuestIndexForWatch(self.index))
+				if name then
+					ChatEdit_InsertLink("[" .. name .. "]")
+				end
+			end
+		end
+	end)
 end
