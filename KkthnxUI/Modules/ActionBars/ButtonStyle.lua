@@ -7,20 +7,22 @@ local string_gsub = _G.string.gsub
 local unpack = _G.unpack
 
 local CAPSLOCK_KEY_TEXT = _G.CAPSLOCK_KEY_TEXT
+local ExtraActionButton1 = _G.ExtraActionButton1
 local GetBindingKey = _G.GetBindingKey
 local KEY_BUTTON3 = _G.KEY_BUTTON3
 local KEY_BUTTON4 = _G.KEY_BUTTON4
 local KEY_MOUSEWHEELDOWN = _G.KEY_MOUSEWHEELDOWN
 local KEY_MOUSEWHEELUP = _G.KEY_MOUSEWHEELUP
 local KEY_NUMPAD1 = _G.KEY_NUMPAD1
+local KEY_PAGEDOWN = _G.KEY_PAGEDOWN
+local KEY_PAGEUP = _G.KEY_PAGEUP
 local KEY_SPACE = _G.KEY_SPACE
-local hooksecurefunc = _G.hooksecurefunc
-local RANGE_INDICATOR = _G.RANGE_INDICATOR
-local ExtraActionButton1 = _G.ExtraActionButton1
 local NUM_ACTIONBAR_BUTTONS = _G.NUM_ACTIONBAR_BUTTONS
 local NUM_PET_ACTION_SLOTS = _G.NUM_PET_ACTION_SLOTS
-local NUM_STANCE_SLOTS = _G.NUM_STANCE_SLOTS
 local NUM_POSSESS_SLOTS = _G.NUM_POSSESS_SLOTS
+local NUM_STANCE_SLOTS = _G.NUM_STANCE_SLOTS
+local RANGE_INDICATOR = _G.RANGE_INDICATOR
+local hooksecurefunc = _G.hooksecurefunc
 
 local function CallButtonFunctionByName(button, func, ...)
 	if button and func and button[func] then
@@ -192,22 +194,29 @@ local keyNumpad = string_gsub(KEY_NUMPAD1, "%d", "")
 local replaces = {
 	{ "(" .. keyButton .. ")", "M" },
 	{ "(" .. keyNumpad .. ")", "N" },
-	{ "(a%-)", "a" },
-	{ "(c%-)", "c" },
-	{ "(s%-)", "s" },
-	{ KEY_BUTTON3, "M3" },
-	{ KEY_MOUSEWHEELUP, "MU" },
-	{ KEY_MOUSEWHEELDOWN, "MD" },
-	{ KEY_SPACE, "Sp" },
-	{ CAPSLOCK_KEY_TEXT, "CL" },
-	{ "BUTTON", "M" },
-	{ "NUMPAD", "N" },
 	{ "(ALT%-)", "a" },
 	{ "(CTRL%-)", "c" },
 	{ "(SHIFT%-)", "s" },
-	{ "MOUSEWHEELUP", "MU" },
+	{ "(a%-)", "a" },
+	{ "(c%-)", "c" },
+	{ "(s%-)", "s" },
+	{ "BUTTON", "M" },
 	{ "MOUSEWHEELDOWN", "MD" },
+	{ "MOUSEWHEELUP", "MU" },
+	{ "NUMPAD", "N" },
 	{ "SPACE", "Sp" },
+	{ CAPSLOCK_KEY_TEXT, "CL" },
+	{ KEY_BUTTON3, "M3" },
+	{ KEY_MOUSEWHEELDOWN, "MD" },
+	{ KEY_MOUSEWHEELUP, "MU" },
+	{ KEY_PAGEDOWN, "PD" },
+	{ KEY_PAGEUP, "PU" },
+	{ KEY_SPACE, "Sp" },
+	{ "PLUS", "%+" },
+	{ "MINUS", "%-" },
+	{ "MULTIPLY", "%*" },
+	{ "DIVIDE", "%/" },
+	{ "BACKSPACE", "BS" },
 }
 
 function Module:UpdateHotKey()
